@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,7 +14,7 @@ body {
   margin: 12px;
   background:#fff;
   overflow-x:hidden;
-  padding-bottom: 110px;
+  padding-bottom: 130px;
 }
 
 .panel {
@@ -37,6 +39,12 @@ input, select {
   padding:10px;
   font-size:16px;
   box-sizing:border-box;
+}
+
+label {
+  font-size:13px;
+  color:#333;
+  margin-bottom:2px;
 }
 
 #linearWrap {
@@ -70,11 +78,29 @@ button:disabled {
   cursor:not-allowed;
 }
 
+.primaryBtn {
+  background:#333;
+  color:#fff;
+}
+
 .btnRow {
   display:flex;
   flex-direction:column;
   gap:8px;
   margin-top:6px;
+}
+
+.modeButtons {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.fieldBlock {
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  margin-bottom:8px;
 }
 
 .grid {
@@ -152,21 +178,25 @@ button:disabled {
   color:#333;
 }
 
+.simpleBox {
+  border:1px solid rgba(0,0,0,0.12);
+  border-radius:10px;
+  padding:10px;
+  background:#fafafa;
+}
+
 #step5_rejects {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-
   background: #fff;
   border-top: 1px solid rgba(0,0,0,0.12);
-
   padding: 10px 12px;
   z-index: 1000;
-
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .step5Buttons {
@@ -189,7 +219,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v5.0)
+      Pack Visualiser (v5.1)
     </h3>
   </div>
 
@@ -202,12 +232,23 @@ button:disabled {
 
 <div class="panel">
 
-  <div id="modeBlock">
+  <div id="step0_entry">
+    <div class="fieldBlock">
+      <label>What do you want to do?</label>
+      <div class="modeButtons">
+        <button class="primaryBtn" onclick="setEntryMode('pack_visualiser')">Pack Visualiser</button>
+        <button onclick="setEntryMode('moulder_rejects')">Log Moulder Rejects</button>
+        <button onclick="setEntryMode('paint_room_rejects')">Log Paint Room Rejects</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modeBlock" class="hidden">
     <label>Target Total is measured in:</label>
     <select id="mode"></select>
   </div>
 
-  <div id="step1_boards" class="step">
+  <div id="step1_boards" class="step hidden">
 
     <div id="boardsWrap">
       <input id="boards" type="number" placeholder="Quantity of Boards Required" />
@@ -225,7 +266,7 @@ button:disabled {
   </div>
 
   <div id="step3_yield" class="step hidden">
-    <label>Yield (when bandsawing)</label>
+    <label>Yield when bandsawing</label>
     <select id="yield"></select>
   </div>
 
@@ -235,18 +276,45 @@ button:disabled {
 
   <div id="step5_rejects" class="step hidden step5Bar">
     <select id="rejects"></select>
+    <select id="defectType"></select>
+    <input id="packId" type="text" placeholder="Pack ID used" />
 
     <div class="step5Buttons">
       <button onclick="prevStep()">Back</button>
       <button onclick="resetAll()">Reset</button>
-      <button id="saveBtn" onclick="saveToRejectLog()">Save Rejects</button>
+      <button id="saveBtn" onclick="saveToRejectLog()">Save</button>
     </div>
+  </div>
+
+  <div id="simpleLogger" class="hidden simpleBox">
+    <div class="fieldBlock">
+      <label id="simpleLoggerTitle">Log Rejects</label>
+    </div>
+
+    <div class="fieldBlock">
+      <label>Reject quantity</label>
+      <input id="simpleRejectQty" type="number" min="0" step="1" placeholder="Number of reject boards" />
+    </div>
+
+    <div class="fieldBlock">
+      <label>Reject type</label>
+      <select id="simpleDefectType"></select>
+    </div>
+
+    <div class="fieldBlock">
+      <label>Pack ID used</label>
+      <input id="simplePackId" type="text" placeholder="Pack ID used" />
+    </div>
+
+    <button id="simpleSaveBtn" class="primaryBtn" onclick="saveToRejectLog()">Save</button>
+    <button onclick="returnToMenu()">Back to menu</button>
   </div>
 
   <div class="btnRow">
     <button id="nextBtn" onclick="nextStep()">Next</button>
     <button id="backBtn" onclick="prevStep()">Back</button>
     <button onclick="resetAll()">Reset</button>
+    <button onclick="returnToMenu()">Back to menu</button>
   </div>
 
 </div>
@@ -256,7 +324,8 @@ button:disabled {
 <div class="grid" id="grid"></div>
 
 <script>
-let step = 1;
+let step = 0;
+let currentEntryMode = "";
 
 const REJECT_LOG_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
 
@@ -265,7 +334,73 @@ const urlParams = new URLSearchParams(window.location.search);
 const jobContext = {
   productionRow: urlParams.get("row") || "",
   jobNo: urlParams.get("jobNo") || "",
-  sheetJob: urlParams.get("sheetJob") || urlParams.get("job") || ""
+  sheetJob: urlParams.get("sheetJob") || urlParams.get("job") || "",
+  packId: urlParams.get("packId") || ""
+};
+
+const ENTRY_MODES = {
+  pack_visualiser: {
+    label: "Pack Visualiser",
+    processStage: "Pre Process",
+    rejectColumn: "preProcess",
+    usesVisualiser: true
+  },
+  moulder_rejects: {
+    label: "Log Moulder Rejects",
+    processStage: "Moulder",
+    rejectColumn: "machine",
+    usesVisualiser: false
+  },
+  paint_room_rejects: {
+    label: "Log Paint Room Rejects",
+    processStage: "Paint Room",
+    rejectColumn: "machine",
+    usesVisualiser: false
+  }
+};
+
+const DEFECT_LISTS = {
+  pack_visualiser: [
+    "Forklift Damage",
+    "Cracked Board",
+    "Embedded Stones",
+    "Shakey Board",
+    "Visible Knot",
+    "Resin Pockets",
+    "Undersized",
+    "Oversized",
+    "Staples",
+    "Too warped to use",
+    "No Rejects"
+  ],
+  moulder_rejects: [
+    "Incorrect Settings",
+    "Top head rough",
+    "2nd head rough",
+    "3rd Head rough",
+    "Roller marks",
+    "Missing dead knots",
+    "Split Knots",
+    "Broken board",
+    "Stuck in Moulder",
+    "Chipped/breakout on profile",
+    "Front Snipe",
+    "End Snipe",
+    "Internal shakes",
+    "No Rejects",
+    "End splits"
+  ],
+  paint_room_rejects: [
+    "Snapped Board",
+    "Chipped/breakout on profile",
+    "Front Snipe",
+    "End Snipe",
+    "Internal shakes",
+    "No Rejects",
+    "End splits",
+    "Stuck In Sander",
+    "Stuck in Brusher"
+  ]
 };
 
 const BOARD_LENGTHS = ["Select Board Length",2.4,2.7,3,3.3,3.6,3.7,3.9,4.2,4.5,4.8,4.9,5.1,5.4,5.7,6];
@@ -273,6 +408,8 @@ const BOARD_LENGTHS = ["Select Board Length",2.4,2.7,3,3.3,3.6,3.7,3.9,4.2,4.5,4
 const modeSel = document.getElementById('mode');
 const looseSel = document.getElementById('topLoose');
 const rejectsSel = document.getElementById('rejects');
+const defectTypeSel = document.getElementById('defectType');
+const simpleDefectTypeSel = document.getElementById('simpleDefectType');
 
 ['Boards','Linear'].forEach(v=>{
   const o=document.createElement('option');
@@ -320,26 +457,51 @@ function buildPerRow(){
 }
 buildPerRow();
 
-const ph = document.createElement('option');
-ph.value = '';
-ph.textContent = 'How many rejects?';
-ph.disabled = true;
-ph.selected = true;
-rejectsSel.appendChild(ph);
+function buildRejects(){
+  rejectsSel.innerHTML = '';
 
-for (let i = 0; i <= 30; i++) {
-  const o = document.createElement('option');
-  o.value = i;
-  o.textContent = i;
-  rejectsSel.appendChild(o);
+  const ph = document.createElement('option');
+  ph.value = '';
+  ph.textContent = 'How many rejects?';
+  ph.disabled = true;
+  ph.selected = true;
+  rejectsSel.appendChild(ph);
+
+  for (let i = 0; i <= 30; i++) {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = i;
+    rejectsSel.appendChild(o);
+  }
+
+  rejectsSel.value = '';
 }
+buildRejects();
 
-rejectsSel.value = '';
+function buildDefectOptions(selectEl, entryMode){
+  selectEl.innerHTML = '';
+
+  const ph = document.createElement('option');
+  ph.value = '';
+  ph.textContent = 'Select reject type';
+  ph.disabled = true;
+  ph.selected = true;
+  selectEl.appendChild(ph);
+
+  (DEFECT_LISTS[entryMode] || []).forEach(v=>{
+    const o = document.createElement('option');
+    o.value = v;
+    o.textContent = v;
+    selectEl.appendChild(o);
+  });
+
+  selectEl.value = '';
+}
 
 function updateJobContextBar(){
   const bar = document.getElementById("jobContextBar");
 
-  if(!jobContext.productionRow && !jobContext.jobNo && !jobContext.sheetJob){
+  if(!jobContext.productionRow && !jobContext.jobNo && !jobContext.sheetJob && !jobContext.packId){
     bar.classList.add("hidden");
     bar.innerText = "";
     return;
@@ -350,9 +512,42 @@ function updateJobContextBar(){
   if(jobContext.productionRow) parts.push("Production Row: " + jobContext.productionRow);
   if(jobContext.jobNo) parts.push("Job No: " + jobContext.jobNo);
   if(jobContext.sheetJob) parts.push("Sheet Job: " + jobContext.sheetJob);
+  if(jobContext.packId) parts.push("Pack ID: " + jobContext.packId);
 
   bar.innerText = parts.join(" | ");
   bar.classList.remove("hidden");
+}
+
+function fillPackIdFields(){
+  document.getElementById("packId").value = jobContext.packId || "";
+  document.getElementById("simplePackId").value = jobContext.packId || "";
+}
+
+function setEntryMode(mode){
+  currentEntryMode = mode;
+  document.getElementById("saveStatus").innerText = "";
+
+  if(mode === "pack_visualiser"){
+    step = 1;
+    buildDefectOptions(defectTypeSel, mode);
+  } else {
+    step = 0;
+    buildDefectOptions(simpleDefectTypeSel, mode);
+    document.getElementById("simpleLoggerTitle").innerText = ENTRY_MODES[mode].label;
+  }
+
+  fillPackIdFields();
+  updateUI();
+  render();
+}
+
+function returnToMenu(){
+  currentEntryMode = "";
+  step = 0;
+  document.getElementById("saveStatus").innerText = "";
+  clearGrid();
+  document.getElementById("summary").innerText = "";
+  updateUI();
 }
 
 function state(){
@@ -416,13 +611,10 @@ function calculationResult(){
   };
 }
 
-function isReadyToRender(s){
-  const base=basePieces(s);
-  return base>0 && s.perRow>0 && s.topLoose!==null;
-}
-
 function canProceed(){
   const s=state();
+
+  if(currentEntryMode !== "pack_visualiser") return false;
 
   if(step===1){
     return s.mode==='boards'
@@ -437,7 +629,15 @@ function canProceed(){
 }
 
 function updateUI(){
-  const inStep5 = step === 5;
+  const isMenu = currentEntryMode === "";
+  const isVisualiser = currentEntryMode === "pack_visualiser";
+  const isSimpleLogger = currentEntryMode && currentEntryMode !== "pack_visualiser";
+  const inStep5 = isVisualiser && step === 5;
+
+  document.getElementById('step0_entry').classList.toggle('hidden', !isMenu);
+  document.getElementById('simpleLogger').classList.toggle('hidden', !isSimpleLogger);
+
+  document.getElementById('modeBlock').classList.toggle('hidden', !isVisualiser || inStep5);
 
   document.getElementById('boardsWrap')
     .classList.toggle('hidden', modeSel.value !== 'boards');
@@ -445,38 +645,61 @@ function updateUI(){
   document.getElementById('linearWrap')
     .classList.toggle('hidden', modeSel.value !== 'linear');
 
-  document.querySelectorAll('.step').forEach((el, i) =>
-    el.classList.toggle('hidden', i !== step - 1)
-  );
+  document.querySelectorAll('.step').forEach(el => el.classList.add('hidden'));
 
-  document.getElementById('step1_boards')
-    .classList.toggle('hidden', step !== 1);
-
-  document.getElementById('headerBar')
-    .classList.remove('hidden');
-
-  document.getElementById('modeBlock')
-    .classList.toggle('hidden', inStep5);
+  if(isVisualiser){
+    if(step === 1) document.getElementById('step1_boards').classList.remove('hidden');
+    if(step === 2) document.getElementById('step2_perRow').classList.remove('hidden');
+    if(step === 3) document.getElementById('step3_yield').classList.remove('hidden');
+    if(step === 4) document.getElementById('step4_loose').classList.remove('hidden');
+    if(step === 5) document.getElementById('step5_rejects').classList.remove('hidden');
+  }
 
   document.getElementById('nextBtn').disabled = !canProceed();
 
   document.getElementById('nextBtn')
-    .classList.toggle('hidden', inStep5);
+    .classList.toggle('hidden', !isVisualiser || inStep5);
 
   document.getElementById('backBtn')
-    .classList.toggle('hidden', step <= 1);
+    .classList.toggle('hidden', !isVisualiser || step <= 1);
 
   document.querySelector('.btnRow')
-    .classList.toggle('hidden', inStep5);
+    .classList.toggle('hidden', !isVisualiser || inStep5);
 
   updateLooseOptions();
+  syncNoRejects();
 }
 
-function nextStep(){ if(canProceed()) step++; updateUI(); render(); }
-function prevStep(){ if(step>1) step--; updateUI(); render(); }
-function clearGrid(){ document.getElementById('grid').innerHTML=''; }
+function nextStep(){
+  if(canProceed()){
+    if(step === 3){
+      step = 4;
+    } else {
+      step++;
+    }
+  }
+
+  updateUI();
+  render();
+}
+
+function prevStep(){
+  if(step>1) step--;
+  updateUI();
+  render();
+}
+
+function clearGrid(){
+  document.getElementById('grid').innerHTML='';
+}
 
 function render(){
+  if(currentEntryMode !== "pack_visualiser"){
+    clearGrid();
+    document.getElementById('summary').innerText = '';
+    return;
+  }
+
   const s = state();
 
   clearGrid();
@@ -544,7 +767,7 @@ function render(){
 }
 
 function resetAll(){
-  step = 1;
+  step = currentEntryMode === "pack_visualiser" ? 1 : 0;
 
   document.getElementById('boards').value = '';
   document.getElementById('metres').value = '';
@@ -556,6 +779,11 @@ function resetAll(){
   perRowSel.value = '';
   looseSel.value = '';
   rejectsSel.value = '';
+  defectTypeSel.value = '';
+  simpleDefectTypeSel.value = '';
+  document.getElementById("simpleRejectQty").value = '';
+
+  fillPackIdFields();
 
   document.getElementById("saveStatus").innerText = "";
 
@@ -564,9 +792,6 @@ function resetAll(){
   updateUI();
   render();
 }
-
-modeSel.addEventListener('change',()=>{ step=1; updateUI(); render(); });
-document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{ updateUI(); render(); }));
 
 function updateLooseOptions(){
   const s = state();
@@ -599,18 +824,132 @@ function updateLooseOptions(){
   }
 }
 
+function syncNoRejects(){
+  if(currentEntryMode === "pack_visualiser"){
+    if(defectTypeSel.value === "No Rejects"){
+      rejectsSel.value = "0";
+      rejectsSel.disabled = true;
+    } else {
+      rejectsSel.disabled = false;
+    }
+  }
+
+  if(currentEntryMode && currentEntryMode !== "pack_visualiser"){
+    const simpleRejectQty = document.getElementById("simpleRejectQty");
+
+    if(simpleDefectTypeSel.value === "No Rejects"){
+      simpleRejectQty.value = "0";
+      simpleRejectQty.disabled = true;
+    } else {
+      simpleRejectQty.disabled = false;
+    }
+  }
+}
+
+modeSel.addEventListener('change',()=>{ step=1; updateUI(); render(); });
+
+document.querySelectorAll('input,select').forEach(el=>{
+  el.addEventListener('input',()=>{
+    syncNoRejects();
+    updateUI();
+    render();
+  });
+
+  el.addEventListener('change',()=>{
+    syncNoRejects();
+    updateUI();
+    render();
+  });
+});
+
+function getRejectDetails(){
+  if(!currentEntryMode) return null;
+
+  const config = ENTRY_MODES[currentEntryMode];
+
+  if(currentEntryMode === "pack_visualiser"){
+    const result = calculationResult();
+    const defectType = defectTypeSel.value;
+    const packId = document.getElementById("packId").value.trim();
+    const rejectQty = defectType === "No Rejects" ? 0 : result.rejects;
+
+    return {
+      config,
+      defectType,
+      packId,
+      rejectQty,
+      result
+    };
+  }
+
+  const defectType = simpleDefectTypeSel.value;
+  const packId = document.getElementById("simplePackId").value.trim();
+  const rejectQty = defectType === "No Rejects"
+    ? 0
+    : (+document.getElementById("simpleRejectQty").value || 0);
+
+  return {
+    config,
+    defectType,
+    packId,
+    rejectQty,
+    result: {
+      mode: "",
+      inputBoards: "",
+      inputMetres: "",
+      boardLength: "",
+      yield: "",
+      topLoose: "",
+      rows: "",
+      baseBoards: "",
+      basePhysicalBoards: "",
+      perRow: "",
+      rejects: rejectQty,
+      total: "",
+      physicalBoards: ""
+    }
+  };
+}
+
 async function saveToRejectLog(){
   const status = document.getElementById("saveStatus");
-  const saveBtn = document.getElementById("saveBtn");
-  const result = calculationResult();
+  const saveBtn = currentEntryMode === "pack_visualiser"
+    ? document.getElementById("saveBtn")
+    : document.getElementById("simpleSaveBtn");
+
+  const details = getRejectDetails();
+
+  if(!details){
+    status.innerText = "Choose an entry type first.";
+    return;
+  }
 
   if(!jobContext.productionRow){
     status.innerText = "No Production row found. Open this app by scanning the QR code from the job sheet.";
     return;
   }
 
-  if(!result.baseBoards || !result.perRow || result.topLoose === null){
-    status.innerText = "Complete the calculator before saving.";
+  if(!details.defectType){
+    status.innerText = "Select a reject type before saving.";
+    return;
+  }
+
+  if(details.defectType !== "No Rejects" && details.rejectQty <= 0){
+    status.innerText = "Enter a reject quantity greater than zero, or select No Rejects.";
+    return;
+  }
+
+  if(currentEntryMode === "pack_visualiser"){
+    const result = details.result;
+
+    if(!result.baseBoards || !result.perRow || result.topLoose === null){
+      status.innerText = "Complete the visualiser before saving.";
+      return;
+    }
+  }
+
+  if(!details.packId){
+    status.innerText = "Confirm the Pack ID before saving.";
     return;
   }
 
@@ -625,19 +964,26 @@ async function saveToRejectLog(){
     productionRow: jobContext.productionRow,
     jobNo: jobContext.jobNo,
     sheetJob: jobContext.sheetJob,
-    mode: result.mode,
-    inputBoards: result.inputBoards,
-    inputMetres: result.inputMetres,
-    boardLength: result.boardLength,
-    yield: result.yield,
-    topLoose: result.topLoose,
-    rows: result.rows,
-    baseBoards: result.baseBoards,
-    basePhysicalBoards: result.basePhysicalBoards,
-    perRow: result.perRow,
-    rejects: result.rejects,
-    total: result.total,
-    physicalBoards: result.physicalBoards
+    packId: details.packId,
+    entryMode: currentEntryMode,
+    entryModeLabel: details.config.label,
+    processStage: details.config.processStage,
+    rejectColumn: details.config.rejectColumn,
+    defectType: details.defectType,
+    rejectQty: details.rejectQty,
+    mode: details.result.mode,
+    inputBoards: details.result.inputBoards,
+    inputMetres: details.result.inputMetres,
+    boardLength: details.result.boardLength,
+    yield: details.result.yield,
+    topLoose: details.result.topLoose,
+    rows: details.result.rows,
+    baseBoards: details.result.baseBoards,
+    basePhysicalBoards: details.result.basePhysicalBoards,
+    perRow: details.result.perRow,
+    rejects: details.rejectQty,
+    total: details.result.total,
+    physicalBoards: details.result.physicalBoards
   };
 
   saveBtn.disabled = true;
@@ -653,7 +999,7 @@ async function saveToRejectLog(){
       body: JSON.stringify(payload)
     });
 
-    status.innerText = "Saved to Reject Log.";
+    status.innerText = "Saved.";
   } catch(err) {
     status.innerText = "Save failed: " + err.message;
   } finally {
@@ -662,6 +1008,7 @@ async function saveToRejectLog(){
 }
 
 updateJobContextBar();
+fillPackIdFields();
 updateUI();
 render();
 </script>
