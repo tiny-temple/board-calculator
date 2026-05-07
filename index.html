@@ -12,8 +12,6 @@ body {
   margin: 12px;
   background:#fff;
   overflow-x:hidden;
-
-  /* prevents Step 5 bar overlapping content */
   padding-bottom: 110px;
 }
 
@@ -49,7 +47,6 @@ input, select {
 
 .hidden { display:none !important; }
 
-/* buttons */
 button {
   appearance: none;
   -webkit-appearance: none;
@@ -68,7 +65,11 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* top nav buttons */
+button:disabled {
+  opacity:0.45;
+  cursor:not-allowed;
+}
+
 .btnRow {
   display:flex;
   flex-direction:column;
@@ -76,7 +77,6 @@ button {
   margin-top:6px;
 }
 
-/* grid */
 .grid {
   display:flex;
   flex-direction:column;
@@ -135,9 +135,22 @@ button {
   flex:0 0 auto;
 }
 
-/* =========================
-   STEP 5 FIXED CONTROL BAR
-   ========================= */
+#jobContextBar {
+  font-size:13px;
+  line-height:1.35;
+  background:#f6f6f6;
+  border:1px solid rgba(0,0,0,0.12);
+  border-radius:8px;
+  padding:8px 10px;
+  margin-bottom:10px;
+  color:#333;
+}
+
+#saveStatus {
+  font-size:13px;
+  margin-top:8px;
+  color:#333;
+}
 
 #step5_rejects {
   position: fixed;
@@ -185,12 +198,14 @@ button {
        style="height:40px; width:auto; object-fit:contain;" />
 </div>
 
+<div id="jobContextBar" class="hidden"></div>
+
 <div class="panel">
 
   <div id="modeBlock">
-  <label>Target Total is measured in:</label>
-  <select id="mode"></select>
-</div>
+    <label>Target Total is measured in:</label>
+    <select id="mode"></select>
+  </div>
 
   <div id="step1_boards" class="step">
 
@@ -224,6 +239,7 @@ button {
     <div class="step5Buttons">
       <button onclick="prevStep()">Back</button>
       <button onclick="resetAll()">Reset</button>
+      <button id="saveBtn" onclick="saveToRejectLog()">Save Rejects</button>
     </div>
   </div>
 
@@ -236,10 +252,21 @@ button {
 </div>
 
 <div id="summary" style="font-size:13px;margin-top:8px;color:#333;"></div>
+<div id="saveStatus"></div>
 <div class="grid" id="grid"></div>
 
 <script>
 let step = 1;
+
+const REJECT_LOG_WEB_APP_URL = "";
+
+const urlParams = new URLSearchParams(window.location.search);
+
+const jobContext = {
+  productionRow: urlParams.get("row") || "",
+  jobNo: urlParams.get("jobNo") || "",
+  sheetJob: urlParams.get("sheetJob") || urlParams.get("job") || ""
+};
 
 const BOARD_LENGTHS = ["Select Board Length",2.4,2.7,3,3.3,3.6,3.7,3.9,4.2,4.5,4.8,4.9,5.1,5.4,5.7,6];
 
@@ -293,15 +320,6 @@ function buildPerRow(){
 }
 buildPerRow();
 
-/* FIXED: rejects dropdown now correctly initialised */
-for (let i = 0; i <= 30; i++) {
-  const o = document.createElement('option');
-  o.value = i;
-  o.textContent = i;
-  rejectsSel.appendChild(o);
-}
-rejectsSel.innerHTML = '';
-
 const ph = document.createElement('option');
 ph.value = '';
 ph.textContent = 'How many rejects?';
@@ -318,6 +336,25 @@ for (let i = 0; i <= 30; i++) {
 
 rejectsSel.value = '';
 
+function updateJobContextBar(){
+  const bar = document.getElementById("jobContextBar");
+
+  if(!jobContext.productionRow && !jobContext.jobNo && !jobContext.sheetJob){
+    bar.classList.add("hidden");
+    bar.innerText = "";
+    return;
+  }
+
+  const parts = [];
+
+  if(jobContext.productionRow) parts.push("Production Row: " + jobContext.productionRow);
+  if(jobContext.jobNo) parts.push("Job No: " + jobContext.jobNo);
+  if(jobContext.sheetJob) parts.push("Sheet Job: " + jobContext.sheetJob);
+
+  bar.innerText = parts.join(" | ");
+  bar.classList.remove("hidden");
+}
+
 function state(){
   return {
     mode: modeSel.value,
@@ -331,14 +368,52 @@ function state(){
   };
 }
 
-/* --- everything else unchanged --- */
-
 function basePieces(s){
   if(s.mode==='linear'){
     if(!s.metres||!s.boardLength) return 0;
     return Math.ceil(s.metres/s.boardLength);
   }
   return s.boards;
+}
+
+function calculationResult(){
+  const s = state();
+
+  const base = basePieces(s);
+  const total = base + s.rejects;
+  const physicalBoards = Math.ceil(total / s.yield);
+  const basePhysicalBoards = Math.ceil(base / s.yield);
+
+  let rows = [];
+  let rem = physicalBoards;
+
+  if(s.topLoose !== null){
+    const t = Math.min(s.topLoose, rem);
+    rows.push(t);
+    rem -= t;
+  }
+
+  while(rem > 0){
+    const c = Math.min(s.perRow, rem);
+    rows.push(c);
+    rem -= c;
+  }
+
+  return {
+    mode: s.mode,
+    inputBoards: s.boards,
+    inputMetres: s.metres,
+    boardLength: s.boardLength,
+    yield: s.yield,
+    topLoose: s.topLoose,
+    rows: rows.length,
+    baseBoards: base,
+    basePhysicalBoards: basePhysicalBoards,
+    perRow: s.perRow,
+    rejects: s.rejects,
+    total: total,
+    physicalBoards: physicalBoards
+  };
 }
 
 function isReadyToRender(s){
@@ -364,32 +439,27 @@ function canProceed(){
 function updateUI(){
   const inStep5 = step === 5;
 
-  // Mode-specific inputs (Boards vs Linear)
   document.getElementById('boardsWrap')
     .classList.toggle('hidden', modeSel.value !== 'boards');
 
   document.getElementById('linearWrap')
     .classList.toggle('hidden', modeSel.value !== 'linear');
 
-  // Step visibility (core flow)
   document.querySelectorAll('.step').forEach((el, i) =>
     el.classList.toggle('hidden', i !== step - 1)
   );
 
-  // 🔴 FIX 1: Step 1 should ONLY show on step 1
   document.getElementById('step1_boards')
     .classList.toggle('hidden', step !== 1);
 
-  // 🔴 FIX 2: NEVER hide header (you want logo/title always visible)
   document.getElementById('headerBar')
     .classList.remove('hidden');
 
-  // Hide mode selector in Step 5 only
   document.getElementById('modeBlock')
     .classList.toggle('hidden', inStep5);
 
-  // Navigation buttons
   document.getElementById('nextBtn').disabled = !canProceed();
+
   document.getElementById('nextBtn')
     .classList.toggle('hidden', inStep5);
 
@@ -399,14 +469,13 @@ function updateUI(){
   document.querySelector('.btnRow')
     .classList.toggle('hidden', inStep5);
 
-  // Keep loose options synced
   updateLooseOptions();
 }
 
-/* rest unchanged */
 function nextStep(){ if(canProceed()) step++; updateUI(); render(); }
 function prevStep(){ if(step>1) step--; updateUI(); render(); }
 function clearGrid(){ document.getElementById('grid').innerHTML=''; }
+
 function render(){
   const s = state();
 
@@ -445,23 +514,22 @@ function render(){
 
     let cells = [];
 
-for(let c = 0; c < s.perRow; c++){
-  const d = document.createElement('div');
+    for(let c = 0; c < s.perRow; c++){
+      const d = document.createElement('div');
 
-  const ok = c < cap && count <= phys;
+      const ok = c < cap && count <= phys;
 
-  if(ok){
-    d.className = 'cell' + (count > basePhys ? ' reject' : '');
-    d.innerText = count++;
-  } else {
-    d.className = 'empty';
-  }
+      if(ok){
+        d.className = 'cell' + (count > basePhys ? ' reject' : '');
+        d.innerText = count++;
+      } else {
+        d.className = 'empty';
+      }
 
-  cells.push(d);
-}
+      cells.push(d);
+    }
 
-// IMPORTANT: restore reverse fill direction
-cells.reverse().forEach(x => row.appendChild(x));
+    cells.reverse().forEach(x => row.appendChild(x));
 
     const rn = document.createElement('div');
     rn.className = 'rowNum';
@@ -474,14 +542,13 @@ cells.reverse().forEach(x => row.appendChild(x));
   document.getElementById('summary').innerText =
     `Rows: ${rows.length} | Base Boards: ${base} | Per Row: ${s.perRow} | Rejects: ${s.rejects} | Total: ${total}`;
 }
+
 function resetAll(){
   step = 1;
 
-  // text inputs
   document.getElementById('boards').value = '';
   document.getElementById('metres').value = '';
 
-  // selects
   modeSel.value = 'boards';
   bl.value = '';
   yieldSel.value = 1;
@@ -490,10 +557,10 @@ function resetAll(){
   looseSel.value = '';
   rejectsSel.value = '';
 
-  // IMPORTANT: force summary + grid reset
+  document.getElementById("saveStatus").innerText = "";
+
   clearGrid();
 
-  // re-render UI cleanly
   updateUI();
   render();
 }
@@ -501,7 +568,7 @@ function resetAll(){
 modeSel.addEventListener('change',()=>{ step=1; updateUI(); render(); });
 document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{ updateUI(); render(); }));
 
-  function updateLooseOptions(){
+function updateLooseOptions(){
   const s = state();
 
   const sel = looseSel;
@@ -531,8 +598,72 @@ document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input
     sel.value = '';
   }
 }
-  
-updateUI(); render();
+
+async function saveToRejectLog(){
+  const status = document.getElementById("saveStatus");
+  const saveBtn = document.getElementById("saveBtn");
+  const result = calculationResult();
+
+  if(!jobContext.productionRow){
+    status.innerText = "No Production row found. Open this app by scanning the QR code from the job sheet.";
+    return;
+  }
+
+  if(!result.baseBoards || !result.perRow || result.topLoose === null){
+    status.innerText = "Complete the calculator before saving.";
+    return;
+  }
+
+  if(!REJECT_LOG_WEB_APP_URL){
+    status.innerText = "Reject Log web app URL has not been added yet.";
+    return;
+  }
+
+  const payload = {
+    source: "Board Calculator",
+    timestamp: new Date().toISOString(),
+    productionRow: jobContext.productionRow,
+    jobNo: jobContext.jobNo,
+    sheetJob: jobContext.sheetJob,
+    mode: result.mode,
+    inputBoards: result.inputBoards,
+    inputMetres: result.inputMetres,
+    boardLength: result.boardLength,
+    yield: result.yield,
+    topLoose: result.topLoose,
+    rows: result.rows,
+    baseBoards: result.baseBoards,
+    basePhysicalBoards: result.basePhysicalBoards,
+    perRow: result.perRow,
+    rejects: result.rejects,
+    total: result.total,
+    physicalBoards: result.physicalBoards
+  };
+
+  saveBtn.disabled = true;
+  status.innerText = "Saving...";
+
+  try {
+    await fetch(REJECT_LOG_WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    status.innerText = "Saved to Reject Log.";
+  } catch(err) {
+    status.innerText = "Save failed: " + err.message;
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
+updateJobContextBar();
+updateUI();
+render();
 </script>
 
 </body>
