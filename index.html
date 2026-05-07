@@ -1,109 +1,1017 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Board Calculator</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#4caf50">
 
-  <title>Board Calculator</title>
+<style>
+body {
+  font-family: Avenir, "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+  margin: 12px;
+  background:#fff;
+  overflow-x:hidden;
+  padding-bottom: 130px;
+}
 
-  <meta name="description" content="Board Calculator PWA" />
-  <meta name="theme-color" content="#111111" />
+.panel {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin-bottom:10px;
+}
 
-  <link rel="manifest" href="./manifest.json" />
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  color: #000;
+  background-color: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+}
 
-  <link rel="icon" href="./icons/icon-192.png" type="image/png" />
-  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+input, select {
+  width:100%;
+  max-width:360px;
+  padding:10px;
+  font-size:16px;
+  box-sizing:border-box;
+}
 
-  <link rel="stylesheet" href="./style.css" />
+label {
+  font-size:13px;
+  color:#333;
+  margin-bottom:2px;
+}
+
+#linearWrap {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.hidden { display:none !important; }
+
+button {
+  appearance: none;
+  -webkit-appearance: none;
+  width:100%;
+  max-width:360px;
+  padding:12px 14px;
+  font-size:16px;
+  font-weight:500;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,0.15);
+  background:#f5f5f5;
+  color:#333;
+  margin-top:6px;
+  cursor:pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  opacity:0.45;
+  cursor:not-allowed;
+}
+
+.primaryBtn {
+  background:#333;
+  color:#fff;
+}
+
+.btnRow {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:6px;
+}
+
+.modeButtons {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.fieldBlock {
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  margin-bottom:8px;
+}
+
+.grid {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-top:12px;
+  width:100%;
+  max-width:100vw;
+}
+
+.row {
+  display:flex;
+  gap:4px;
+  align-items:stretch;
+  width:100%;
+}
+
+.row.loose {
+  margin-bottom:12px;
+}
+
+.cell, .empty {
+  flex:1 1 0;
+  min-width:0;
+  aspect-ratio:3/1;
+  box-sizing:border-box;
+}
+
+.cell {
+  border:1px solid rgba(0,0,0,0.15);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  border-radius:3px;
+  background:#8b5a2b;
+  color:#fff;
+}
+
+.empty {
+  border:1px dashed rgba(0,0,0,0.1);
+}
+
+.reject { background:#f4a300 !important; }
+.loose .cell { background:#a06a3a; }
+
+.ghost .cell {
+  opacity:0.12;
+  background:rgba(139,90,43,0.15);
+}
+
+.rowNum {
+  font-size:11px;
+  color:#666;
+  padding-left:8px;
+  min-width:20px;
+  flex:0 0 auto;
+}
+
+#jobContextBar {
+  font-size:13px;
+  line-height:1.35;
+  background:#f6f6f6;
+  border:1px solid rgba(0,0,0,0.12);
+  border-radius:8px;
+  padding:8px 10px;
+  margin-bottom:10px;
+  color:#333;
+}
+
+#saveStatus {
+  font-size:13px;
+  margin-top:8px;
+  color:#333;
+}
+
+.simpleBox {
+  border:1px solid rgba(0,0,0,0.12);
+  border-radius:10px;
+  padding:10px;
+  background:#fafafa;
+}
+
+#step5_rejects {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid rgba(0,0,0,0.12);
+  padding: 10px 12px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step5Buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+}
+
+.step5Buttons button {
+  flex: 1 1 0;
+  width: auto !important;
+  margin-top: 0 !important;
+}
+</style>
 </head>
 
 <body>
-  <main id="app">
-    <h1>Board Calculator</h1>
 
-    <section class="calculator-card">
-      <label for="linearMetres">Linear metres required</label>
-      <input
-        id="linearMetres"
-        type="number"
-        inputmode="decimal"
-        min="0"
-        step="0.01"
-        placeholder="e.g. 250"
-      />
+<div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
+  <div style="display:flex; flex-direction:column; gap:6px;">
+    <h3 style="margin:0; line-height:1.2;">
+      Pack Visualiser (v5.1)
+    </h3>
+  </div>
 
-      <label for="boardLength">Board length in metres</label>
-      <input
-        id="boardLength"
-        type="number"
-        inputmode="decimal"
-        min="0"
-        step="0.1"
-        placeholder="e.g. 4.8"
-      />
+  <img src="https://static1.squarespace.com/static/5edd6c658f45a62c80cc5bee/t/648b901ba727837ab5445bef/1776199641436/"
+       alt="Logo"
+       style="height:40px; width:auto; object-fit:contain;" />
+</div>
 
-      <label for="coveragePerBoard">Coverage per board in mm</label>
-      <input
-        id="coveragePerBoard"
-        type="number"
-        inputmode="decimal"
-        min="0"
-        step="1"
-        placeholder="e.g. 92"
-      />
+<div id="jobContextBar" class="hidden"></div>
 
-      <label for="wastage">Wastage percentage</label>
-      <input
-        id="wastage"
-        type="number"
-        inputmode="decimal"
-        min="0"
-        step="1"
-        value="10"
-      />
+<div class="panel">
 
-      <button id="calculateButton" type="button">Calculate</button>
+  <div id="step0_entry">
+    <div class="fieldBlock">
+      <label>What do you want to do?</label>
+      <div class="modeButtons">
+        <button class="primaryBtn" onclick="setEntryMode('pack_visualiser')">Pack Visualiser</button>
+        <button onclick="setEntryMode('moulder_rejects')">Log Moulder Rejects</button>
+        <button onclick="setEntryMode('paint_room_rejects')">Log Paint Room Rejects</button>
+      </div>
+    </div>
+  </div>
 
-      <div id="result" class="result" aria-live="polite"></div>
-    </section>
+  <div id="modeBlock" class="hidden">
+    <label>Target Total is measured in:</label>
+    <select id="mode"></select>
+  </div>
 
-    <button id="installButton" type="button" hidden>
-      Install app
-    </button>
-  </main>
+  <div id="step1_boards" class="step hidden">
 
-  <script src="./app.js"></script>
+    <div id="boardsWrap">
+      <input id="boards" type="number" placeholder="Quantity of Boards Required" />
+    </div>
 
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker
-          .register("./service-worker.js")
-          .catch(function (error) {
-            console.error("Service worker registration failed:", error);
-          });
-      });
+    <div id="linearWrap">
+      <input id="metres" type="number" placeholder="Number of Linear Metres Required" />
+      <select id="boardLength"></select>
+    </div>
+
+  </div>
+
+  <div id="step2_perRow" class="step hidden">
+    <select id="perRow"></select>
+  </div>
+
+  <div id="step3_yield" class="step hidden">
+    <label>Yield when bandsawing</label>
+    <select id="yield"></select>
+  </div>
+
+  <div id="step4_loose" class="step hidden">
+    <select id="topLoose"></select>
+  </div>
+
+  <div id="step5_rejects" class="step hidden step5Bar">
+    <select id="rejects"></select>
+    <select id="defectType"></select>
+    <input id="packId" type="text" placeholder="Pack ID used" />
+
+    <div class="step5Buttons">
+      <button onclick="prevStep()">Back</button>
+      <button onclick="resetAll()">Reset</button>
+      <button id="saveBtn" onclick="saveToRejectLog()">Save</button>
+    </div>
+  </div>
+
+  <div id="simpleLogger" class="hidden simpleBox">
+    <div class="fieldBlock">
+      <label id="simpleLoggerTitle">Log Rejects</label>
+    </div>
+
+    <div class="fieldBlock">
+      <label>Reject quantity</label>
+      <input id="simpleRejectQty" type="number" min="0" step="1" placeholder="Number of reject boards" />
+    </div>
+
+    <div class="fieldBlock">
+      <label>Reject type</label>
+      <select id="simpleDefectType"></select>
+    </div>
+
+    <div class="fieldBlock">
+      <label>Pack ID used</label>
+      <input id="simplePackId" type="text" placeholder="Pack ID used" />
+    </div>
+
+    <button id="simpleSaveBtn" class="primaryBtn" onclick="saveToRejectLog()">Save</button>
+    <button onclick="returnToMenu()">Back to menu</button>
+  </div>
+
+  <div class="btnRow">
+    <button id="nextBtn" onclick="nextStep()">Next</button>
+    <button id="backBtn" onclick="prevStep()">Back</button>
+    <button onclick="resetAll()">Reset</button>
+    <button onclick="returnToMenu()">Back to menu</button>
+  </div>
+
+</div>
+
+<div id="summary" style="font-size:13px;margin-top:8px;color:#333;"></div>
+<div id="saveStatus"></div>
+<div class="grid" id="grid"></div>
+
+<script>
+let step = 0;
+let currentEntryMode = "";
+
+const REJECT_LOG_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
+
+const urlParams = new URLSearchParams(window.location.search);
+
+const jobContext = {
+  productionRow: urlParams.get("row") || "",
+  jobNo: urlParams.get("jobNo") || "",
+  sheetJob: urlParams.get("sheetJob") || urlParams.get("job") || "",
+  packId: urlParams.get("packId") || ""
+};
+
+const ENTRY_MODES = {
+  pack_visualiser: {
+    label: "Pack Visualiser",
+    processStage: "Pre Process",
+    rejectColumn: "preProcess",
+    usesVisualiser: true
+  },
+  moulder_rejects: {
+    label: "Log Moulder Rejects",
+    processStage: "Moulder",
+    rejectColumn: "machine",
+    usesVisualiser: false
+  },
+  paint_room_rejects: {
+    label: "Log Paint Room Rejects",
+    processStage: "Paint Room",
+    rejectColumn: "machine",
+    usesVisualiser: false
+  }
+};
+
+const DEFECT_LISTS = {
+  pack_visualiser: [
+    "Forklift Damage",
+    "Cracked Board",
+    "Embedded Stones",
+    "Shakey Board",
+    "Visible Knot",
+    "Resin Pockets",
+    "Undersized",
+    "Oversized",
+    "Staples",
+    "Too warped to use",
+    "No Rejects"
+  ],
+  moulder_rejects: [
+    "Incorrect Settings",
+    "Top head rough",
+    "2nd head rough",
+    "3rd Head rough",
+    "Roller marks",
+    "Missing dead knots",
+    "Split Knots",
+    "Broken board",
+    "Stuck in Moulder",
+    "Chipped/breakout on profile",
+    "Front Snipe",
+    "End Snipe",
+    "Internal shakes",
+    "No Rejects",
+    "End splits"
+  ],
+  paint_room_rejects: [
+    "Snapped Board",
+    "Chipped/breakout on profile",
+    "Front Snipe",
+    "End Snipe",
+    "Internal shakes",
+    "No Rejects",
+    "End splits",
+    "Stuck In Sander",
+    "Stuck in Brusher"
+  ]
+};
+
+const BOARD_LENGTHS = ["Select Board Length",2.4,2.7,3,3.3,3.6,3.7,3.9,4.2,4.5,4.8,4.9,5.1,5.4,5.7,6];
+
+const modeSel = document.getElementById('mode');
+const looseSel = document.getElementById('topLoose');
+const rejectsSel = document.getElementById('rejects');
+const defectTypeSel = document.getElementById('defectType');
+const simpleDefectTypeSel = document.getElementById('simpleDefectType');
+
+['Boards','Linear'].forEach(v=>{
+  const o=document.createElement('option');
+  o.value=v.toLowerCase();
+  o.textContent=v;
+  modeSel.appendChild(o);
+});
+modeSel.value='boards';
+
+const bl=document.getElementById('boardLength');
+BOARD_LENGTHS.forEach(v=>{
+  const o=document.createElement('option');
+  o.value=v==='Select Board Length'?"":v;
+  o.textContent=v;
+  bl.appendChild(o);
+});
+bl.value="";
+
+const yieldSel=document.getElementById('yield');
+for(let i=1;i<=6;i++){
+  const o=document.createElement('option');
+  o.value=i;
+  o.textContent=i;
+  yieldSel.appendChild(o);
+}
+yieldSel.value=1;
+
+const perRowSel=document.getElementById('perRow');
+
+function buildPerRow(){
+  perRowSel.innerHTML='';
+  const ph=document.createElement('option');
+  ph.value='';
+  ph.textContent='How many boards per row?';
+  ph.disabled=true;
+  ph.selected=true;
+  perRowSel.appendChild(ph);
+
+  for(let i=1;i<=15;i++){
+    const o=document.createElement('option');
+    o.value=i;
+    o.textContent=i;
+    perRowSel.appendChild(o);
+  }
+}
+buildPerRow();
+
+function buildRejects(){
+  rejectsSel.innerHTML = '';
+
+  const ph = document.createElement('option');
+  ph.value = '';
+  ph.textContent = 'How many rejects?';
+  ph.disabled = true;
+  ph.selected = true;
+  rejectsSel.appendChild(ph);
+
+  for (let i = 0; i <= 30; i++) {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = i;
+    rejectsSel.appendChild(o);
+  }
+
+  rejectsSel.value = '';
+}
+buildRejects();
+
+function buildDefectOptions(selectEl, entryMode){
+  selectEl.innerHTML = '';
+
+  const ph = document.createElement('option');
+  ph.value = '';
+  ph.textContent = 'Select reject type';
+  ph.disabled = true;
+  ph.selected = true;
+  selectEl.appendChild(ph);
+
+  (DEFECT_LISTS[entryMode] || []).forEach(v=>{
+    const o = document.createElement('option');
+    o.value = v;
+    o.textContent = v;
+    selectEl.appendChild(o);
+  });
+
+  selectEl.value = '';
+}
+
+function updateJobContextBar(){
+  const bar = document.getElementById("jobContextBar");
+
+  if(!jobContext.productionRow && !jobContext.jobNo && !jobContext.sheetJob && !jobContext.packId){
+    bar.classList.add("hidden");
+    bar.innerText = "";
+    return;
+  }
+
+  const parts = [];
+
+  if(jobContext.productionRow) parts.push("Production Row: " + jobContext.productionRow);
+  if(jobContext.jobNo) parts.push("Job No: " + jobContext.jobNo);
+  if(jobContext.sheetJob) parts.push("Sheet Job: " + jobContext.sheetJob);
+  if(jobContext.packId) parts.push("Pack ID: " + jobContext.packId);
+
+  bar.innerText = parts.join(" | ");
+  bar.classList.remove("hidden");
+}
+
+function fillPackIdFields(){
+  document.getElementById("packId").value = jobContext.packId || "";
+  document.getElementById("simplePackId").value = jobContext.packId || "";
+}
+
+function setEntryMode(mode){
+  currentEntryMode = mode;
+  document.getElementById("saveStatus").innerText = "";
+
+  if(mode === "pack_visualiser"){
+    step = 1;
+    buildDefectOptions(defectTypeSel, mode);
+  } else {
+    step = 0;
+    buildDefectOptions(simpleDefectTypeSel, mode);
+    document.getElementById("simpleLoggerTitle").innerText = ENTRY_MODES[mode].label;
+  }
+
+  fillPackIdFields();
+  updateUI();
+  render();
+}
+
+function returnToMenu(){
+  currentEntryMode = "";
+  step = 0;
+  document.getElementById("saveStatus").innerText = "";
+  clearGrid();
+  document.getElementById("summary").innerText = "";
+  updateUI();
+}
+
+function state(){
+  return {
+    mode: modeSel.value,
+    boards: +document.getElementById('boards').value || 0,
+    metres: +document.getElementById('metres').value || 0,
+    boardLength: +document.getElementById('boardLength').value || 0,
+    perRow: +perRowSel.value || 0,
+    yield: +document.getElementById('yield').value || 1,
+    topLoose: looseSel.value==='' ? null : parseInt(looseSel.value),
+    rejects: +rejectsSel.value || 0
+  };
+}
+
+function basePieces(s){
+  if(s.mode==='linear'){
+    if(!s.metres||!s.boardLength) return 0;
+    return Math.ceil(s.metres/s.boardLength);
+  }
+  return s.boards;
+}
+
+function calculationResult(){
+  const s = state();
+
+  const base = basePieces(s);
+  const total = base + s.rejects;
+  const physicalBoards = Math.ceil(total / s.yield);
+  const basePhysicalBoards = Math.ceil(base / s.yield);
+
+  let rows = [];
+  let rem = physicalBoards;
+
+  if(s.topLoose !== null){
+    const t = Math.min(s.topLoose, rem);
+    rows.push(t);
+    rem -= t;
+  }
+
+  while(rem > 0){
+    const c = Math.min(s.perRow, rem);
+    rows.push(c);
+    rem -= c;
+  }
+
+  return {
+    mode: s.mode,
+    inputBoards: s.boards,
+    inputMetres: s.metres,
+    boardLength: s.boardLength,
+    yield: s.yield,
+    topLoose: s.topLoose,
+    rows: rows.length,
+    baseBoards: base,
+    basePhysicalBoards: basePhysicalBoards,
+    perRow: s.perRow,
+    rejects: s.rejects,
+    total: total,
+    physicalBoards: physicalBoards
+  };
+}
+
+function canProceed(){
+  const s=state();
+
+  if(currentEntryMode !== "pack_visualiser") return false;
+
+  if(step===1){
+    return s.mode==='boards'
+      ? s.boards>0
+      : (s.metres>0 && s.boardLength>0);
+  }
+
+  if(step===2) return s.perRow>0;
+  if(step===4) return s.topLoose!==null;
+
+  return true;
+}
+
+function updateUI(){
+  const isMenu = currentEntryMode === "";
+  const isVisualiser = currentEntryMode === "pack_visualiser";
+  const isSimpleLogger = currentEntryMode && currentEntryMode !== "pack_visualiser";
+  const inStep5 = isVisualiser && step === 5;
+
+  document.getElementById('step0_entry').classList.toggle('hidden', !isMenu);
+  document.getElementById('simpleLogger').classList.toggle('hidden', !isSimpleLogger);
+
+  document.getElementById('modeBlock').classList.toggle('hidden', !isVisualiser || inStep5);
+
+  document.getElementById('boardsWrap')
+    .classList.toggle('hidden', modeSel.value !== 'boards');
+
+  document.getElementById('linearWrap')
+    .classList.toggle('hidden', modeSel.value !== 'linear');
+
+  document.querySelectorAll('.step').forEach(el => el.classList.add('hidden'));
+
+  if(isVisualiser){
+    if(step === 1) document.getElementById('step1_boards').classList.remove('hidden');
+    if(step === 2) document.getElementById('step2_perRow').classList.remove('hidden');
+    if(step === 3) document.getElementById('step3_yield').classList.remove('hidden');
+    if(step === 4) document.getElementById('step4_loose').classList.remove('hidden');
+    if(step === 5) document.getElementById('step5_rejects').classList.remove('hidden');
+  }
+
+  document.getElementById('nextBtn').disabled = !canProceed();
+
+  document.getElementById('nextBtn')
+    .classList.toggle('hidden', !isVisualiser || inStep5);
+
+  document.getElementById('backBtn')
+    .classList.toggle('hidden', !isVisualiser || step <= 1);
+
+  document.querySelector('.btnRow')
+    .classList.toggle('hidden', !isVisualiser || inStep5);
+
+  updateLooseOptions();
+  syncNoRejects();
+}
+
+function nextStep(){
+  if(canProceed()){
+    if(step === 3){
+      step = 4;
+    } else {
+      step++;
+    }
+  }
+
+  updateUI();
+  render();
+}
+
+function prevStep(){
+  if(step>1) step--;
+  updateUI();
+  render();
+}
+
+function clearGrid(){
+  document.getElementById('grid').innerHTML='';
+}
+
+function render(){
+  if(currentEntryMode !== "pack_visualiser"){
+    clearGrid();
+    document.getElementById('summary').innerText = '';
+    return;
+  }
+
+  const s = state();
+
+  clearGrid();
+
+  const base = basePieces(s);
+  const total = base + s.rejects;
+  const phys = Math.ceil(total / s.yield);
+  const basePhys = Math.ceil(base / s.yield);
+
+  if(!s.perRow){
+    document.getElementById('summary').innerText = '';
+    return;
+  }
+
+  let rows = [];
+  let rem = phys;
+
+  if(s.topLoose !== null){
+    const t = Math.min(s.topLoose, rem);
+    rows.push(t);
+    rem -= t;
+  }
+
+  while(rem > 0){
+    const c = Math.min(s.perRow, rem);
+    rows.push(c);
+    rem -= c;
+  }
+
+  let count = 1;
+
+  rows.forEach((cap,r)=>{
+    const row = document.createElement('div');
+    row.className = 'row' + (r===0 ? ' loose' : '');
+
+    let cells = [];
+
+    for(let c = 0; c < s.perRow; c++){
+      const d = document.createElement('div');
+
+      const ok = c < cap && count <= phys;
+
+      if(ok){
+        d.className = 'cell' + (count > basePhys ? ' reject' : '');
+        d.innerText = count++;
+      } else {
+        d.className = 'empty';
+      }
+
+      cells.push(d);
     }
 
-    let deferredPrompt;
-    const installButton = document.getElementById("installButton");
+    cells.reverse().forEach(x => row.appendChild(x));
 
-    window.addEventListener("beforeinstallprompt", function (event) {
-      event.preventDefault();
-      deferredPrompt = event;
-      installButton.hidden = false;
+    const rn = document.createElement('div');
+    rn.className = 'rowNum';
+    rn.innerText = r+1;
+    row.appendChild(rn);
+
+    document.getElementById('grid').appendChild(row);
+  });
+
+  document.getElementById('summary').innerText =
+    `Rows: ${rows.length} | Base Boards: ${base} | Per Row: ${s.perRow} | Rejects: ${s.rejects} | Total: ${total}`;
+}
+
+function resetAll(){
+  step = currentEntryMode === "pack_visualiser" ? 1 : 0;
+
+  document.getElementById('boards').value = '';
+  document.getElementById('metres').value = '';
+
+  modeSel.value = 'boards';
+  bl.value = '';
+  yieldSel.value = 1;
+
+  perRowSel.value = '';
+  looseSel.value = '';
+  rejectsSel.value = '';
+  defectTypeSel.value = '';
+  simpleDefectTypeSel.value = '';
+  document.getElementById("simpleRejectQty").value = '';
+
+  fillPackIdFields();
+
+  document.getElementById("saveStatus").innerText = "";
+
+  clearGrid();
+
+  updateUI();
+  render();
+}
+
+function updateLooseOptions(){
+  const s = state();
+
+  const sel = looseSel;
+  const prev = sel.value;
+
+  sel.innerHTML = '';
+
+  const ph = document.createElement('option');
+  ph.value = '';
+  ph.textContent = 'How many loose boards on the pack?';
+  ph.disabled = true;
+  ph.selected = true;
+  sel.appendChild(ph);
+
+  const max = s.perRow ? Math.max(0, s.perRow - 1) : 0;
+
+  for (let i = 0; i <= max; i++) {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = i;
+    sel.appendChild(o);
+  }
+
+  if (prev !== '' && Number(prev) <= max) {
+    sel.value = prev;
+  } else {
+    sel.value = '';
+  }
+}
+
+function syncNoRejects(){
+  if(currentEntryMode === "pack_visualiser"){
+    if(defectTypeSel.value === "No Rejects"){
+      rejectsSel.value = "0";
+      rejectsSel.disabled = true;
+    } else {
+      rejectsSel.disabled = false;
+    }
+  }
+
+  if(currentEntryMode && currentEntryMode !== "pack_visualiser"){
+    const simpleRejectQty = document.getElementById("simpleRejectQty");
+
+    if(simpleDefectTypeSel.value === "No Rejects"){
+      simpleRejectQty.value = "0";
+      simpleRejectQty.disabled = true;
+    } else {
+      simpleRejectQty.disabled = false;
+    }
+  }
+}
+
+modeSel.addEventListener('change',()=>{ step=1; updateUI(); render(); });
+
+document.querySelectorAll('input,select').forEach(el=>{
+  el.addEventListener('input',()=>{
+    syncNoRejects();
+    updateUI();
+    render();
+  });
+
+  el.addEventListener('change',()=>{
+    syncNoRejects();
+    updateUI();
+    render();
+  });
+});
+
+function getRejectDetails(){
+  if(!currentEntryMode) return null;
+
+  const config = ENTRY_MODES[currentEntryMode];
+
+  if(currentEntryMode === "pack_visualiser"){
+    const result = calculationResult();
+    const defectType = defectTypeSel.value;
+    const packId = document.getElementById("packId").value.trim();
+    const rejectQty = defectType === "No Rejects" ? 0 : result.rejects;
+
+    return {
+      config,
+      defectType,
+      packId,
+      rejectQty,
+      result
+    };
+  }
+
+  const defectType = simpleDefectTypeSel.value;
+  const packId = document.getElementById("simplePackId").value.trim();
+  const rejectQty = defectType === "No Rejects"
+    ? 0
+    : (+document.getElementById("simpleRejectQty").value || 0);
+
+  return {
+    config,
+    defectType,
+    packId,
+    rejectQty,
+    result: {
+      mode: "",
+      inputBoards: "",
+      inputMetres: "",
+      boardLength: "",
+      yield: "",
+      topLoose: "",
+      rows: "",
+      baseBoards: "",
+      basePhysicalBoards: "",
+      perRow: "",
+      rejects: rejectQty,
+      total: "",
+      physicalBoards: ""
+    }
+  };
+}
+
+async function saveToRejectLog(){
+  const status = document.getElementById("saveStatus");
+  const saveBtn = currentEntryMode === "pack_visualiser"
+    ? document.getElementById("saveBtn")
+    : document.getElementById("simpleSaveBtn");
+
+  const details = getRejectDetails();
+
+  if(!details){
+    status.innerText = "Choose an entry type first.";
+    return;
+  }
+
+  if(!jobContext.productionRow){
+    status.innerText = "No Production row found. Open this app by scanning the QR code from the job sheet.";
+    return;
+  }
+
+  if(!details.defectType){
+    status.innerText = "Select a reject type before saving.";
+    return;
+  }
+
+  if(details.defectType !== "No Rejects" && details.rejectQty <= 0){
+    status.innerText = "Enter a reject quantity greater than zero, or select No Rejects.";
+    return;
+  }
+
+  if(currentEntryMode === "pack_visualiser"){
+    const result = details.result;
+
+    if(!result.baseBoards || !result.perRow || result.topLoose === null){
+      status.innerText = "Complete the visualiser before saving.";
+      return;
+    }
+  }
+
+  if(!details.packId){
+    status.innerText = "Confirm the Pack ID before saving.";
+    return;
+  }
+
+  if(!REJECT_LOG_WEB_APP_URL){
+    status.innerText = "Reject Log web app URL has not been added yet.";
+    return;
+  }
+
+  const payload = {
+    source: "Board Calculator",
+    timestamp: new Date().toISOString(),
+    productionRow: jobContext.productionRow,
+    jobNo: jobContext.jobNo,
+    sheetJob: jobContext.sheetJob,
+    packId: details.packId,
+    entryMode: currentEntryMode,
+    entryModeLabel: details.config.label,
+    processStage: details.config.processStage,
+    rejectColumn: details.config.rejectColumn,
+    defectType: details.defectType,
+    rejectQty: details.rejectQty,
+    mode: details.result.mode,
+    inputBoards: details.result.inputBoards,
+    inputMetres: details.result.inputMetres,
+    boardLength: details.result.boardLength,
+    yield: details.result.yield,
+    topLoose: details.result.topLoose,
+    rows: details.result.rows,
+    baseBoards: details.result.baseBoards,
+    basePhysicalBoards: details.result.basePhysicalBoards,
+    perRow: details.result.perRow,
+    rejects: details.rejectQty,
+    total: details.result.total,
+    physicalBoards: details.result.physicalBoards
+  };
+
+  saveBtn.disabled = true;
+  status.innerText = "Saving...";
+
+  try {
+    await fetch(REJECT_LOG_WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(payload)
     });
 
-    installButton.addEventListener("click", async function () {
-      if (!deferredPrompt) return;
+    status.innerText = "Saved.";
+  } catch(err) {
+    status.innerText = "Save failed: " + err.message;
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
 
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
+updateJobContextBar();
+fillPackIdFields();
+updateUI();
+render();
+</script>
 
-      deferredPrompt = null;
-      installButton.hidden = true;
-    });
-  </script>
 </body>
 </html>
