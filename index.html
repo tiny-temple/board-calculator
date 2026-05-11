@@ -219,7 +219,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.1)
+      Pack Visualiser (v6.2)
     </h3>
   </div>
 
@@ -306,7 +306,7 @@ button:disabled {
 
     <div class="fieldBlock">
       <label>Reject quantity</label>
-      <input id="simpleRejectQty" type="number" min="0" step="1" placeholder="Number of reject boards" />
+      <select id="simpleRejectQty"></select>
     </div>
 
     <div class="fieldBlock">
@@ -583,6 +583,30 @@ function buildRejects(){
   rejectsSel.value = '';
 }
 buildRejects();
+
+  function buildSimpleRejectQty(){
+  const sel = document.getElementById("simpleRejectQty");
+
+  sel.innerHTML = "";
+
+  const ph = document.createElement("option");
+  ph.value = "";
+  ph.textContent = "How many rejects?";
+  ph.disabled = true;
+  ph.selected = true;
+  sel.appendChild(ph);
+
+  for(let i = 0; i <= 50; i++){
+    const o = document.createElement("option");
+    o.value = i;
+    o.textContent = i;
+    sel.appendChild(o);
+  }
+
+  sel.value = "";
+}
+
+buildSimpleRejectQty();
 
 function buildDefectOptions(selectEl, entryMode){
   selectEl.innerHTML = '';
