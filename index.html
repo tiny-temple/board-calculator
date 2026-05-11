@@ -212,7 +212,7 @@ button:disabled {
   margin-top: 0 !important;
 }
 
-  .rejectButtonGrid {
+.rejectButtonGrid {
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
@@ -224,6 +224,22 @@ button:disabled {
   min-height:54px;
   margin-top:0;
   text-align:center;
+}
+
+.rejectTapFlash {
+  background:#333 !important;
+  color:#fff !important;
+  transform:scale(0.98);
+}
+
+.rejectCountBadge {
+  display:inline-block;
+  margin-left:6px;
+  padding:2px 6px;
+  border-radius:999px;
+  background:#333;
+  color:#fff;
+  font-size:12px;
 }
 
 .rejectBasketTotals {
@@ -261,8 +277,6 @@ button:disabled {
   gap:8px;
   margin-top:10px;
 }
-
-
 </style>
 </head>
 
@@ -271,7 +285,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.41)
+      Pack Visualiser (v6.43)
     </h3>
   </div>
 
@@ -352,36 +366,36 @@ button:disabled {
   </div>
 
   <div id="simpleLogger" class="hidden simpleBox">
-  <div class="fieldBlock">
-    <label id="simpleLoggerTitle">Log Rejects</label>
+    <div class="fieldBlock">
+      <label id="simpleLoggerTitle">Log Rejects</label>
+    </div>
+
+    <div class="fieldBlock">
+      <label>Pack ID used</label>
+      <select id="simplePackId"></select>
+    </div>
+
+    <div class="fieldBlock">
+      <label>Tap defects as they happen</label>
+      <div id="rejectButtonGrid" class="rejectButtonGrid"></div>
+    </div>
+
+    <div id="rejectBasketTotals" class="rejectBasketTotals">
+      No rejects logged yet.
+    </div>
+
+    <div class="basketActions">
+      <button onclick="undoLastReject()">Undo Last</button>
+      <button onclick="clearRejectBasket()">Clear</button>
+      <button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button>
+      <button onclick="returnToMenu()">Back to menu</button>
+    </div>
+
+    <select id="simpleRejectQty" class="hidden"></select>
+    <select id="simpleDefectType" class="hidden"></select>
   </div>
 
-  <div class="fieldBlock">
-    <label>Pack ID used</label>
-    <select id="simplePackId"></select>
-  </div>
-
-  <div class="fieldBlock">
-    <label>Tap defects as they happen</label>
-    <div id="rejectButtonGrid" class="rejectButtonGrid"></div>
-  </div>
-
-  <div id="rejectBasketTotals" class="rejectBasketTotals">
-    No rejects logged yet.
-  </div>
-
-  <div class="basketActions">
-    <button onclick="undoLastReject()">Undo Last</button>
-    <button onclick="clearRejectBasket()">Clear</button>
-    <button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button>
-    <button onclick="returnToMenu()">Back to menu</button>
-  </div>
-
-  <select id="simpleRejectQty" class="hidden"></select>
-  <select id="simpleDefectType" class="hidden"></select>
-</div>
-
-      <div class="btnRow">
+  <div class="btnRow">
     <button id="nextBtn" onclick="nextStep()">Next</button>
     <button id="backBtn" onclick="prevStep()">Back</button>
     <button onclick="resetAll()">Reset</button>
@@ -399,7 +413,7 @@ let step = 0;
 let currentEntryMode = "";
 let currentTeam = "";
 let currentJob = null;
-  let rejectBasket = {};
+let rejectBasket = {};
 let rejectHistory = [];
 
 const REJECT_LOG_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
@@ -644,7 +658,7 @@ function buildRejects(){
 }
 buildRejects();
 
-  function buildSimpleRejectQty(){
+function buildSimpleRejectQty(){
   const sel = document.getElementById("simpleRejectQty");
 
   sel.innerHTML = "";
@@ -665,7 +679,6 @@ buildRejects();
 
   sel.value = "";
 }
-
 buildSimpleRejectQty();
 
 function buildDefectOptions(selectEl, entryMode){
@@ -776,13 +789,14 @@ function setEntryMode(mode){
   if(mode === "pack_visualiser"){
     step = 1;
     buildDefectOptions(defectTypeSel, mode);
-    } else {
+  } else {
     step = 0;
     buildDefectOptions(simpleDefectTypeSel, mode);
     document.getElementById("simpleLoggerTitle").innerText = ENTRY_MODES[mode].label;
     clearRejectBasket();
     buildBasketRejectButtons(mode);
   }
+
   fillPackIdFields();
   updateUI();
   render();
@@ -1031,8 +1045,8 @@ function resetAll(){
   defectTypeSel.value = '';
   simpleDefectTypeSel.value = '';
   document.getElementById("simpleRejectQty").value = '';
-clearRejectBasket();
 
+  clearRejectBasket();
   fillPackIdFields();
 
   document.getElementById("saveStatus").innerText = "";
@@ -1083,17 +1097,6 @@ function syncNoRejects(){
       rejectsSel.disabled = false;
     }
   }
-
-  if(currentEntryMode && currentEntryMode !== "pack_visualiser"){
-    const simpleRejectQty = document.getElementById("simpleRejectQty");
-
-    if(simpleDefectTypeSel.value === "No Rejects"){
-      simpleRejectQty.value = "0";
-      simpleRejectQty.disabled = true;
-    } else {
-      simpleRejectQty.disabled = false;
-    }
-  }
 }
 
 modeSel.addEventListener('change',()=>{ step=1; updateUI(); render(); });
@@ -1112,7 +1115,7 @@ document.querySelectorAll('input,select').forEach(el=>{
   });
 });
 
-  function buildBasketRejectButtons(entryMode){
+function buildBasketRejectButtons(entryMode){
   const grid = document.getElementById("rejectButtonGrid");
   grid.innerHTML = "";
 
@@ -1121,7 +1124,7 @@ document.querySelectorAll('input,select').forEach(el=>{
   defects.forEach(defectType => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.textContent = defectType;
+    btn.dataset.defectType = defectType;
 
     if(defectType === "No Rejects"){
       btn.className = "primaryBtn";
@@ -1129,12 +1132,46 @@ document.querySelectorAll('input,select').forEach(el=>{
 
     btn.onclick = function(){
       addRejectToBasket(defectType);
+      flashRejectButton(btn);
+      updateRejectButtonBadges();
     };
 
     grid.appendChild(btn);
   });
 
+  updateRejectButtonBadges();
   renderRejectBasket();
+}
+
+function flashRejectButton(btn){
+  btn.classList.add("rejectTapFlash");
+
+  setTimeout(function(){
+    btn.classList.remove("rejectTapFlash");
+  }, 160);
+}
+
+function updateRejectButtonBadges(){
+  const buttons = document.querySelectorAll("#rejectButtonGrid button");
+
+  buttons.forEach(btn => {
+    const defectType = btn.dataset.defectType;
+    const count = rejectBasket[defectType] || 0;
+    const isNoRejectsSelected = defectType === "No Rejects" && rejectBasket["No Rejects"] !== undefined;
+
+    btn.innerHTML = "";
+
+    const label = document.createElement("span");
+    label.textContent = defectType;
+    btn.appendChild(label);
+
+    if(count > 0 || isNoRejectsSelected){
+      const badge = document.createElement("span");
+      badge.className = "rejectCountBadge";
+      badge.textContent = isNoRejectsSelected ? "✓" : count;
+      btn.appendChild(badge);
+    }
+  });
 }
 
 function addRejectToBasket(defectType){
@@ -1238,6 +1275,7 @@ function renderRejectBasket(){
 
   if(!lines.length){
     box.innerHTML = "No rejects logged yet.";
+    updateRejectButtonBadges();
     return;
   }
 
@@ -1270,6 +1308,8 @@ function renderRejectBasket(){
   totalRow.style.fontWeight = "600";
   totalRow.textContent = "Total rejects: " + total;
   box.appendChild(totalRow);
+
+  updateRejectButtonBadges();
 }
 
 function getBasketRejectLines(){
@@ -1278,7 +1318,7 @@ function getBasketRejectLines(){
     rejectQty: Number(rejectBasket[defectType] || 0)
   }));
 }
-  
+
 function getRejectDetails(){
   if(!currentEntryMode) return null;
 
@@ -1299,36 +1339,10 @@ function getRejectDetails(){
     };
   }
 
-  const defectType = simpleDefectTypeSel.value;
-  const packId = document.getElementById("simplePackId").value.trim();
-  const rejectQty = defectType === "No Rejects"
-    ? 0
-    : (+document.getElementById("simpleRejectQty").value || 0);
-
-  return {
-    config,
-    defectType,
-    packId,
-    rejectQty,
-    result: {
-      mode: "",
-      inputBoards: "",
-      inputMetres: "",
-      boardLength: "",
-      yield: "",
-      topLoose: "",
-      rows: "",
-      baseBoards: "",
-      basePhysicalBoards: "",
-      perRow: "",
-      rejects: rejectQty,
-      total: "",
-      physicalBoards: ""
-    }
-  };
+  return null;
 }
 
-  async function reviewAndSaveBasket(){
+async function reviewAndSaveBasket(){
   const status = document.getElementById("saveStatus");
   const saveBtn = document.getElementById("simpleSaveBtn");
 
@@ -1443,12 +1457,10 @@ function getRejectDetails(){
     saveBtn.disabled = false;
   }
 }
-  
+
 async function saveToRejectLog(){
   const status = document.getElementById("saveStatus");
-  const saveBtn = currentEntryMode === "pack_visualiser"
-    ? document.getElementById("saveBtn")
-    : document.getElementById("simpleSaveBtn");
+  const saveBtn = document.getElementById("saveBtn");
 
   const details = getRejectDetails();
 
@@ -1458,7 +1470,7 @@ async function saveToRejectLog(){
   }
 
   if(!jobContext.productionRow){
-    status.innerText = "No Production row found. Open this app by scanning the QR code from the job sheet.";
+    status.innerText = "No Production row found. Select a scheduled job first.";
     return;
   }
 
@@ -1520,37 +1532,37 @@ async function saveToRejectLog(){
   };
 
   const recapLines = [
-  "Confirm reject log entry",
-  "",
-  "Team: " + (currentTeam || ""),
-  "Job: " + (jobContext.sheetJob || ""),
-  "Production Row: " + (jobContext.productionRow || ""),
-  "Process: " + (details.config.processStage || ""),
-  "Pack ID: " + (details.packId || ""),
-  "Reject Type: " + (details.defectType || ""),
-  "Quantity: " + details.rejectQty,
-  "Logged As: " + (details.config.rejectColumn === "machine" ? "Machine Defect" : "Pre Process Reject")
-];
+    "Confirm reject log entry",
+    "",
+    "Team: " + (currentTeam || ""),
+    "Job: " + (jobContext.sheetJob || ""),
+    "Production Row: " + (jobContext.productionRow || ""),
+    "Process: " + (details.config.processStage || ""),
+    "Pack ID: " + (details.packId || ""),
+    "Reject Type: " + (details.defectType || ""),
+    "Quantity: " + details.rejectQty,
+    "Logged As: " + (details.config.rejectColumn === "machine" ? "Machine Defect" : "Pre Process Reject")
+  ];
 
-if(currentJob){
-  recapLines.splice(
-    4,
-    0,
-    "Client: " + (currentJob.client || ""),
-    "Spec: " +
-      (currentJob.quantity || "") + " | " +
-      (currentJob.length || "") + "m | " +
-      (currentJob.species || "") + " | " +
-      (currentJob.finishedSize || "") + " | " +
-      (currentJob.profile || "")
-  );
-}
+  if(currentJob){
+    recapLines.splice(
+      4,
+      0,
+      "Client: " + (currentJob.client || ""),
+      "Spec: " +
+        (currentJob.quantity || "") + " | " +
+        (currentJob.length || "") + "m | " +
+        (currentJob.species || "") + " | " +
+        (currentJob.finishedSize || "") + " | " +
+        (currentJob.profile || "")
+    );
+  }
 
-if(!window.confirm(recapLines.join("\n"))){
-  status.innerText = "Save cancelled. Edit the entry and save again.";
-  return;
-}
-  
+  if(!window.confirm(recapLines.join("\n"))){
+    status.innerText = "Save cancelled. Edit the entry and save again.";
+    return;
+  }
+
   saveBtn.disabled = true;
   status.innerText = "Saving...";
 
