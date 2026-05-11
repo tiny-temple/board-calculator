@@ -211,6 +211,58 @@ button:disabled {
   width: auto !important;
   margin-top: 0 !important;
 }
+
+  .rejectButtonGrid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:8px;
+}
+
+.rejectButtonGrid button {
+  max-width:none;
+  min-height:54px;
+  margin-top:0;
+  text-align:center;
+}
+
+.rejectBasketTotals {
+  border:1px solid rgba(0,0,0,0.12);
+  border-radius:10px;
+  background:#fff;
+  padding:10px;
+  margin-top:10px;
+  font-size:14px;
+}
+
+.rejectBasketLine {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  padding:6px 0;
+  border-bottom:1px solid rgba(0,0,0,0.08);
+}
+
+.rejectBasketLine:last-child {
+  border-bottom:none;
+}
+
+.rejectBasketLine button {
+  width:auto;
+  min-width:44px;
+  padding:6px 10px;
+  margin-top:0;
+}
+
+.basketActions {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+
+
 </style>
 </head>
 
@@ -219,7 +271,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.3)
+      Pack Visualiser (v6.4)
     </h3>
   </div>
 
@@ -300,9 +352,34 @@ button:disabled {
   </div>
 
   <div id="simpleLogger" class="hidden simpleBox">
-    <div class="fieldBlock">
-      <label id="simpleLoggerTitle">Log Rejects</label>
-    </div>
+  <div class="fieldBlock">
+    <label id="simpleLoggerTitle">Log Rejects</label>
+  </div>
+
+  <div class="fieldBlock">
+    <label>Pack ID used</label>
+    <select id="simplePackId"></select>
+  </div>
+
+  <div class="fieldBlock">
+    <label>Tap defects as they happen</label>
+    <div id="rejectButtonGrid" class="rejectButtonGrid"></div>
+  </div>
+
+  <div id="rejectBasketTotals" class="rejectBasketTotals">
+    No rejects logged yet.
+  </div>
+
+  <div class="basketActions">
+    <button onclick="undoLastReject()">Undo Last</button>
+    <button onclick="clearRejectBasket()">Clear</button>
+    <button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button>
+    <button onclick="returnToMenu()">Back to menu</button>
+  </div>
+
+  <select id="simpleRejectQty" class="hidden"></select>
+  <select id="simpleDefectType" class="hidden"></select>
+</div>
 
     <div class="fieldBlock">
       <label>Reject quantity</label>
@@ -341,6 +418,8 @@ let step = 0;
 let currentEntryMode = "";
 let currentTeam = "";
 let currentJob = null;
+  let rejectBasket = {};
+let rejectHistory = [];
 
 const REJECT_LOG_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
 
@@ -716,12 +795,13 @@ function setEntryMode(mode){
   if(mode === "pack_visualiser"){
     step = 1;
     buildDefectOptions(defectTypeSel, mode);
-  } else {
+    } else {
     step = 0;
     buildDefectOptions(simpleDefectTypeSel, mode);
     document.getElementById("simpleLoggerTitle").innerText = ENTRY_MODES[mode].label;
+    clearRejectBasket();
+    buildBasketRejectButtons(mode);
   }
-
   fillPackIdFields();
   updateUI();
   render();
@@ -730,6 +810,7 @@ function setEntryMode(mode){
 function returnToMenu(){
   currentEntryMode = "";
   step = 0;
+  clearRejectBasket();
   document.getElementById("saveStatus").innerText = "";
   clearGrid();
   document.getElementById("summary").innerText = "";
@@ -969,6 +1050,7 @@ function resetAll(){
   defectTypeSel.value = '';
   simpleDefectTypeSel.value = '';
   document.getElementById("simpleRejectQty").value = '';
+clearRejectBasket();
 
   fillPackIdFields();
 
@@ -1049,6 +1131,173 @@ document.querySelectorAll('input,select').forEach(el=>{
   });
 });
 
+  function buildBasketRejectButtons(entryMode){
+  const grid = document.getElementById("rejectButtonGrid");
+  grid.innerHTML = "";
+
+  const defects = DEFECT_LISTS[entryMode] || [];
+
+  defects.forEach(defectType => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = defectType;
+
+    if(defectType === "No Rejects"){
+      btn.className = "primaryBtn";
+    }
+
+    btn.onclick = function(){
+      addRejectToBasket(defectType);
+    };
+
+    grid.appendChild(btn);
+  });
+
+  renderRejectBasket();
+}
+
+function addRejectToBasket(defectType){
+  if(defectType === "No Rejects"){
+    rejectBasket = {
+      "No Rejects": 0
+    };
+
+    rejectHistory = [
+      {
+        defectType: "No Rejects",
+        qty: 0
+      }
+    ];
+
+    renderRejectBasket();
+    return;
+  }
+
+  if(rejectBasket["No Rejects"] !== undefined){
+    rejectBasket = {};
+    rejectHistory = [];
+  }
+
+  if(!rejectBasket[defectType]){
+    rejectBasket[defectType] = 0;
+  }
+
+  rejectBasket[defectType] += 1;
+
+  rejectHistory.push({
+    defectType: defectType,
+    qty: 1
+  });
+
+  renderRejectBasket();
+}
+
+function decrementReject(defectType){
+  if(rejectBasket[defectType] === undefined) return;
+
+  if(defectType === "No Rejects"){
+    delete rejectBasket[defectType];
+    rejectHistory = [];
+    renderRejectBasket();
+    return;
+  }
+
+  rejectBasket[defectType] -= 1;
+
+  if(rejectBasket[defectType] <= 0){
+    delete rejectBasket[defectType];
+  }
+
+  for(let i = rejectHistory.length - 1; i >= 0; i--){
+    if(rejectHistory[i].defectType === defectType){
+      rejectHistory.splice(i, 1);
+      break;
+    }
+  }
+
+  renderRejectBasket();
+}
+
+function undoLastReject(){
+  if(!rejectHistory.length){
+    renderRejectBasket();
+    return;
+  }
+
+  const last = rejectHistory.pop();
+
+  if(last.defectType === "No Rejects"){
+    delete rejectBasket["No Rejects"];
+    renderRejectBasket();
+    return;
+  }
+
+  if(rejectBasket[last.defectType] !== undefined){
+    rejectBasket[last.defectType] -= 1;
+
+    if(rejectBasket[last.defectType] <= 0){
+      delete rejectBasket[last.defectType];
+    }
+  }
+
+  renderRejectBasket();
+}
+
+function clearRejectBasket(){
+  rejectBasket = {};
+  rejectHistory = [];
+  renderRejectBasket();
+}
+
+function renderRejectBasket(){
+  const box = document.getElementById("rejectBasketTotals");
+  if(!box) return;
+
+  const lines = getBasketRejectLines();
+
+  if(!lines.length){
+    box.innerHTML = "No rejects logged yet.";
+    return;
+  }
+
+  let total = 0;
+  box.innerHTML = "";
+
+  lines.forEach(line => {
+    total += Number(line.rejectQty || 0);
+
+    const row = document.createElement("div");
+    row.className = "rejectBasketLine";
+
+    const label = document.createElement("div");
+    label.textContent = line.defectType + ": " + line.rejectQty;
+
+    const minus = document.createElement("button");
+    minus.type = "button";
+    minus.textContent = "-";
+    minus.onclick = function(){
+      decrementReject(line.defectType);
+    };
+
+    row.appendChild(label);
+    row.appendChild(minus);
+    box.appendChild(row);
+  });
+
+  const totalRow = document.createElement("div");
+  totalRow.style.marginTop = "8px";
+  totalRow.style.fontWeight = "600";
+  totalRow.textContent = "Total rejects: " + total;
+  box.appendChild(totalRow);
+}
+
+function getBasketRejectLines(){
+  return Object.keys(rejectBasket).map(defectType => ({
+    defectType: defectType,
+    rejectQty: Number(rejectBasket[defectType] || 0)
+  }));
+}
+  
 function getRejectDetails(){
   if(!currentEntryMode) return null;
 
@@ -1098,6 +1347,122 @@ function getRejectDetails(){
   };
 }
 
+  async function reviewAndSaveBasket(){
+  const status = document.getElementById("saveStatus");
+  const saveBtn = document.getElementById("simpleSaveBtn");
+
+  if(!currentEntryMode || currentEntryMode === "pack_visualiser"){
+    status.innerText = "Choose Moulder or Paint Room rejects first.";
+    return;
+  }
+
+  if(!jobContext.productionRow){
+    status.innerText = "No Production row found. Select a scheduled job first.";
+    return;
+  }
+
+  const config = ENTRY_MODES[currentEntryMode];
+  const packId = document.getElementById("simplePackId").value.trim();
+  const rejectLines = getBasketRejectLines();
+
+  if(!packId){
+    status.innerText = "Select the Pack ID before reviewing.";
+    return;
+  }
+
+  if(!rejectLines.length){
+    status.innerText = "Tap at least one reject type, or select No Rejects.";
+    return;
+  }
+
+  const totalRejects = rejectLines.reduce((sum, line) => {
+    return sum + Number(line.rejectQty || 0);
+  }, 0);
+
+  const recapLines = [
+    "Review pack reject log",
+    "",
+    "Team: " + (currentTeam || ""),
+    "Job: " + (jobContext.sheetJob || ""),
+    "Production Row: " + (jobContext.productionRow || "")
+  ];
+
+  if(currentJob){
+    recapLines.push(
+      "Client: " + (currentJob.client || ""),
+      "Spec: " +
+        (currentJob.quantity || "") + " | " +
+        (currentJob.length || "") + "m | " +
+        (currentJob.species || "") + " | " +
+        (currentJob.finishedSize || "") + " | " +
+        (currentJob.profile || "")
+    );
+  }
+
+  recapLines.push(
+    "Process: " + (config.processStage || ""),
+    "Pack ID: " + packId,
+    "",
+    "Rejects:"
+  );
+
+  rejectLines.forEach(line => {
+    recapLines.push("- " + line.defectType + ": " + line.rejectQty);
+  });
+
+  recapLines.push(
+    "",
+    "Total rejects: " + totalRejects,
+    "Logged As: " + (config.rejectColumn === "machine" ? "Machine Defect" : "Pre Process Reject")
+  );
+
+  if(!window.confirm(recapLines.join("\n"))){
+    status.innerText = "Save cancelled. Continue logging or edit the basket.";
+    return;
+  }
+
+  if(!REJECT_LOG_WEB_APP_URL){
+    status.innerText = "Reject Log web app URL has not been added yet.";
+    return;
+  }
+
+  const payload = {
+    source: "Board Calculator",
+    timestamp: new Date().toISOString(),
+    productionRow: jobContext.productionRow,
+    jobNo: jobContext.jobNo,
+    sheetJob: jobContext.sheetJob,
+    packId: packId,
+    entryMode: currentEntryMode,
+    entryModeLabel: config.label,
+    processStage: config.processStage,
+    rejectColumn: config.rejectColumn,
+    rejects: rejectLines
+  };
+
+  saveBtn.disabled = true;
+  status.innerText = "Saving...";
+
+  try {
+    await fetch(REJECT_LOG_WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    status.innerText = "Saved. Basket cleared.";
+    clearRejectBasket();
+
+  } catch(err) {
+    status.innerText = "Save failed: " + err.message;
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+  
 async function saveToRejectLog(){
   const status = document.getElementById("saveStatus");
   const saveBtn = currentEntryMode === "pack_visualiser"
