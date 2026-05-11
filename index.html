@@ -17,6 +17,27 @@ body {
   padding-bottom: 130px;
 }
 
+  * {
+  box-sizing: border-box;
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.rejectButtonGrid {
+  width: 100%;
+  max-width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.rejectButtonGrid button {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+  
 .panel {
   display:grid;
   grid-template-columns:1fr;
@@ -285,7 +306,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.43)
+      Pack Visualiser (v6.44)
     </h3>
   </div>
 
