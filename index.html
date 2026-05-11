@@ -17,26 +17,8 @@ body {
   padding-bottom: 130px;
 }
 
-  * {
-  box-sizing: border-box;
-}
 
-html, body {
-  max-width: 100%;
-  overflow-x: hidden;
-}
 
-.rejectButtonGrid {
-  width: 100%;
-  max-width: 100%;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-}
-
-.rejectButtonGrid button {
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
   
 .panel {
   display:grid;
@@ -298,6 +280,61 @@ button:disabled {
   gap:8px;
   margin-top:10px;
 }
+
+  * {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.panel,
+.simpleBox,
+#teamQueueBlock,
+#step0_entry,
+#jobQueue,
+.fieldBlock,
+.grid,
+.row {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.grid {
+  max-width: 100%;
+}
+
+button,
+#jobQueue button,
+.rejectButtonGrid button {
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.rejectButtonGrid {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.rejectButtonGrid button {
+  max-width: none;
+  min-height: 54px;
+  margin-top: 0;
+  text-align: center;
+}
+  
 </style>
 </head>
 
@@ -306,7 +343,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.44)
+      Pack Visualiser (v6.45)
     </h3>
   </div>
 
