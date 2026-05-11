@@ -219,7 +219,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v5.9)
+      Pack Visualiser (v6.0)
     </h3>
   </div>
 
@@ -232,7 +232,20 @@ button:disabled {
 
 <div class="panel">
 
-  <div id="step0_entry">
+  <div id="teamQueueBlock">
+    <div class="fieldBlock">
+      <label>Select team</label>
+      <div class="modeButtons">
+        <button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button>
+        <button onclick="loadTeamQueue('B')">Team B</button>
+      </div>
+    </div>
+
+    <div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div>
+    <div id="jobQueue"></div>
+  </div>
+
+  <div id="step0_entry" class="hidden">
     <div class="fieldBlock">
       <label>What do you want to do?</label>
       <div class="modeButtons">
@@ -326,12 +339,14 @@ button:disabled {
 <script>
 let step = 0;
 let currentEntryMode = "";
+let currentTeam = "";
+let currentJob = null;
 
 const REJECT_LOG_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
 
 const urlParams = new URLSearchParams(window.location.search);
 
-const jobContext = {
+let jobContext = {
   productionRow: urlParams.get("row") || "",
   jobNo: urlParams.get("jobNo") || "",
   sheetJob: urlParams.get("sheetJob") || urlParams.get("job") || "",
@@ -439,6 +454,97 @@ yieldSel.value=1;
 
 const perRowSel=document.getElementById('perRow');
 
+function loadTeamQueue(team){
+  currentTeam = team;
+  currentJob = null;
+
+  document.getElementById("queueStatus").innerText = "Loading Team " + team + " queue...";
+  document.getElementById("jobQueue").innerHTML = "";
+  document.getElementById("step0_entry").classList.add("hidden");
+
+  const callbackName = "pwaQueueCallback_" + Date.now();
+
+  window[callbackName] = function(data){
+    delete window[callbackName];
+
+    if(!data || !data.ok){
+      document.getElementById("queueStatus").innerText = "Could not load queue.";
+      return;
+    }
+
+    renderJobQueue(data.jobs || []);
+  };
+
+  const script = document.createElement("script");
+  script.src =
+    REJECT_LOG_WEB_APP_URL +
+    "?action=getQueue&team=" +
+    encodeURIComponent(team) +
+    "&callback=" +
+    encodeURIComponent(callbackName);
+
+  script.onerror = function(){
+    document.getElementById("queueStatus").innerText = "Queue load failed.";
+    delete window[callbackName];
+  };
+
+  document.body.appendChild(script);
+}
+
+function renderJobQueue(jobs){
+  const wrap = document.getElementById("jobQueue");
+
+  if(!jobs.length){
+    document.getElementById("queueStatus").innerText = "No jobs found for Team " + currentTeam + ".";
+    wrap.innerHTML = "";
+    return;
+  }
+
+  document.getElementById("queueStatus").innerText = "Team " + currentTeam + " jobs";
+
+  wrap.innerHTML = "";
+
+  jobs.forEach((job, index)=>{
+    const btn = document.createElement("button");
+    btn.style.textAlign = "left";
+    btn.style.maxWidth = "100%";
+
+    const packText = (job.packs || []).map(p=>p.packId).join(", ");
+
+    btn.innerHTML =
+      "<strong>" + job.sheetJob + " — " + job.client + "</strong><br>" +
+      "Qty: " + job.quantity + " | " +
+      job.length + "m | " +
+      job.species + " | " +
+      job.finishedSize + " | " +
+      job.profile + "<br>" +
+      "Packs: " + packText;
+
+    btn.onclick = function(){
+      selectQueueJob(job);
+    };
+
+    wrap.appendChild(btn);
+  });
+}
+
+function selectQueueJob(job){
+  currentJob = job;
+
+  jobContext.productionRow = job.productionRow || "";
+  jobContext.jobNo = job.jobNo || "";
+  jobContext.sheetJob = job.sheetJob || "";
+  jobContext.packId = job.packs && job.packs.length ? job.packs[0].packId : "";
+
+  updateJobContextBar();
+  fillPackIdFields();
+
+  document.getElementById("teamQueueBlock").classList.add("hidden");
+  document.getElementById("step0_entry").classList.remove("hidden");
+
+  updateUI();
+}
+
 function buildPerRow(){
   perRowSel.innerHTML='';
   const ph=document.createElement('option');
@@ -509,6 +615,7 @@ function updateJobContextBar(){
 
   const parts = [];
 
+  if(currentTeam) parts.push("Team: " + currentTeam);
   if(jobContext.productionRow) parts.push("Production Row: " + jobContext.productionRow);
   if(jobContext.jobNo) parts.push("Job No: " + jobContext.jobNo);
   if(jobContext.sheetJob) parts.push("Sheet Job: " + jobContext.sheetJob);
@@ -634,7 +741,8 @@ function updateUI(){
   const isSimpleLogger = currentEntryMode && currentEntryMode !== "pack_visualiser";
   const inStep5 = isVisualiser && step === 5;
 
-  document.getElementById('step0_entry').classList.toggle('hidden', !isMenu);
+  document.getElementById('teamQueueBlock').classList.toggle('hidden', currentJob !== null);
+  document.getElementById('step0_entry').classList.toggle('hidden', !isMenu || currentJob === null);
   document.getElementById('simpleLogger').classList.toggle('hidden', !isSimpleLogger);
 
   document.getElementById('modeBlock').classList.toggle('hidden', !isVisualiser || inStep5);
