@@ -271,7 +271,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.4)
+      Pack Visualiser (v6.41)
     </h3>
   </div>
 
@@ -381,26 +381,7 @@ button:disabled {
   <select id="simpleDefectType" class="hidden"></select>
 </div>
 
-    <div class="fieldBlock">
-      <label>Reject quantity</label>
-      <select id="simpleRejectQty"></select>
-    </div>
-
-    <div class="fieldBlock">
-      <label>Reject type</label>
-      <select id="simpleDefectType"></select>
-    </div>
-
-    <div class="fieldBlock">
-      <label>Pack ID used</label>
-      <select id="simplePackId"></select>
-    </div>
-
-    <button id="simpleSaveBtn" class="primaryBtn" onclick="saveToRejectLog()">Review & Save</button>
-    <button onclick="returnToMenu()">Back to menu</button>
-  </div>
-
-  <div class="btnRow">
+      <div class="btnRow">
     <button id="nextBtn" onclick="nextStep()">Next</button>
     <button id="backBtn" onclick="prevStep()">Back</button>
     <button onclick="resetAll()">Reset</button>
