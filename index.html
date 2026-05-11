@@ -334,6 +334,77 @@ button,
   margin-top: 0;
   text-align: center;
 }
+
+  html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 12px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#headerBar,
+.panel,
+#teamQueueBlock,
+#step0_entry,
+#jobQueue,
+.simpleBox,
+.fieldBlock,
+.grid,
+.row,
+.rejectBasketTotals,
+.basketActions {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+button,
+input,
+select,
+#jobQueue button,
+.rejectButtonGrid button {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.rejectButtonGrid {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.rejectButtonGrid button {
+  max-width: none;
+  min-height: 54px;
+  margin-top: 0;
+  text-align: center;
+}
+
+#step5_rejects {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 120px;
+}
   
 </style>
 </head>
@@ -343,7 +414,7 @@ button,
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.45)
+      Pack Visualiser (v6.46)
     </h3>
   </div>
 
