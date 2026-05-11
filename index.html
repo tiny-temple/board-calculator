@@ -219,7 +219,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.2)
+      Pack Visualiser (v6.3)
     </h3>
   </div>
 
@@ -1173,6 +1173,38 @@ async function saveToRejectLog(){
     physicalBoards: details.result.physicalBoards
   };
 
+  const recapLines = [
+  "Confirm reject log entry",
+  "",
+  "Team: " + (currentTeam || ""),
+  "Job: " + (jobContext.sheetJob || ""),
+  "Production Row: " + (jobContext.productionRow || ""),
+  "Process: " + (details.config.processStage || ""),
+  "Pack ID: " + (details.packId || ""),
+  "Reject Type: " + (details.defectType || ""),
+  "Quantity: " + details.rejectQty,
+  "Logged As: " + (details.config.rejectColumn === "machine" ? "Machine Defect" : "Pre Process Reject")
+];
+
+if(currentJob){
+  recapLines.splice(
+    4,
+    0,
+    "Client: " + (currentJob.client || ""),
+    "Spec: " +
+      (currentJob.quantity || "") + " | " +
+      (currentJob.length || "") + "m | " +
+      (currentJob.species || "") + " | " +
+      (currentJob.finishedSize || "") + " | " +
+      (currentJob.profile || "")
+  );
+}
+
+if(!window.confirm(recapLines.join("\n"))){
+  status.innerText = "Save cancelled. Edit the entry and save again.";
+  return;
+}
+  
   saveBtn.disabled = true;
   status.innerText = "Saving...";
 
