@@ -703,6 +703,39 @@ button:disabled {
     max-width: clamp(220px, 16vw, 320px);
   }
 }
+
+  @media (min-width: 700px) {
+  .rejectLoggerLeft {
+    background: #f7f7f7;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 16px;
+    padding: clamp(12px, 1.5vw, 22px);
+  }
+
+  .rejectLoggerRight {
+    background: #fff;
+    border: 2px solid rgba(0,0,0,0.22);
+    border-radius: 16px;
+    padding: clamp(12px, 1.5vw, 22px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
+
+  .rejectBasketTotals {
+    border: none;
+    background: #fafafa;
+    margin-top: 0;
+  }
+
+  .basketActions {
+    border-top: 1px solid rgba(0,0,0,0.14);
+    padding-top: clamp(10px, 1.2vw, 18px);
+  }
+
+  .basketActions .primaryBtn {
+    background: #1f1f1f;
+    border-color: #1f1f1f;
+  }
+}
   
 </style>
 </head>
@@ -712,7 +745,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.52)
+      Pack Visualiser (v6.52a)
     </h3>
   </div>
 
