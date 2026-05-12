@@ -950,7 +950,7 @@ textarea {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.72)
+      Pack Visualiser (v6.73)
     </h3>
   </div>
 
@@ -1881,6 +1881,22 @@ function showPostSaveScreen(payload, totalRejects){
     );
   }
 
+  if(payload.processSetup){
+  const setup = payload.processSetup;
+
+  lines.push("");
+  lines.push("Setup checks:");
+  lines.push("Operator: " + (setup.operatorId || "") + (setup.guestOperatorName ? " - " + setup.guestOperatorName : ""));
+  lines.push("Pack confirmed: " + (setup.packConfirmed ? "Yes" : "No"));
+  lines.push("Profile checked: " + (setup.profileChecked ? "Yes" : "No"));
+  lines.push("First piece checked: " + (setup.firstPieceChecked ? "Yes" : "No"));
+  lines.push("Finished size checked: " + (setup.finishedSizeChecked ? "Yes" : "No"));
+
+  if(setup.notes){
+    lines.push("Notes: " + setup.notes);
+  }
+}
+  
   lines.push("");
   lines.push("Reject details:");
 
