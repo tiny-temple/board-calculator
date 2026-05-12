@@ -950,7 +950,7 @@ textarea {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.73)
+      Pack Visualiser (v6.74)
     </h3>
   </div>
 
@@ -1135,8 +1135,9 @@ textarea {
     </div>
 
     <div class="basketActions">
-      <button class="primaryBtn" onclick="logAnotherPack()">Log another pack</button>
-<button onclick="resendLocalOutbox()">Resend local saved submissions</button>
+<button class="primaryBtn" onclick="logAnotherPack()">Log another pack</button>
+<button onclick="resendLocalOutbox()">Resend local backups</button>
+<button onclick="clearLocalOutboxBackups()">Clear local backups after checking Reject Log</button>
 <button onclick="backToProcessMenu()">Back to process menu</button>
 <button onclick="backToJobQueue()">Back to job queue</button>
     </div>
@@ -2767,21 +2768,44 @@ function updateLocalOutboxStatus(){
   const count = getLocalOutboxItems().length;
 
   if(count){
-    el.innerText = "Local saved submissions on this iPad: " + count;
+    el.innerText =
+      "Local backup submissions on this iPad: " +
+      count +
+      ". These are retained as a safety backup and may already be logged.";
   } else {
-    el.innerText = "";
+    el.innerText = "No local backup submissions stored on this iPad.";
   }
 }
-
+  
 function resendLocalOutbox(){
   const status = document.getElementById("saveStatus");
   const items = getLocalOutboxItems();
 
   if(!items.length){
-    status.innerText = "No local submissions to resend.";
+    status.innerText = "No local backup submissions to resend.";
     updateLocalOutboxStatus();
     return;
   }
+
+  const ok = window.confirm(
+    "This will resend " +
+    items.length +
+    " local backup submission(s).\n\nOnly do this if the entries are missing from the Reject Log, otherwise duplicates may be created."
+  );
+
+  if(!ok){
+    status.innerText = "Resend cancelled.";
+    return;
+  }
+
+  items.forEach(item => {
+    const payload = item.record.payload;
+    sendRejectPayloadInBackground(payload);
+  });
+
+  status.innerText = "Resent " + items.length + " local backup submission(s).";
+  updateLocalOutboxStatus();
+}
 
   items.forEach(item => {
     const payload = item.record.payload;
@@ -2791,7 +2815,37 @@ function resendLocalOutbox(){
   status.innerText = "Resent " + items.length + " local saved submission(s).";
   updateLocalOutboxStatus();
 }
-  
+
+  function clearLocalOutboxBackups(){
+  const status = document.getElementById("saveStatus");
+  const items = getLocalOutboxItems();
+
+  if(!items.length){
+    status.innerText = "No local backup submissions to clear.";
+    updateLocalOutboxStatus();
+    return;
+  }
+
+  const ok = window.confirm(
+    "Clear " +
+    items.length +
+    " local backup submission(s) from this iPad?\n\nOnly clear them after checking the Reject Log has the saved entries."
+  );
+
+  if(!ok){
+    status.innerText = "Clear cancelled.";
+    return;
+  }
+
+  items.forEach(item => {
+    localStorage.removeItem(item.key);
+  });
+
+  status.innerText = "Local backup submissions cleared from this iPad.";
+  updateLocalOutboxStatus();
+}
+
+
   function sendRejectPayloadInBackground(payload){
   if(!payload.submissionId){
     payload.submissionId = createRejectSubmissionId();
