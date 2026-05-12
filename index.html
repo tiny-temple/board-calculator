@@ -771,7 +771,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.64)
+      Pack Visualiser (v6.65)
     </h3>
   </div>
 
@@ -2148,6 +2148,74 @@ function getRejectDetails(){
   return null;
 }
 
+  function sendRejectPayloadInBackground(payload){
+  const body = JSON.stringify(payload);
+
+  try {
+    const sentPayloadKey = [
+      "ttRejectSubmittedPending",
+      payload.team || "",
+      payload.productionRow || "",
+      payload.entryMode || "",
+      payload.packId || "",
+      Date.now()
+    ].join("|");
+
+    localStorage.setItem(sentPayloadKey, body);
+
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], {
+        type: "text/plain;charset=utf-8"
+      });
+
+      const queued = navigator.sendBeacon(REJECT_LOG_WEB_APP_URL, blob);
+
+      if (queued) {
+        return;
+      }
+    }
+
+    fetch(REJECT_LOG_WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: body,
+      keepalive: true
+    }).catch(err => {
+      const errorKey = [
+        "ttRejectSendError",
+        payload.team || "",
+        payload.productionRow || "",
+        payload.entryMode || "",
+        payload.packId || "",
+        Date.now()
+      ].join("|");
+
+      localStorage.setItem(errorKey, JSON.stringify({
+        error: err.message,
+        payload: payload
+      }));
+    });
+
+  } catch(err) {
+    const errorKey = [
+      "ttRejectSendError",
+      payload.team || "",
+      payload.productionRow || "",
+      payload.entryMode || "",
+      payload.packId || "",
+      Date.now()
+    ].join("|");
+
+    localStorage.setItem(errorKey, JSON.stringify({
+      error: err.message,
+      payload: payload
+    }));
+  }
+}
+  
 async function reviewAndSaveBasket(){
   const status = document.getElementById("saveStatus");
   const saveBtn = document.getElementById("simpleSaveBtn");
