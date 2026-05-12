@@ -771,7 +771,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.62)
+      Pack Visualiser (v6.63)
     </h3>
   </div>
 
@@ -1037,12 +1037,27 @@ yieldSel.value=1;
 const perRowSel=document.getElementById('perRow');
 
 function loadTeamQueue(team){
+  hidePostSaveScreen();
+
   currentTeam = team;
   currentJob = null;
+  currentEntryMode = "";
+  step = 0;
+
+  clearGrid();
+
+  document.getElementById("summary").innerText = "";
+  document.getElementById("saveStatus").innerText = "";
+
+  document.getElementById("teamQueueBlock").classList.remove("hidden");
+  document.getElementById("step0_entry").classList.add("hidden");
+  document.getElementById("simpleLogger").classList.add("hidden");
+  document.querySelector(".btnRow").classList.add("hidden");
+
+  updateJobContextBar();
 
   document.getElementById("queueStatus").innerText = "Loading Team " + team + " queue...";
   document.getElementById("jobQueue").innerHTML = "";
-  document.getElementById("step0_entry").classList.add("hidden");
 
   const callbackName = "pwaQueueCallback_" + Date.now();
 
@@ -1074,7 +1089,7 @@ function loadTeamQueue(team){
 
   document.body.appendChild(script);
 }
-
+  
 function renderJobQueue(jobs){
   const wrap = document.getElementById("jobQueue");
 
@@ -1470,12 +1485,19 @@ function backToJobQueue(){
 
   document.getElementById("summary").innerText = "";
   document.getElementById("saveStatus").innerText = "";
+
   updateJobContextBar();
+
+  document.getElementById("teamQueueBlock").classList.remove("hidden");
+  document.getElementById("step0_entry").classList.add("hidden");
+  document.getElementById("simpleLogger").classList.add("hidden");
+  document.querySelector(".btnRow").classList.add("hidden");
 
   if(currentTeam){
     loadTeamQueue(currentTeam);
   } else {
-    updateUI();
+    document.getElementById("queueStatus").innerText = "";
+    document.getElementById("jobQueue").innerHTML = "";
   }
 }
 
