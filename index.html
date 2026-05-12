@@ -771,7 +771,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.66)
+      Pack Visualiser (v6.67)
     </h3>
   </div>
 
@@ -891,13 +891,14 @@ button:disabled {
     <div class="fieldBlock">
       <label id="postSaveTitle">Saved</label>
       <div id="postSaveDetails" style="font-size:16px; line-height:1.35; color:#333;"></div>
+      <div id="localOutboxStatus" style="margin-top:12px; font-size:16px; line-height:1.35; color:#333;"></div>
     </div>
 
     <div class="basketActions">
-      <button class="primaryBtn" onclick="logSamePackAgain()">Log same pack again</button>
-      <button onclick="logAnotherPack()">Log another pack</button>
-      <button onclick="backToProcessMenu()">Back to process menu</button>
-      <button onclick="backToJobQueue()">Back to job queue</button>
+      <button class="primaryBtn" onclick="logAnotherPack()">Log another pack</button>
+<button onclick="resendLocalOutbox()">Resend local saved submissions</button>
+<button onclick="backToProcessMenu()">Back to process menu</button>
+<button onclick="backToJobQueue()">Back to job queue</button>
     </div>
   </div>
 
@@ -923,6 +924,8 @@ let rejectBasket = {};
 let rejectHistory = [];
 const REJECT_DRAFT_PREFIX = "ttRejectDraft";
 const REJECT_SUBMITTED_PREFIX = "ttRejectSubmitted";
+const REJECT_OUTBOX_PREFIX = "ttRejectOutbox|";
+const REJECT_DEVICE_ID_KEY = "ttRejectDeviceId";
 
 const REJECT_LOG_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
 
@@ -2148,21 +2151,136 @@ function getRejectDetails(){
   return null;
 }
 
+  function getRejectDeviceId(){
+  let deviceId = localStorage.getItem(REJECT_DEVICE_ID_KEY);
+
+  if(!deviceId){
+    deviceId =
+      "device_" +
+      Date.now() +
+      "_" +
+      Math.random().toString(36).slice(2, 10);
+
+    localStorage.setItem(REJECT_DEVICE_ID_KEY, deviceId);
+  }
+
+  return deviceId;
+}
+
+function createRejectSubmissionId(){
+  return [
+    "sub",
+    getRejectDeviceId(),
+    Date.now(),
+    Math.random().toString(36).slice(2, 10)
+  ].join("_");
+}
+
+function getRejectOutboxKey(submissionId){
+  return REJECT_OUTBOX_PREFIX + submissionId;
+}
+
+function savePayloadToOutbox(payload){
+  if(!payload.submissionId){
+    payload.submissionId = createRejectSubmissionId();
+  }
+
+  const key = getRejectOutboxKey(payload.submissionId);
+
+  const record = {
+    savedAt: new Date().toISOString(),
+    lastAttemptAt: "",
+    attempts: 0,
+    payload: payload
+  };
+
+  localStorage.setItem(key, JSON.stringify(record));
+  updateLocalOutboxStatus();
+}
+
+function markOutboxAttempt(submissionId){
+  if(!submissionId) return;
+
+  const key = getRejectOutboxKey(submissionId);
+  const raw = localStorage.getItem(key);
+
+  if(!raw) return;
+
+  try {
+    const record = JSON.parse(raw);
+    record.attempts = Number(record.attempts || 0) + 1;
+    record.lastAttemptAt = new Date().toISOString();
+    localStorage.setItem(key, JSON.stringify(record));
+  } catch(err) {}
+}
+
+function getLocalOutboxItems(){
+  const items = [];
+
+  for(let i = 0; i < localStorage.length; i++){
+    const key = localStorage.key(i);
+
+    if(key && key.indexOf(REJECT_OUTBOX_PREFIX) === 0){
+      try {
+        const record = JSON.parse(localStorage.getItem(key));
+        if(record && record.payload){
+          items.push({
+            key: key,
+            record: record
+          });
+        }
+      } catch(err) {}
+    }
+  }
+
+  return items;
+}
+
+function updateLocalOutboxStatus(){
+  const el = document.getElementById("localOutboxStatus");
+  if(!el) return;
+
+  const count = getLocalOutboxItems().length;
+
+  if(count){
+    el.innerText = "Local saved submissions on this iPad: " + count;
+  } else {
+    el.innerText = "";
+  }
+}
+
+function resendLocalOutbox(){
+  const status = document.getElementById("saveStatus");
+  const items = getLocalOutboxItems();
+
+  if(!items.length){
+    status.innerText = "No local submissions to resend.";
+    updateLocalOutboxStatus();
+    return;
+  }
+
+  items.forEach(item => {
+    const payload = item.record.payload;
+    sendRejectPayloadInBackground(payload);
+  });
+
+  status.innerText = "Resent " + items.length + " local saved submission(s).";
+  updateLocalOutboxStatus();
+}
+  
   function sendRejectPayloadInBackground(payload){
+  if(!payload.submissionId){
+    payload.submissionId = createRejectSubmissionId();
+  }
+
+  payload.deviceId = getRejectDeviceId();
+
+  savePayloadToOutbox(payload);
+  markOutboxAttempt(payload.submissionId);
+
   const body = JSON.stringify(payload);
 
   try {
-    const sentPayloadKey = [
-      "ttRejectSubmittedPending",
-      payload.team || "",
-      payload.productionRow || "",
-      payload.entryMode || "",
-      payload.packId || "",
-      Date.now()
-    ].join("|");
-
-    localStorage.setItem(sentPayloadKey, body);
-
     if (navigator.sendBeacon) {
       const blob = new Blob([body], {
         type: "text/plain;charset=utf-8"
@@ -2171,6 +2289,7 @@ function getRejectDetails(){
       const queued = navigator.sendBeacon(REJECT_LOG_WEB_APP_URL, blob);
 
       if (queued) {
+        updateLocalOutboxStatus();
         return;
       }
     }
@@ -2214,6 +2333,8 @@ function getRejectDetails(){
       payload: payload
     }));
   }
+
+  updateLocalOutboxStatus();
 }
   
 async function reviewAndSaveBasket(){
@@ -2460,6 +2581,7 @@ document.getElementById("simplePackId").addEventListener("change", function(){
   }
 });
 
+updateLocalOutboxStatus();
 updateJobContextBar();
 fillPackIdFields();
 updateUI();
