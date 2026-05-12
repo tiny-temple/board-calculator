@@ -771,7 +771,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.65)
+      Pack Visualiser (v6.66)
     </h3>
   </div>
 
@@ -2310,34 +2310,21 @@ async function reviewAndSaveBasket(){
     rejects: rejectLines
   };
 
-  saveBtn.disabled = true;
-  status.innerText = "Saving...";
+saveBtn.disabled = true;
+status.innerText = "Submitting...";
 
-  try {
-    await fetch(REJECT_LOG_WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify(payload)
-    });
+archiveSubmittedDraft(payload);
+clearRejectDraft();
 
-    archiveSubmittedDraft(payload);
-    clearRejectDraft();
+rejectBasket = {};
+rejectHistory = [];
+renderRejectBasket();
 
-    rejectBasket = {};
-    rejectHistory = [];
-    renderRejectBasket();
+sendRejectPayloadInBackground(payload);
 
-    status.innerText = "";
-    showPostSaveScreen(payload, totalRejects);
-
-  } catch(err) {
-    status.innerText = "Save failed: " + err.message;
-  } finally {
-    saveBtn.disabled = false;
-  }
+status.innerText = "";
+saveBtn.disabled = false;
+showPostSaveScreen(payload, totalRejects);
 }
 
 async function saveToRejectLog(){
