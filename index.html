@@ -685,7 +685,24 @@ button:disabled {
     font-size: clamp(21px, 1.7vw, 30px);
   }
 }
-  
+
+  @media (min-width: 700px) {
+  #headerBar img {
+    height: clamp(60px, 7vw, 100px) !important;
+    max-width: clamp(160px, 18vw, 260px);
+  }
+
+  #headerBar {
+    min-height: clamp(70px, 8vw, 110px);
+  }
+}
+
+@media (min-width: 1100px) {
+  #headerBar img {
+    height: clamp(80px, 6vw, 120px) !important;
+    max-width: clamp(220px, 16vw, 320px);
+  }
+}
   
 </style>
 </head>
@@ -695,7 +712,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.51)
+      Pack Visualiser (v6.52)
     </h3>
   </div>
 
