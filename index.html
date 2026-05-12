@@ -909,6 +909,38 @@ textarea {
     padding: clamp(12px, 1.5vw, 20px);
   }
 }
+.processWarningOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.processWarningBox {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+
+.processWarningText {
+  font-size: clamp(22px, 2vw, 32px);
+  line-height: 1.35;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 20px;
+}
+
+.processWarningBox button {
+  max-width: none;
+  min-height: 70px;
+}
   
 </style>
 </head>
@@ -918,7 +950,7 @@ textarea {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.71)
+      Pack Visualiser (v6.72)
     </h3>
   </div>
 
@@ -1011,7 +1043,7 @@ textarea {
   </div>
 
   <div class="basketActions">
-    <button class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button>
+    <button type="button" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button>
     <button onclick="backToProcessMenu()">Back to process menu</button>
   </div>
 </div>
@@ -1122,7 +1154,12 @@ textarea {
 <div id="summary" style="font-size:13px;margin-top:8px;color:#333;"></div>
 <div id="saveStatus"></div>
 <div class="grid" id="grid"></div>
-
+<div id="processWarningOverlay" class="hidden processWarningOverlay">
+  <div class="processWarningBox">
+    <div id="processWarningText" class="processWarningText"></div>
+    <button type="button" class="primaryBtn" onclick="closeProcessWarning()">OK</button>
+  </div>
+</div>
 <script>
 let step = 0;
 let currentEntryMode = "";
@@ -1516,9 +1553,19 @@ function getProcessSetupData(){
   };
 }
 
-  function showProcessWarning(message){
+ function showProcessWarning(message){
   document.getElementById("saveStatus").innerText = message;
-  window.alert(message);
+
+  const overlay = document.getElementById("processWarningOverlay");
+  const text = document.getElementById("processWarningText");
+
+  if(text) text.innerText = message;
+  if(overlay) overlay.classList.remove("hidden");
+}
+
+  function closeProcessWarning(){
+  const overlay = document.getElementById("processWarningOverlay");
+  if(overlay) overlay.classList.add("hidden");
 }
   
 function validateProcessSetup(){
@@ -2044,14 +2091,15 @@ function canProceed(){
 
 function updateUI(){
   const isMenu = currentEntryMode === "";
-  const isVisualiser = currentEntryMode === "pack_visualiser";
-  const isSimpleLogger = currentEntryMode && currentEntryMode !== "pack_visualiser";
-  const inStep5 = isVisualiser && step === 5;
-  const postSaveVisible = !document.getElementById("postSavePanel").classList.contains("hidden");
+const isVisualiser = currentEntryMode === "pack_visualiser";
+const isSimpleLogger = currentEntryMode && currentEntryMode !== "pack_visualiser";
+const inStep5 = isVisualiser && step === 5;
+const postSaveVisible = !document.getElementById("postSavePanel").classList.contains("hidden");
+const processSetupVisible = !document.getElementById("processSetupPanel").classList.contains("hidden");
 
   document.getElementById('teamQueueBlock').classList.toggle('hidden', currentJob !== null);
   document.getElementById('step0_entry').classList.toggle('hidden', !isMenu || currentJob === null || postSaveVisible);
-  document.getElementById('simpleLogger').classList.toggle('hidden', !isSimpleLogger || postSaveVisible);
+ document.getElementById('simpleLogger').classList.toggle('hidden', !isSimpleLogger || postSaveVisible || processSetupVisible);
 
   document.getElementById('modeBlock').classList.toggle('hidden', !isVisualiser || inStep5 || postSaveVisible);
 
@@ -2080,7 +2128,7 @@ function updateUI(){
     .classList.toggle('hidden', !isVisualiser || step <= 1 || postSaveVisible);
 
   document.querySelector('.btnRow')
-    .classList.toggle('hidden', !isVisualiser || inStep5 || postSaveVisible);
+  .classList.toggle('hidden', !isVisualiser || inStep5 || postSaveVisible || processSetupVisible);
 
   updateLooseOptions();
   syncNoRejects();
