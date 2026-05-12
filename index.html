@@ -414,7 +414,7 @@ img {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.46)
+      Pack Visualiser (v6.47)
     </h3>
   </div>
 
@@ -544,6 +544,8 @@ let currentTeam = "";
 let currentJob = null;
 let rejectBasket = {};
 let rejectHistory = [];
+  const REJECT_DRAFT_PREFIX = "ttRejectDraft";
+const REJECT_SUBMITTED_PREFIX = "ttRejectSubmitted";
 
 const REJECT_LOG_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
 
@@ -922,11 +924,15 @@ function setEntryMode(mode){
     step = 0;
     buildDefectOptions(simpleDefectTypeSel, mode);
     document.getElementById("simpleLoggerTitle").innerText = ENTRY_MODES[mode].label;
-    clearRejectBasket();
     buildBasketRejectButtons(mode);
   }
 
   fillPackIdFields();
+
+  if(mode !== "pack_visualiser"){
+    restoreRejectDraft();
+  }
+
   updateUI();
   render();
 }
@@ -1244,6 +1250,115 @@ document.querySelectorAll('input,select').forEach(el=>{
   });
 });
 
+  function getCurrentDraftPackId(){
+  if(!currentEntryMode || currentEntryMode === "pack_visualiser") return "";
+
+  const packSelect = document.getElementById("simplePackId");
+  return packSelect ? String(packSelect.value || "").trim() : "";
+}
+
+function getRejectDraftKey(){
+  const packId = getCurrentDraftPackId();
+
+  if(!currentTeam) return "";
+  if(!jobContext.productionRow) return "";
+  if(!currentEntryMode || currentEntryMode === "pack_visualiser") return "";
+  if(!packId) return "";
+
+  return [
+    REJECT_DRAFT_PREFIX,
+    currentTeam,
+    jobContext.productionRow,
+    currentEntryMode,
+    packId
+  ].join("|");
+}
+
+function saveRejectDraft(){
+  const key = getRejectDraftKey();
+  if(!key) return;
+
+  const payload = {
+    savedAt: new Date().toISOString(),
+    team: currentTeam || "",
+    productionRow: jobContext.productionRow || "",
+    jobNo: jobContext.jobNo || "",
+    sheetJob: jobContext.sheetJob || "",
+    entryMode: currentEntryMode || "",
+    packId: getCurrentDraftPackId(),
+    rejectBasket: rejectBasket,
+    rejectHistory: rejectHistory
+  };
+
+  if(!Object.keys(rejectBasket).length){
+    localStorage.removeItem(key);
+    return;
+  }
+
+  localStorage.setItem(key, JSON.stringify(payload));
+}
+
+function restoreRejectDraft(){
+  const key = getRejectDraftKey();
+
+  rejectBasket = {};
+  rejectHistory = [];
+
+  if(!key){
+    renderRejectBasket();
+    return false;
+  }
+
+  const raw = localStorage.getItem(key);
+
+  if(!raw){
+    renderRejectBasket();
+    return false;
+  }
+
+  try {
+    const draft = JSON.parse(raw);
+
+    rejectBasket = draft.rejectBasket || {};
+    rejectHistory = Array.isArray(draft.rejectHistory) ? draft.rejectHistory : [];
+
+    renderRejectBasket();
+
+    document.getElementById("saveStatus").innerText =
+      "Unsaved draft restored for this job / process / pack.";
+
+    return true;
+
+  } catch(err) {
+    localStorage.removeItem(key);
+    renderRejectBasket();
+    return false;
+  }
+}
+
+function clearRejectDraft(){
+  const key = getRejectDraftKey();
+  if(key) localStorage.removeItem(key);
+}
+
+function archiveSubmittedDraft(payload){
+  const packId = getCurrentDraftPackId();
+
+  const key = [
+    REJECT_SUBMITTED_PREFIX,
+    currentTeam || "",
+    jobContext.productionRow || "",
+    currentEntryMode || "",
+    packId || "",
+    Date.now()
+  ].join("|");
+
+  localStorage.setItem(key, JSON.stringify({
+    submittedAt: new Date().toISOString(),
+    payload: payload
+  }));
+}
+  
 function buildBasketRejectButtons(entryMode){
   const grid = document.getElementById("rejectButtonGrid");
   grid.innerHTML = "";
@@ -1317,6 +1432,7 @@ function addRejectToBasket(defectType){
     ];
 
     renderRejectBasket();
+    saveRejectDraft();
     return;
   }
 
@@ -1337,6 +1453,7 @@ function addRejectToBasket(defectType){
   });
 
   renderRejectBasket();
+  saveRejectDraft();
 }
 
 function decrementReject(defectType){
@@ -1346,6 +1463,7 @@ function decrementReject(defectType){
     delete rejectBasket[defectType];
     rejectHistory = [];
     renderRejectBasket();
+    saveRejectDraft();
     return;
   }
 
@@ -1363,8 +1481,9 @@ function decrementReject(defectType){
   }
 
   renderRejectBasket();
+  saveRejectDraft();
 }
-
+  
 function undoLastReject(){
   if(!rejectHistory.length){
     renderRejectBasket();
@@ -1376,6 +1495,7 @@ function undoLastReject(){
   if(last.defectType === "No Rejects"){
     delete rejectBasket["No Rejects"];
     renderRejectBasket();
+    saveRejectDraft();
     return;
   }
 
@@ -1388,14 +1508,15 @@ function undoLastReject(){
   }
 
   renderRejectBasket();
+  saveRejectDraft();
 }
 
 function clearRejectBasket(){
   rejectBasket = {};
   rejectHistory = [];
   renderRejectBasket();
+  saveRejectDraft();
 }
-
 function renderRejectBasket(){
   const box = document.getElementById("rejectBasketTotals");
   if(!box) return;
@@ -1577,8 +1698,14 @@ async function reviewAndSaveBasket(){
       body: JSON.stringify(payload)
     });
 
-    status.innerText = "Saved. Basket cleared.";
-    clearRejectBasket();
+    archiveSubmittedDraft(payload);
+clearRejectDraft();
+
+rejectBasket = {};
+rejectHistory = [];
+renderRejectBasket();
+
+status.innerText = "Saved. Basket cleared.";
 
   } catch(err) {
     status.innerText = "Save failed: " + err.message;
@@ -1713,6 +1840,13 @@ async function saveToRejectLog(){
   }
 }
 
+  document.getElementById("simplePackId").addEventListener("change", function(){
+  if(currentEntryMode && currentEntryMode !== "pack_visualiser"){
+    document.getElementById("saveStatus").innerText = "";
+    restoreRejectDraft();
+  }
+});
+  
 updateJobContextBar();
 fillPackIdFields();
 updateUI();
