@@ -771,7 +771,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.6)
+      Pack Visualiser (v6.61)
     </h3>
   </div>
 
@@ -1357,11 +1357,34 @@ function showPostSaveScreen(payload, totalRejects){
     );
   }
 
+  lines.push("");
+  lines.push("Reject details:");
+
+  if(Array.isArray(payload.rejects) && payload.rejects.length){
+    payload.rejects.forEach(line => {
+      lines.push(
+        "• " +
+        (line.defectType || "") +
+        ": " +
+        Number(line.rejectQty || 0)
+      );
+    });
+  } else if(payload.defectType){
+    lines.push(
+      "• " +
+      payload.defectType +
+      ": " +
+      Number(payload.rejectQty || 0)
+    );
+  } else {
+    lines.push("• No reject details found");
+  }
+
   details.innerHTML = lines.join("<br>");
 
   panel.classList.remove("hidden");
 }
-
+  
 function hidePostSaveScreen(){
   const panel = document.getElementById("postSavePanel");
   if(panel) panel.classList.add("hidden");
