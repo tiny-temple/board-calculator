@@ -9,22 +9,47 @@
 <meta name="theme-color" content="#4caf50">
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: Avenir, "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
-  margin: 12px;
+  margin: 0;
+  padding: 12px;
+  width: 100%;
+  max-width: 100%;
   background:#fff;
   overflow-x:hidden;
   padding-bottom: 130px;
 }
 
+#headerBar {
+  width: 100%;
+  max-width: 1200px;
+  min-width: 0;
+  margin: 0 auto 12px auto;
+}
 
+#headerBar img,
+img {
+  max-width: 120px;
+}
 
-  
 .panel {
   display:grid;
   grid-template-columns:1fr;
   gap:8px;
-  margin-bottom:10px;
+  width: 100%;
+  max-width: 1200px;
+  min-width: 0;
+  margin: 0 auto 10px auto;
 }
 
 select {
@@ -74,6 +99,8 @@ button {
   cursor:pointer;
   transition: background 0.15s ease, transform 0.05s ease;
   -webkit-tap-highlight-color: transparent;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 button:disabled {
@@ -91,12 +118,18 @@ button:disabled {
   flex-direction:column;
   gap:8px;
   margin-top:6px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .modeButtons {
   display:flex;
   flex-direction:column;
   gap:8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .fieldBlock {
@@ -104,15 +137,20 @@ button:disabled {
   flex-direction:column;
   gap:5px;
   margin-bottom:8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .grid {
   display:flex;
   flex-direction:column;
   gap:6px;
-  margin-top:12px;
+  margin:12px auto 0 auto;
   width:100%;
-  max-width:100vw;
+  max-width:1200px;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .row {
@@ -120,6 +158,8 @@ button:disabled {
   gap:4px;
   align-items:stretch;
   width:100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .row.loose {
@@ -171,14 +211,27 @@ button:disabled {
   border:1px solid rgba(0,0,0,0.12);
   border-radius:8px;
   padding:8px 10px;
-  margin-bottom:10px;
+  margin: 0 auto 10px auto;
   color:#333;
+  width: 100%;
+  max-width: 1200px;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 #saveStatus {
   font-size:13px;
-  margin-top:8px;
+  margin:8px auto 0 auto;
   color:#333;
+  width: 100%;
+  max-width: 1200px;
+}
+
+#summary {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 .simpleBox {
@@ -186,6 +239,10 @@ button:disabled {
   border-radius:10px;
   padding:10px;
   background:#fafafa;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 #step5_rejects {
@@ -200,6 +257,7 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 .step5Buttons {
@@ -215,18 +273,59 @@ button:disabled {
   margin-top: 0 !important;
 }
 
+#teamQueueBlock,
+#step0_entry,
+#jobQueue {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+#jobQueue button {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.rejectLoggerLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.rejectLoggerLeft,
+.rejectLoggerRight {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
 .rejectButtonGrid {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
   gap:8px;
   margin-top:8px;
 }
 
 .rejectButtonGrid button {
+  width: 100%;
   max-width:none;
+  min-width:0;
   min-height:54px;
   margin-top:0;
   text-align:center;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .rejectTapFlash {
@@ -252,6 +351,10 @@ button:disabled {
   padding:10px;
   margin-top:10px;
   font-size:14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .rejectBasketLine {
@@ -279,133 +382,91 @@ button:disabled {
   flex-direction:column;
   gap:8px;
   margin-top:10px;
-}
-
-  * {
-  box-sizing: border-box;
-}
-
-html, body {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-.panel,
-.simpleBox,
-#teamQueueBlock,
-#step0_entry,
-#jobQueue,
-.fieldBlock,
-.grid,
-.row {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow-x: hidden;
 }
 
-.grid {
-  max-width: 100%;
+@media (min-width: 700px) {
+  body {
+    padding: 16px;
+    padding-bottom: 40px;
+  }
+
+  #headerBar {
+    align-items: center !important;
+  }
+
+  .modeButtons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .modeButtons button {
+    max-width: none;
+    min-height: 56px;
+  }
+
+  .simpleBox {
+    padding: 14px;
+  }
+
+  .rejectLoggerLayout {
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .rejectButtonGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .rejectButtonGrid button {
+    min-height: 72px;
+    font-size: 17px;
+    padding: 14px 12px;
+  }
+
+  .rejectLoggerRight {
+    position: sticky;
+    top: 12px;
+  }
+
+  .rejectBasketTotals {
+    margin-top: 0;
+    min-height: 150px;
+    font-size: 15px;
+  }
+
+  .basketActions button {
+    max-width: none;
+  }
+
+  input, select {
+    max-width: 480px;
+  }
+
+  #simplePackId {
+    max-width: 480px;
+  }
+
+  #jobQueue button {
+    min-height: 70px;
+    font-size: 16px;
+  }
 }
 
-button,
-#jobQueue button,
-.rejectButtonGrid button {
-  max-width: 100%;
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: normal;
-}
+@media (min-width: 1024px) {
+  .rejectButtonGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 
-.rejectButtonGrid {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
+  .rejectLoggerLayout {
+    grid-template-columns: minmax(0, 3fr) minmax(320px, 1fr);
+  }
 }
-
-.rejectButtonGrid button {
-  max-width: none;
-  min-height: 54px;
-  margin-top: 0;
-  text-align: center;
-}
-
-  html {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-body {
-  margin: 0;
-  padding: 12px;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-#headerBar,
-.panel,
-#teamQueueBlock,
-#step0_entry,
-#jobQueue,
-.simpleBox,
-.fieldBlock,
-.grid,
-.row,
-.rejectBasketTotals,
-.basketActions {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: hidden;
-}
-
-button,
-input,
-select,
-#jobQueue button,
-.rejectButtonGrid button {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-.rejectButtonGrid {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
-}
-
-.rejectButtonGrid button {
-  max-width: none;
-  min-height: 54px;
-  margin-top: 0;
-  text-align: center;
-}
-
-#step5_rejects {
-  box-sizing: border-box;
-}
-
-img {
-  max-width: 120px;
-}
-  
 </style>
 </head>
 
@@ -414,7 +475,7 @@ img {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.47)
+      Pack Visualiser (v6.48)
     </h3>
   </div>
 
@@ -504,20 +565,26 @@ img {
       <select id="simplePackId"></select>
     </div>
 
-    <div class="fieldBlock">
-      <label>Tap defects as they happen</label>
-      <div id="rejectButtonGrid" class="rejectButtonGrid"></div>
-    </div>
+    <div class="rejectLoggerLayout">
+      <div class="rejectLoggerLeft">
+        <div class="fieldBlock">
+          <label>Tap defects as they happen</label>
+          <div id="rejectButtonGrid" class="rejectButtonGrid"></div>
+        </div>
+      </div>
 
-    <div id="rejectBasketTotals" class="rejectBasketTotals">
-      No rejects logged yet.
-    </div>
+      <div class="rejectLoggerRight">
+        <div id="rejectBasketTotals" class="rejectBasketTotals">
+          No rejects logged yet.
+        </div>
 
-    <div class="basketActions">
-      <button onclick="undoLastReject()">Undo Last</button>
-      <button onclick="clearRejectBasket()">Clear</button>
-      <button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button>
-      <button onclick="returnToMenu()">Back to menu</button>
+        <div class="basketActions">
+          <button onclick="undoLastReject()">Undo Last</button>
+          <button onclick="clearRejectBasket()">Clear</button>
+          <button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button>
+          <button onclick="returnToMenu()">Back to menu</button>
+        </div>
+      </div>
     </div>
 
     <select id="simpleRejectQty" class="hidden"></select>
@@ -544,7 +611,7 @@ let currentTeam = "";
 let currentJob = null;
 let rejectBasket = {};
 let rejectHistory = [];
-  const REJECT_DRAFT_PREFIX = "ttRejectDraft";
+const REJECT_DRAFT_PREFIX = "ttRejectDraft";
 const REJECT_SUBMITTED_PREFIX = "ttRejectSubmitted";
 
 const REJECT_LOG_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
@@ -686,7 +753,9 @@ function loadTeamQueue(team){
     "?action=getQueue&team=" +
     encodeURIComponent(team) +
     "&callback=" +
-    encodeURIComponent(callbackName);
+    encodeURIComponent(callbackName) +
+    "&_=" +
+    Date.now();
 
   script.onerror = function(){
     document.getElementById("queueStatus").innerText = "Queue load failed.";
@@ -1250,7 +1319,7 @@ document.querySelectorAll('input,select').forEach(el=>{
   });
 });
 
-  function getCurrentDraftPackId(){
+function getCurrentDraftPackId(){
   if(!currentEntryMode || currentEntryMode === "pack_visualiser") return "";
 
   const packSelect = document.getElementById("simplePackId");
@@ -1358,7 +1427,7 @@ function archiveSubmittedDraft(payload){
     payload: payload
   }));
 }
-  
+
 function buildBasketRejectButtons(entryMode){
   const grid = document.getElementById("rejectButtonGrid");
   grid.innerHTML = "";
@@ -1483,7 +1552,7 @@ function decrementReject(defectType){
   renderRejectBasket();
   saveRejectDraft();
 }
-  
+
 function undoLastReject(){
   if(!rejectHistory.length){
     renderRejectBasket();
@@ -1517,6 +1586,7 @@ function clearRejectBasket(){
   renderRejectBasket();
   saveRejectDraft();
 }
+
 function renderRejectBasket(){
   const box = document.getElementById("rejectBasketTotals");
   if(!box) return;
@@ -1699,13 +1769,13 @@ async function reviewAndSaveBasket(){
     });
 
     archiveSubmittedDraft(payload);
-clearRejectDraft();
+    clearRejectDraft();
 
-rejectBasket = {};
-rejectHistory = [];
-renderRejectBasket();
+    rejectBasket = {};
+    rejectHistory = [];
+    renderRejectBasket();
 
-status.innerText = "Saved. Basket cleared.";
+    status.innerText = "Saved. Basket cleared.";
 
   } catch(err) {
     status.innerText = "Save failed: " + err.message;
@@ -1840,13 +1910,13 @@ async function saveToRejectLog(){
   }
 }
 
-  document.getElementById("simplePackId").addEventListener("change", function(){
+document.getElementById("simplePackId").addEventListener("change", function(){
   if(currentEntryMode && currentEntryMode !== "pack_visualiser"){
     document.getElementById("saveStatus").innerText = "";
     restoreRejectDraft();
   }
 });
-  
+
 updateJobContextBar();
 fillPackIdFields();
 updateUI();
