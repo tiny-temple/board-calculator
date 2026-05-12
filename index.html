@@ -763,6 +763,153 @@ button:disabled {
   }
 }
 
+  .processJobCard {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.14);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.processJobRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.processJobTile {
+  background: #f4f4f4;
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.processJobTileLabel {
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.processJobTileValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+}
+
+.processCustomInfo,
+.processReminderBox {
+  background: #fff8e6;
+  border: 1px solid #d6a93f;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.processCustomInfo.collapsed {
+  max-height: 72px;
+  overflow: hidden;
+}
+
+.processSetupGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.processChecks {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.checkLine {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.14);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 16px;
+}
+
+.checkLine input {
+  width: 24px;
+  height: 24px;
+  max-width: 24px;
+  flex: 0 0 auto;
+}
+
+textarea {
+  width: 100%;
+  max-width: 100%;
+  font-family: inherit;
+  font-size: 16px;
+  padding: 10px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+@media (min-width: 700px) {
+  .processJobCard {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: clamp(14px, 1.6vw, 24px);
+  }
+
+  .processJobRow {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .processJobTile {
+    padding: clamp(12px, 1.4vw, 20px);
+  }
+
+  .processJobTileLabel {
+    font-size: clamp(14px, 1.2vw, 18px);
+  }
+
+  .processJobTileValue {
+    font-size: clamp(20px, 1.9vw, 30px);
+  }
+
+  .processCustomInfo,
+  .processReminderBox {
+    font-size: clamp(19px, 1.7vw, 26px);
+    padding: clamp(14px, 1.6vw, 24px);
+  }
+
+  .processSetupGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .checkLine {
+    font-size: clamp(19px, 1.7vw, 26px);
+    padding: clamp(14px, 1.6vw, 24px);
+  }
+
+  .checkLine input {
+    width: 34px;
+    height: 34px;
+    max-width: 34px;
+  }
+
+  textarea {
+    font-size: clamp(19px, 1.7vw, 26px);
+    padding: clamp(12px, 1.5vw, 20px);
+  }
+}
+  
 </style>
 </head>
 
@@ -771,7 +918,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.67)
+      Pack Visualiser (v6.7)
     </h3>
   </div>
 
@@ -808,6 +955,67 @@ button:disabled {
     </div>
   </div>
 
+  <div id="processSetupPanel" class="hidden simpleBox">
+  <div class="fieldBlock">
+    <label id="processSetupTitle">Moulder Setup Check</label>
+  </div>
+
+  <div id="processJobCard" class="processJobCard"></div>
+
+  <div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div>
+
+  <div id="processReminderBox" class="processReminderBox hidden"></div>
+
+  <div class="processSetupGrid">
+    <div class="fieldBlock">
+      <label>Operator ID</label>
+      <select id="operatorId"></select>
+    </div>
+
+    <div class="fieldBlock hidden" id="guestOperatorBlock">
+      <label>Guest name / initials</label>
+      <input id="guestOperatorName" type="text" placeholder="Enter guest name" />
+    </div>
+
+    <div class="fieldBlock">
+      <label>Pack ID selected</label>
+      <select id="setupPackId"></select>
+    </div>
+  </div>
+
+  <div class="processChecks">
+    <label class="checkLine">
+      <input type="checkbox" id="checkPackConfirmed">
+      <span>Selected Pack ID matches the physical pack label</span>
+    </label>
+
+    <label class="checkLine">
+      <input type="checkbox" id="checkProfileChecked">
+      <span>Profile checked against job sheet</span>
+    </label>
+
+    <label class="checkLine">
+      <input type="checkbox" id="checkFirstPieceChecked">
+      <span>Test piece / first piece checked</span>
+    </label>
+
+    <label class="checkLine">
+      <input type="checkbox" id="checkFinishedSizeChecked">
+      <span>Finished size checked after first piece</span>
+    </label>
+  </div>
+
+  <div class="fieldBlock">
+    <label>Setup notes</label>
+    <textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea>
+  </div>
+
+  <div class="basketActions">
+    <button class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button>
+    <button onclick="backToProcessMenu()">Back to process menu</button>
+  </div>
+</div>
+  
   <div id="modeBlock" class="hidden">
     <label>Target Total is measured in:</label>
     <select id="mode"></select>
@@ -922,6 +1130,8 @@ let currentTeam = "";
 let currentJob = null;
 let rejectBasket = {};
 let rejectHistory = [];
+let currentProcessSetup = {};
+let currentOperators = ["Beren", "Jim", "Saul", "Shaun", "Tony", "Guest"];
 const REJECT_DRAFT_PREFIX = "ttRejectDraft";
 const REJECT_SUBMITTED_PREFIX = "ttRejectSubmitted";
 const REJECT_OUTBOX_PREFIX = "ttRejectOutbox|";
@@ -1072,7 +1282,11 @@ function loadTeamQueue(team){
       return;
     }
 
-    renderJobQueue(data.jobs || []);
+    currentOperators = Array.isArray(data.operators) && data.operators.length
+  ? data.operators
+  : currentOperators;
+
+renderJobQueue(data.jobs || []);
   };
 
   const script = document.createElement("script");
@@ -1130,6 +1344,242 @@ function renderJobQueue(jobs){
   });
 }
 
+  function showProcessSetupScreen(mode){
+  hidePostSaveScreen();
+
+  document.getElementById("step0_entry").classList.add("hidden");
+  document.getElementById("simpleLogger").classList.add("hidden");
+  document.getElementById("processSetupPanel").classList.remove("hidden");
+  document.querySelector(".btnRow").classList.add("hidden");
+
+  currentProcessSetup = {};
+  buildOperatorSelect();
+  fillSetupPackIdField();
+  renderProcessJobCard(mode);
+  resetProcessChecks();
+  updateOperatorGuestVisibility();
+}
+
+function hideProcessSetupScreen(){
+  const panel = document.getElementById("processSetupPanel");
+  if(panel) panel.classList.add("hidden");
+}
+
+function buildOperatorSelect(){
+  const sel = document.getElementById("operatorId");
+  sel.innerHTML = "";
+
+  const ph = document.createElement("option");
+  ph.value = "";
+  ph.textContent = "Select operator";
+  ph.disabled = true;
+  ph.selected = true;
+  sel.appendChild(ph);
+
+  currentOperators.forEach(name => {
+    const o = document.createElement("option");
+    o.value = name;
+    o.textContent = name;
+    sel.appendChild(o);
+  });
+
+  sel.value = "";
+}
+
+function fillSetupPackIdField(){
+  populatePackSelect(document.getElementById("setupPackId"), jobContext.packId || "");
+}
+
+function renderProcessJobCard(mode){
+  const card = document.getElementById("processJobCard");
+  const title = document.getElementById("processSetupTitle");
+  const customInfoBox = document.getElementById("processCustomInfo");
+  const reminderBox = document.getElementById("processReminderBox");
+
+  const config = ENTRY_MODES[mode] || {};
+  title.innerText = (config.processStage || "Process") + " Setup Check";
+
+  if(!currentJob){
+    card.innerHTML = "";
+    customInfoBox.classList.add("hidden");
+    reminderBox.classList.add("hidden");
+    return;
+  }
+
+  card.innerHTML =
+    '<div class="processJobRow">' +
+      processTile("Job", currentJob.sheetJob || "") +
+      processTile("Client", currentJob.client || "") +
+      processTile("Start", currentJob.startTime || "") +
+      processTile("Target", currentJob.targetTime || "") +
+    '</div>' +
+    '<div class="processJobRow">' +
+      processTile("Qty", currentJob.quantity || "") +
+      processTile("Length", (currentJob.length || "") + "m") +
+      processTile("Species", currentJob.species || "") +
+      processTile("Texture", currentJob.texture || "") +
+    '</div>' +
+    '<div class="processJobRow">' +
+      processTile("Finished Size", currentJob.finishedSize || "") +
+      processTile("Profile", currentJob.profile || "") +
+      processTile("Production Row", currentJob.productionRow || "") +
+      processTile("Pack IDs", (currentJob.packs || []).map(p => p.packId).join(", ")) +
+    '</div>';
+
+  const customInfo = String(currentJob.customInfo || "").trim();
+
+  if(customInfo){
+    customInfoBox.innerText = customInfo;
+    customInfoBox.classList.remove("hidden");
+    customInfoBox.classList.add("collapsed");
+  } else {
+    customInfoBox.classList.add("hidden");
+  }
+
+  const reminder = getReminderForEntryMode(mode);
+
+  if(reminder){
+    reminderBox.innerText = "Reminder: " + reminder;
+    reminderBox.classList.remove("hidden");
+  } else {
+    reminderBox.classList.add("hidden");
+  }
+}
+
+function processTile(label, value){
+  return (
+    '<div class="processJobTile">' +
+      '<div class="processJobTileLabel">' + escapeHtml(label) + '</div>' +
+      '<div class="processJobTileValue">' + escapeHtml(value || "") + '</div>' +
+    '</div>'
+  );
+}
+
+function escapeHtml(value){
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getReminderForEntryMode(mode){
+  if(!currentJob) return "";
+
+  if(mode === "moulder_rejects"){
+    return currentJob.moulderReminder || "";
+  }
+
+  if(mode === "paint_room_rejects"){
+    return currentJob.paintRoomReminder || "";
+  }
+
+  return "";
+}
+
+function toggleCustomInfoExpand(){
+  const box = document.getElementById("processCustomInfo");
+  box.classList.toggle("collapsed");
+}
+
+function resetProcessChecks(){
+  document.getElementById("operatorId").value = "";
+  document.getElementById("guestOperatorName").value = "";
+  document.getElementById("checkPackConfirmed").checked = false;
+  document.getElementById("checkProfileChecked").checked = false;
+  document.getElementById("checkFirstPieceChecked").checked = false;
+  document.getElementById("checkFinishedSizeChecked").checked = false;
+  document.getElementById("processSetupNotes").value = "";
+}
+
+function updateOperatorGuestVisibility(){
+  const sel = document.getElementById("operatorId");
+  const guestBlock = document.getElementById("guestOperatorBlock");
+  guestBlock.classList.toggle("hidden", sel.value !== "Guest");
+}
+
+function getProcessSetupData(){
+  const operatorId = document.getElementById("operatorId").value;
+  const guestName = document.getElementById("guestOperatorName").value.trim();
+
+  return {
+    processStage: (ENTRY_MODES[currentEntryMode] || {}).processStage || "",
+    operatorId: operatorId,
+    guestOperatorName: operatorId === "Guest" ? guestName : "",
+    packId: document.getElementById("setupPackId").value.trim(),
+    packConfirmed: document.getElementById("checkPackConfirmed").checked,
+    profileChecked: document.getElementById("checkProfileChecked").checked,
+    firstPieceChecked: document.getElementById("checkFirstPieceChecked").checked,
+    finishedSizeChecked: document.getElementById("checkFinishedSizeChecked").checked,
+    notes: document.getElementById("processSetupNotes").value.trim()
+  };
+}
+
+function validateProcessSetup(){
+  const status = document.getElementById("saveStatus");
+  const data = getProcessSetupData();
+
+  if(!data.operatorId){
+    status.innerText = "Select an operator before continuing.";
+    return false;
+  }
+
+  if(data.operatorId === "Guest" && !data.guestOperatorName){
+    status.innerText = "Enter the guest operator name before continuing.";
+    return false;
+  }
+
+  if(!data.packId){
+    status.innerText = "Select the Pack ID before continuing.";
+    return false;
+  }
+
+  if(!data.packConfirmed){
+    status.innerText = "Confirm the selected Pack ID matches the physical pack label.";
+    return false;
+  }
+
+  if(!data.profileChecked){
+    status.innerText = "Confirm the profile has been checked against the job sheet.";
+    return false;
+  }
+
+  if(!data.firstPieceChecked){
+    status.innerText = "Confirm the test piece / first piece has been checked.";
+    return false;
+  }
+
+  if(!data.finishedSizeChecked){
+    status.innerText = "Confirm the finished size has been checked.";
+    return false;
+  }
+
+  status.innerText = "";
+  return true;
+}
+
+function startRejectLoggingFromSetup(){
+  if(!validateProcessSetup()) return;
+
+  currentProcessSetup = getProcessSetupData();
+
+  const setupPackId = currentProcessSetup.packId;
+  const simplePackSelect = document.getElementById("simplePackId");
+
+  if(simplePackSelect && setupPackId){
+    simplePackSelect.value = setupPackId;
+    jobContext.packId = setupPackId;
+    updateJobContextBar();
+  }
+
+  hideProcessSetupScreen();
+  document.getElementById("simpleLogger").classList.remove("hidden");
+
+  restoreRejectDraft();
+  updateUI();
+}
+  
 function selectQueueJob(job){
   currentJob = job;
 
@@ -1319,25 +1769,29 @@ function setEntryMode(mode){
   if(mode === "pack_visualiser"){
     step = 1;
     buildDefectOptions(defectTypeSel, mode);
+ } else {
+  step = 0;
+  buildDefectOptions(simpleDefectTypeSel, mode);
+  document.getElementById("simpleLoggerTitle").innerText = ENTRY_MODES[mode].label;
+  buildBasketRejectButtons(mode);
+
+  if(mode === "moulder_rejects"){
+    showProcessSetupScreen(mode);
   } else {
-    step = 0;
-    buildDefectOptions(simpleDefectTypeSel, mode);
-    document.getElementById("simpleLoggerTitle").innerText = ENTRY_MODES[mode].label;
-    buildBasketRejectButtons(mode);
+    restoreRejectDraft();
   }
+}
 
   fillPackIdFields();
 
-  if(mode !== "pack_visualiser"){
-    restoreRejectDraft();
-  }
-
-  updateUI();
+    updateUI();
   render();
 }
 
 function returnToMenu(){
   hidePostSaveScreen();
+  hideProcessSetupScreen();
+
   currentEntryMode = "";
   step = 0;
   clearRejectBasket();
@@ -1453,6 +1907,7 @@ function logAnotherPack(){
 
 function backToProcessMenu(){
   hidePostSaveScreen();
+  hideProcessSetupScreen();
 
   currentEntryMode = "";
   step = 0;
@@ -1469,6 +1924,7 @@ function backToProcessMenu(){
 
 function backToJobQueue(){
   hidePostSaveScreen();
+  hideProcessSetupScreen();
 
   currentEntryMode = "";
   currentJob = null;
@@ -2428,6 +2884,7 @@ async function reviewAndSaveBasket(){
     entryModeLabel: config.label,
     processStage: config.processStage,
     rejectColumn: config.rejectColumn,
+    processSetup: currentProcessSetup,
     rejects: rejectLines
   };
 
@@ -2574,6 +3031,10 @@ async function saveToRejectLog(){
   }
 }
 
+  document.getElementById("operatorId").addEventListener("change", function(){
+  updateOperatorGuestVisibility();
+});
+  
 document.getElementById("simplePackId").addEventListener("change", function(){
   if(currentEntryMode && currentEntryMode !== "pack_visualiser"){
     document.getElementById("saveStatus").innerText = "";
