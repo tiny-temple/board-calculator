@@ -467,6 +467,79 @@ button:disabled {
     grid-template-columns: minmax(0, 3fr) minmax(320px, 1fr);
   }
 }
+
+  @media (min-width: 700px) {
+  #headerBar,
+  .panel,
+  #jobContextBar,
+  #summary,
+  #saveStatus,
+  .grid {
+    width: 100%;
+    max-width: none;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .simpleBox,
+  #teamQueueBlock,
+  #step0_entry,
+  #jobQueue {
+    width: 100%;
+    max-width: none;
+  }
+
+  input,
+  select,
+  button {
+    max-width: none;
+  }
+
+  #simplePackId {
+    width: 100%;
+    max-width: none;
+  }
+
+  .rejectLoggerLayout {
+    width: 100%;
+    max-width: none;
+    grid-template-columns: minmax(0, 3fr) minmax(320px, 1fr);
+    gap: 18px;
+  }
+
+  .rejectButtonGrid {
+    width: 100%;
+    max-width: none;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .rejectButtonGrid button {
+    min-height: 86px;
+    font-size: 18px;
+    padding: 16px 14px;
+  }
+
+  .rejectBasketTotals {
+    font-size: 16px;
+  }
+
+  .basketActions button {
+    min-height: 58px;
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .rejectLoggerLayout {
+    grid-template-columns: minmax(0, 4fr) minmax(340px, 1fr);
+  }
+
+  .rejectButtonGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+  
 </style>
 </head>
 
@@ -475,7 +548,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.48)
+      Pack Visualiser (v6.49)
     </h3>
   </div>
 
