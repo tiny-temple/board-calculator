@@ -950,7 +950,7 @@ textarea {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.74)
+      Pack Visualiser (v6.75)
     </h3>
   </div>
 
@@ -2776,7 +2776,7 @@ function updateLocalOutboxStatus(){
     el.innerText = "No local backup submissions stored on this iPad.";
   }
 }
-  
+
 function resendLocalOutbox(){
   const status = document.getElementById("saveStatus");
   const items = getLocalOutboxItems();
@@ -2807,16 +2807,7 @@ function resendLocalOutbox(){
   updateLocalOutboxStatus();
 }
 
-  items.forEach(item => {
-    const payload = item.record.payload;
-    sendRejectPayloadInBackground(payload);
-  });
-
-  status.innerText = "Resent " + items.length + " local saved submission(s).";
-  updateLocalOutboxStatus();
-}
-
-  function clearLocalOutboxBackups(){
+function clearLocalOutboxBackups(){
   const status = document.getElementById("saveStatus");
   const items = getLocalOutboxItems();
 
