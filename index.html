@@ -918,7 +918,7 @@ textarea {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.7)
+      Pack Visualiser (v6.71)
     </h3>
   </div>
 
@@ -1516,49 +1516,53 @@ function getProcessSetupData(){
   };
 }
 
+  function showProcessWarning(message){
+  document.getElementById("saveStatus").innerText = message;
+  window.alert(message);
+}
+  
 function validateProcessSetup(){
-  const status = document.getElementById("saveStatus");
   const data = getProcessSetupData();
 
   if(!data.operatorId){
-    status.innerText = "Select an operator before continuing.";
+    showProcessWarning("Select an operator before continuing.");
     return false;
   }
 
   if(data.operatorId === "Guest" && !data.guestOperatorName){
-    status.innerText = "Enter the guest operator name before continuing.";
+    showProcessWarning("Enter the guest operator name before continuing.");
     return false;
   }
 
   if(!data.packId){
-    status.innerText = "Select the Pack ID before continuing.";
+    showProcessWarning("Select the Pack ID before continuing.");
     return false;
   }
 
   if(!data.packConfirmed){
-    status.innerText = "Confirm the selected Pack ID matches the physical pack label.";
+    showProcessWarning("Confirm the selected Pack ID matches the physical pack label.");
     return false;
   }
 
   if(!data.profileChecked){
-    status.innerText = "Confirm the profile has been checked against the job sheet.";
+    showProcessWarning("Confirm the profile has been checked against the job sheet.");
     return false;
   }
 
   if(!data.firstPieceChecked){
-    status.innerText = "Confirm the test piece / first piece has been checked.";
+    showProcessWarning("Confirm the test piece / first piece has been checked.");
     return false;
   }
 
   if(!data.finishedSizeChecked){
-    status.innerText = "Confirm the finished size has been checked.";
+    showProcessWarning("Confirm the finished size has been checked.");
     return false;
   }
 
-  status.innerText = "";
+  document.getElementById("saveStatus").innerText = "";
   return true;
 }
-
+  
 function startRejectLoggingFromSetup(){
   if(!validateProcessSetup()) return;
 
