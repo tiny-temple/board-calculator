@@ -771,7 +771,7 @@ button:disabled {
 <div id="headerBar" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;">
   <div style="display:flex; flex-direction:column; gap:6px;">
     <h3 style="margin:0; line-height:1.2;">
-      Pack Visualiser (v6.61)
+      Pack Visualiser (v6.62)
     </h3>
   </div>
 
@@ -894,7 +894,8 @@ button:disabled {
     </div>
 
     <div class="basketActions">
-      <button class="primaryBtn" onclick="logAnotherPack()">Log another pack</button>
+      <button class="primaryBtn" onclick="logSamePackAgain()">Log same pack again</button>
+      <button onclick="logAnotherPack()">Log another pack</button>
       <button onclick="backToProcessMenu()">Back to process menu</button>
       <button onclick="backToJobQueue()">Back to job queue</button>
     </div>
@@ -1384,10 +1385,25 @@ function showPostSaveScreen(payload, totalRejects){
 
   panel.classList.remove("hidden");
 }
-  
+
 function hidePostSaveScreen(){
   const panel = document.getElementById("postSavePanel");
   if(panel) panel.classList.add("hidden");
+}
+
+function logSamePackAgain(){
+  hidePostSaveScreen();
+
+  rejectBasket = {};
+  rejectHistory = [];
+  renderRejectBasket();
+
+  document.getElementById("saveStatus").innerText = "";
+
+  restoreRejectDraft();
+
+  document.getElementById("simpleLogger").classList.remove("hidden");
+  updateUI();
 }
 
 function logAnotherPack(){
