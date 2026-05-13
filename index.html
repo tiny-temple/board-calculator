@@ -11,7 +11,7 @@
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.01)</h3></div><img src="https://static1.squarespace.com/static/5edd6c658f45a62c80cc5bee/t/648b901ba727837ab5445bef/1776199641436/" alt="Logo" style="height:40px;width:auto;object-fit:contain;" /></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.02)</h3></div><img src="https://static1.squarespace.com/static/5edd6c658f45a62c80cc5bee/t/648b901ba727837ab5445bef/1776199641436/" alt="Logo" style="height:40px;width:auto;object-fit:contain;" /></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="jobQueue"></div></div>
@@ -25,7 +25,7 @@
 </div>
 <div id="summary" style="font-size:13px;margin-top:8px;color:#333;"></div><div id="saveStatus"></div><div class="grid" id="grid"></div><div id="processWarningOverlay" class="hidden processWarningOverlay"><div class="processWarningBox"><div id="processWarningText" class="processWarningText"></div><button type="button" class="primaryBtn" onclick="closeProcessWarning()">OK</button></div></div>
 <script>
-let step=0,currentEntryMode="",currentTeam="",currentJob=null,rejectBasket={},rejectHistory=[],currentProcessSetup={},currentOperators=["Beren","Jim","Saul","Shaun","Tony","Guest"],currentProcessCheckItems=[];
+let step=0,currentEntryMode="",currentTeam="",currentJob=null,rejectBasket={},rejectHistory=[],currentProcessSetup={},currentOperators=["Beren","Jim","Saul","Shaun","Tony","Guest"],currentProcessCheckItems=[],currentDefectConfig={rows:[]};
 const REJECT_DRAFT_PREFIX="ttRejectDraft",REJECT_SUBMITTED_PREFIX="ttRejectSubmitted",REJECT_OUTBOX_PREFIX="ttRejectOutbox|",REJECT_DEVICE_ID_KEY="ttRejectDeviceId";
 const REJECT_LOG_WEB_APP_URL="https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
 const urlParams=new URLSearchParams(window.location.search);let jobContext={productionRow:urlParams.get("row")||"",jobNo:urlParams.get("jobNo")||"",sheetJob:urlParams.get("sheetJob")||urlParams.get("job")||"",packId:urlParams.get("packId")||""};
@@ -38,7 +38,7 @@ const modeSel=document.getElementById('mode'),looseSel=document.getElementById('
 ['Boards','Linear'].forEach(v=>{const o=document.createElement('option');o.value=v.toLowerCase();o.textContent=v;modeSel.appendChild(o)});modeSel.value='boards';
 const bl=document.getElementById('boardLength');BOARD_LENGTHS.forEach(v=>{const o=document.createElement('option');o.value=v==='Select Board Length'?"":v;o.textContent=v;bl.appendChild(o)});bl.value="";const yieldSel=document.getElementById('yield');for(let i=1;i<=6;i++){const o=document.createElement('option');o.value=i;o.textContent=i;yieldSel.appendChild(o)}yieldSel.value=1;const perRowSel=document.getElementById('perRow');
 function buildProcessMenu(){const wrap=document.getElementById("processModeButtons");wrap.innerHTML="";PROCESS_MENU_ORDER.forEach(mode=>{const config=ENTRY_MODES[mode];if(!config)return;const btn=document.createElement("button");btn.type="button";btn.textContent=config.menuLabel||config.label;if(mode==="pack_visualiser")btn.className="primaryBtn";btn.onclick=()=>setEntryMode(mode);wrap.appendChild(btn)})}
-function loadTeamQueue(team){hidePostSaveScreen();hideProcessSetupScreen();currentTeam=team;currentJob=null;currentEntryMode="";currentProcessSetup={};step=0;clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");updateJobContextBar();document.getElementById("queueStatus").innerText="Loading Team "+team+" queue...";document.getElementById("jobQueue").innerHTML="";const callbackName="pwaQueueCallback_"+Date.now();window[callbackName]=function(data){delete window[callbackName];if(!data||!data.ok){document.getElementById("queueStatus").innerText="Could not load queue.";return}currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;renderJobQueue(data.jobs||[])};const script=document.createElement("script");script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();script.onerror=function(){document.getElementById("queueStatus").innerText="Queue load failed.";delete window[callbackName]};document.body.appendChild(script)}
+function loadTeamQueue(team){hidePostSaveScreen();hideProcessSetupScreen();currentTeam=team;currentJob=null;currentEntryMode="";currentProcessSetup={};step=0;clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");updateJobContextBar();document.getElementById("queueStatus").innerText="Loading Team "+team+" queue...";document.getElementById("jobQueue").innerHTML="";const callbackName="pwaQueueCallback_"+Date.now();window[callbackName]=function(data){delete window[callbackName];if(!data||!data.ok){document.getElementById("queueStatus").innerText="Could not load queue.";return}currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;currentDefectConfig=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig:{rows:[]};renderJobQueue(data.jobs||[])};const script=document.createElement("script");script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();script.onerror=function(){document.getElementById("queueStatus").innerText="Queue load failed.";delete window[callbackName]};document.body.appendChild(script)}
 function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";return}document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs";wrap.innerHTML="";jobs.forEach(job=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId).join(", ");btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+"</strong><br>Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
 function showProcessSetupScreen(mode){hidePostSaveScreen();document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.getElementById("processSetupPanel").classList.remove("hidden");document.querySelector(".btnRow").classList.add("hidden");currentProcessSetup={};buildOperatorSelect();fillSetupPackIdField();configureProcessChecks(mode);renderProcessJobCard(mode);resetProcessChecks();updateOperatorGuestVisibility()}
 function hideProcessSetupScreen(){const panel=document.getElementById("processSetupPanel");if(panel)panel.classList.add("hidden")}
@@ -62,7 +62,73 @@ function selectQueueJob(job){currentJob=job;jobContext.productionRow=job.product
 function buildPerRow(){perRowSel.innerHTML='';const ph=document.createElement('option');ph.value='';ph.textContent='How many boards per row?';ph.disabled=true;ph.selected=true;perRowSel.appendChild(ph);for(let i=1;i<=15;i++){const o=document.createElement('option');o.value=i;o.textContent=i;perRowSel.appendChild(o)}}buildPerRow();
 function buildRejects(){rejectsSel.innerHTML='';const ph=document.createElement('option');ph.value='';ph.textContent='How many rejects?';ph.disabled=true;ph.selected=true;rejectsSel.appendChild(ph);for(let i=0;i<=30;i++){const o=document.createElement('option');o.value=i;o.textContent=i;rejectsSel.appendChild(o)}rejectsSel.value=''}buildRejects();
 function buildSimpleRejectQty(){const sel=document.getElementById("simpleRejectQty");sel.innerHTML="";const ph=document.createElement("option");ph.value="";ph.textContent="How many rejects?";ph.disabled=true;ph.selected=true;sel.appendChild(ph);for(let i=0;i<=50;i++){const o=document.createElement("option");o.value=i;o.textContent=i;sel.appendChild(o)}sel.value=""}buildSimpleRejectQty();
-function buildDefectOptions(selectEl,entryMode){selectEl.innerHTML='';const ph=document.createElement('option');ph.value='';ph.textContent='Select reject type';ph.disabled=true;ph.selected=true;selectEl.appendChild(ph);(DEFECT_LISTS[entryMode]||[]).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;selectEl.appendChild(o)});selectEl.value=''}
+function getDefectDefinitionsForEntryMode(entryMode){
+  const config = ENTRY_MODES[entryMode] || {};
+  const processStage = config.processStage || "";
+  const rows = currentDefectConfig && Array.isArray(currentDefectConfig.rows) ? currentDefectConfig.rows : [];
+
+  const filtered = rows
+    .filter(row => {
+      const p = String(row.process || "").trim();
+      return p === processStage || p === "All";
+    })
+    .sort((a, b) => Number(a.displayOrder || 9999) - Number(b.displayOrder || 9999));
+
+  if(filtered.length){
+    return filtered;
+  }
+
+  return (DEFECT_LISTS[entryMode] || []).map((label, index) => ({
+    process: processStage,
+    defectCode: String(label).toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, ""),
+    defectType: label,
+    buttonLabel: label,
+    description: "",
+    causeGroup: "",
+    supplierRelevant: false,
+    requireNote: false,
+    displayOrder: index + 1
+  }));
+}
+
+function getDefectMetaByType(defectType){
+  const defs = getDefectDefinitionsForEntryMode(currentEntryMode);
+  const found = defs.find(def => def.defectType === defectType || def.buttonLabel === defectType || def.defectCode === defectType);
+
+  if(found) return found;
+
+  return {
+    process: (ENTRY_MODES[currentEntryMode] || {}).processStage || "",
+    defectCode: String(defectType || "").toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, ""),
+    defectType: defectType,
+    buttonLabel: defectType,
+    description: "",
+    causeGroup: "",
+    supplierRelevant: false,
+    requireNote: false,
+    displayOrder: 9999
+  };
+}
+
+function buildDefectOptions(selectEl,entryMode){
+  selectEl.innerHTML = "";
+  const ph = document.createElement("option");
+  ph.value = "";
+  ph.textContent = "Select reject type";
+  ph.disabled = true;
+  ph.selected = true;
+  selectEl.appendChild(ph);
+
+  getDefectDefinitionsForEntryMode(entryMode).forEach(def => {
+    const o = document.createElement("option");
+    o.value = def.defectType;
+    o.textContent = def.buttonLabel || def.defectType;
+    o.dataset.defectCode = def.defectCode || "";
+    selectEl.appendChild(o);
+  });
+
+  selectEl.value = "";
+}
 function updateJobContextBar(){const bar=document.getElementById("jobContextBar");if(!jobContext.productionRow&&!jobContext.jobNo&&!jobContext.sheetJob&&!jobContext.packId){bar.classList.add("hidden");bar.innerText="";return}const parts=[];if(currentTeam)parts.push("Team: "+currentTeam);if(jobContext.productionRow)parts.push("Production Row: "+jobContext.productionRow);if(jobContext.jobNo)parts.push("Job No: "+jobContext.jobNo);if(jobContext.sheetJob)parts.push("Sheet Job: "+jobContext.sheetJob);if(jobContext.packId)parts.push("Pack ID: "+jobContext.packId);bar.innerText=parts.join(" | ");bar.classList.remove("hidden")}
 function getPackOptions(){if(currentJob&&Array.isArray(currentJob.packs)&&currentJob.packs.length){return currentJob.packs.filter(p=>p.packId).map(p=>({packId:p.packId,label:"Pack "+p.packOrder+": "+p.packId+(p.stockCheck&&p.stockCheck!=="OK"?" ("+p.stockCheck+")":"")}))}if(jobContext.packId)return[{packId:jobContext.packId,label:jobContext.packId}];return[]}
 function populatePackSelect(selectEl,selectedPackId){const packs=getPackOptions();selectEl.innerHTML="";const ph=document.createElement("option");ph.value="";ph.textContent="Select Pack ID";ph.disabled=true;ph.selected=true;selectEl.appendChild(ph);packs.forEach(p=>{const o=document.createElement("option");o.value=p.packId;o.textContent=p.label;selectEl.appendChild(o)});if(selectedPackId&&packs.some(p=>p.packId===selectedPackId))selectEl.value=selectedPackId;else if(packs.length===1)selectEl.value=packs[0].packId;else selectEl.value=""}
@@ -92,15 +158,76 @@ function saveRejectDraft(){const key=getRejectDraftKey();if(!key)return;const pa
 function restoreRejectDraft(){const key=getRejectDraftKey();rejectBasket={};rejectHistory=[];if(!key){renderRejectBasket();return false}const raw=localStorage.getItem(key);if(!raw){renderRejectBasket();return false}try{const draft=JSON.parse(raw);rejectBasket=draft.rejectBasket||{};rejectHistory=Array.isArray(draft.rejectHistory)?draft.rejectHistory:[];renderRejectBasket();document.getElementById("saveStatus").innerText="Unsaved draft restored for this job / process / pack.";return true}catch(err){localStorage.removeItem(key);renderRejectBasket();return false}}
 function clearRejectDraft(){const key=getRejectDraftKey();if(key)localStorage.removeItem(key)}
 function archiveSubmittedDraft(payload){const packId=getCurrentDraftPackId(),key=[REJECT_SUBMITTED_PREFIX,currentTeam||"",jobContext.productionRow||"",currentEntryMode||"",packId||"",Date.now()].join("|");localStorage.setItem(key,JSON.stringify({submittedAt:new Date().toISOString(),payload}))}
-function buildBasketRejectButtons(entryMode){const grid=document.getElementById("rejectButtonGrid");grid.innerHTML="";(DEFECT_LISTS[entryMode]||[]).forEach(defectType=>{const btn=document.createElement("button");btn.type="button";btn.dataset.defectType=defectType;if(defectType==="No Rejects")btn.className="primaryBtn";btn.onclick=function(){addRejectToBasket(defectType);flashRejectButton(btn);updateRejectButtonBadges()};grid.appendChild(btn)});updateRejectButtonBadges();renderRejectBasket()}
+function buildBasketRejectButtons(entryMode){
+  const grid = document.getElementById("rejectButtonGrid");
+  grid.innerHTML = "";
+
+  getDefectDefinitionsForEntryMode(entryMode).forEach(def => {
+    const defectType = def.defectType;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.dataset.defectType = defectType;
+    btn.dataset.defectCode = def.defectCode || "";
+
+    if(defectType === "No Rejects" || def.defectCode === "NO_REJECTS"){
+      btn.className = "primaryBtn";
+    }
+
+    btn.onclick = function(){
+      addRejectToBasket(defectType);
+      flashRejectButton(btn);
+      updateRejectButtonBadges();
+    };
+
+    grid.appendChild(btn);
+  });
+
+  updateRejectButtonBadges();
+  renderRejectBasket();
+}
 function flashRejectButton(btn){btn.classList.add("rejectTapFlash");setTimeout(()=>btn.classList.remove("rejectTapFlash"),160)}
-function updateRejectButtonBadges(){document.querySelectorAll("#rejectButtonGrid button").forEach(btn=>{const defectType=btn.dataset.defectType,count=rejectBasket[defectType]||0,isNoRejectsSelected=defectType==="No Rejects"&&rejectBasket["No Rejects"]!==undefined;btn.innerHTML="";const label=document.createElement("span");label.textContent=defectType;btn.appendChild(label);if(count>0||isNoRejectsSelected){const badge=document.createElement("span");badge.className="rejectCountBadge";badge.textContent=isNoRejectsSelected?"✓":count;btn.appendChild(badge)}})}
+function updateRejectButtonBadges(){
+  document.querySelectorAll("#rejectButtonGrid button").forEach(btn => {
+    const defectType = btn.dataset.defectType;
+    const count = rejectBasket[defectType] || 0;
+    const meta = getDefectMetaByType(defectType);
+    const isNoRejectsSelected = (defectType === "No Rejects" || meta.defectCode === "NO_REJECTS") && rejectBasket[defectType] !== undefined;
+
+    btn.innerHTML = "";
+
+    const label = document.createElement("span");
+    label.textContent = meta.buttonLabel || defectType;
+    btn.appendChild(label);
+
+    if(count > 0 || isNoRejectsSelected){
+      const badge = document.createElement("span");
+      badge.className = "rejectCountBadge";
+      badge.textContent = isNoRejectsSelected ? "✓" : count;
+      btn.appendChild(badge);
+    }
+  });
+}
 function addRejectToBasket(defectType){if(defectType==="No Rejects"){rejectBasket={"No Rejects":0};rejectHistory=[{defectType:"No Rejects",qty:0}];renderRejectBasket();saveRejectDraft();return}if(rejectBasket["No Rejects"]!==undefined){rejectBasket={};rejectHistory=[]}if(!rejectBasket[defectType])rejectBasket[defectType]=0;rejectBasket[defectType]+=1;rejectHistory.push({defectType,qty:1});renderRejectBasket();saveRejectDraft()}
 function decrementReject(defectType){if(rejectBasket[defectType]===undefined)return;if(defectType==="No Rejects"){delete rejectBasket[defectType];rejectHistory=[];renderRejectBasket();saveRejectDraft();return}rejectBasket[defectType]-=1;if(rejectBasket[defectType]<=0)delete rejectBasket[defectType];for(let i=rejectHistory.length-1;i>=0;i--){if(rejectHistory[i].defectType===defectType){rejectHistory.splice(i,1);break}}renderRejectBasket();saveRejectDraft()}
 function undoLastReject(){if(!rejectHistory.length){renderRejectBasket();return}const last=rejectHistory.pop();if(last.defectType==="No Rejects"){delete rejectBasket["No Rejects"];renderRejectBasket();saveRejectDraft();return}if(rejectBasket[last.defectType]!==undefined){rejectBasket[last.defectType]-=1;if(rejectBasket[last.defectType]<=0)delete rejectBasket[last.defectType]}renderRejectBasket();saveRejectDraft()}
 function clearRejectBasket(){rejectBasket={};rejectHistory=[];renderRejectBasket();saveRejectDraft()}
 function renderRejectBasket(){const box=document.getElementById("rejectBasketTotals");if(!box)return;const lines=getBasketRejectLines();if(!lines.length){box.innerHTML="No rejects logged yet.";updateRejectButtonBadges();return}let total=0;box.innerHTML="";lines.forEach(line=>{total+=Number(line.rejectQty||0);const row=document.createElement("div");row.className="rejectBasketLine";const label=document.createElement("div");label.textContent=line.defectType+": "+line.rejectQty;const minus=document.createElement("button");minus.type="button";minus.textContent="-";minus.onclick=()=>decrementReject(line.defectType);row.appendChild(label);row.appendChild(minus);box.appendChild(row)});const totalRow=document.createElement("div");totalRow.style.marginTop="8px";totalRow.style.fontWeight="600";totalRow.textContent="Total rejects: "+total;box.appendChild(totalRow);updateRejectButtonBadges()}
-function getBasketRejectLines(){return Object.keys(rejectBasket).map(defectType=>({defectType,rejectQty:Number(rejectBasket[defectType]||0)}))}
+function getBasketRejectLines(){
+  return Object.keys(rejectBasket).map(defectType => {
+    const meta = getDefectMetaByType(defectType);
+
+    return {
+      defectCode: meta.defectCode || "",
+      defectType: meta.defectType || defectType,
+      buttonLabel: meta.buttonLabel || meta.defectType || defectType,
+      description: meta.description || "",
+      causeGroup: meta.causeGroup || "",
+      supplierRelevant: !!meta.supplierRelevant,
+      requireNote: !!meta.requireNote,
+      rejectQty: Number(rejectBasket[defectType] || 0)
+    };
+  });
+}
 function getRejectDetails(){if(!currentEntryMode)return null;const config=ENTRY_MODES[currentEntryMode];if(currentEntryMode==="pack_visualiser"){const result=calculationResult(),defectType=defectTypeSel.value,packId=document.getElementById("packId").value.trim(),rejectQty=defectType==="No Rejects"?0:result.rejects;return{config,defectType,packId,rejectQty,result}}return null}
 function getCurrentJobDataForPayload(){
   if(!currentJob) return {};
@@ -154,6 +281,14 @@ async function reviewAndSaveBasket(){
 
   if(!rejectLines.length){
     status.innerText = "Tap at least one reject type, or select No Rejects.";
+    return;
+  }
+
+  const requiresNote = rejectLines.some(line => line.requireNote && line.defectType !== "No Rejects");
+  const setupNotes = currentProcessSetup && currentProcessSetup.notes ? String(currentProcessSetup.notes).trim() : "";
+
+  if(requiresNote && !setupNotes){
+    showProcessWarning("This defect type requires a note. Add a setup note before saving.");
     return;
   }
 
