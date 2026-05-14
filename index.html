@@ -244,10 +244,60 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
   line-height: 1.1 !important;
 }
 
+
+.stockPickerTile.requiredTileYes {
+  background: #fff !important;
+  border: 4px solid #1f1f1f !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18) !important;
+}
+
+.stockPickerTile.requiredTileNo {
+  background: #e9e9e9 !important;
+  border: 2px solid rgba(0,0,0,0.12) !important;
+}
+
+.stockPickerTile.requiredTileYes .stockPickerTileLabel {
+  color: #111 !important;
+  font-weight: 800 !important;
+}
+
+.stockPickerTile.requiredTileYes .stockPickerTileValue {
+  margin-top: 8px !important;
+}
+
+.stockRequiredYes {
+  display: flex !important;
+  width: 100% !important;
+  min-height: clamp(70px, 7vw, 110px) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 16px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  font-size: clamp(38px, 4.5vw, 72px) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.06em !important;
+}
+
+.stockRequiredNo {
+  display: flex !important;
+  width: 100% !important;
+  min-height: clamp(44px, 4vw, 64px) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 14px !important;
+  background: #d8d8d8 !important;
+  color: #555 !important;
+  font-size: clamp(22px, 2.2vw, 34px) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.19)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.20)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button></div><div id="jobQueue"></div></div>
@@ -280,7 +330,7 @@ function loadTeamQueue(team){hidePostSaveScreen();hideProcessSetupScreen();hideS
 function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";document.getElementById("stockPickerButtonWrap").classList.add("hidden");return}document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs";document.getElementById("stockPickerButtonWrap").classList.remove("hidden");wrap.innerHTML="";jobs.forEach(job=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+"</strong><br>Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
 function loadStockPicker(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideCoatingOverviewScreen();document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerPanel").classList.remove("hidden");document.getElementById("stockPickerTitle").innerText="Team "+currentTeam+" Stock Picker";document.getElementById("stockPickerStatus").innerText="Loading stock picker...";document.getElementById("stockPickerRows").innerHTML="";const callbackName="pwaStockPickerCallback_"+Date.now();window[callbackName]=function(data){delete window[callbackName];if(!data||!data.ok){document.getElementById("stockPickerStatus").innerText="Could not load stock picker.";return}renderStockPickerRows(data.rows||[])};const script=document.createElement("script");script.src=REJECT_LOG_WEB_APP_URL+"?action=getStockPicker&team="+encodeURIComponent(currentTeam)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();script.onerror=function(){document.getElementById("stockPickerStatus").innerText="Stock picker load failed.";delete window[callbackName]};document.body.appendChild(script)}
 function renderStockPickerRows(rows){const wrap=document.getElementById("stockPickerRows");if(!rows.length){document.getElementById("stockPickerStatus").innerText="No packs found for Team "+currentTeam+".";wrap.innerHTML="";return}document.getElementById("stockPickerStatus").innerText=rows.length+" pack movement"+(rows.length===1?"":"s")+" found.";wrap.innerHTML="";rows.forEach(row=>{const card=document.createElement("div");card.className="stockPickerCard";const keep=row.usedAgainLaterToday==="YES";const action=keep?"KEEP NEAR MACHINE":"IF PART PACK REMAINS: RETURN TO LOCATION";const actionClass=keep?"keep":"return";const location=row.packLocation||"Location not set";card.innerHTML='<div class="stockPickerMain"><div class="stockPickerHeaderGrid"><div class="stockPickerLabelValue"><div class="stockPickerLabel">Pack ID</div><div class="stockPickerValue">'+escapeHtml(row.packId||"")+'</div></div><div class="stockPickerLabelValue"><div class="stockPickerLabel">Stock location</div><div class="stockPickerValue">'+escapeHtml(location)+'</div></div></div><div class="stockPickerAction '+actionClass+'">'+escapeHtml(action)+'</div><div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | Shift: "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div><div class="stockPickerMeta">Client: '+escapeHtml(row.client||"")+'</div><div class="stockPickerMeta">Required process: '+escapeHtml(row.processRequirement||"")+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.species||"")+" | "+escapeHtml(row.length||"")+"m | "+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | Qty "+escapeHtml(row.quantity||"")+'</div></div><div class="stockPickerGrid">'+stockPickerTile("Required for Resaw",row.requiredForResaw||"")+stockPickerTile("Required for Moulder",row.requiredForMoulder||"")+stockPickerTile("Used again later today",row.usedAgainLaterToday||"")+stockPickerTile("Movement instruction",action)+"</div>";wrap.appendChild(card)})}
-function stockPickerTile(label,value){return '<div class="stockPickerTile"><div class="stockPickerTileLabel">'+escapeHtml(label)+'</div><div class="stockPickerTileValue">'+escapeHtml(value||"")+'</div></div>'}
+function stockPickerTile(label,value){const cleanLabel=String(label||"").trim();const cleanValue=String(value||"").trim();let valueHtml=escapeHtml(cleanValue);let extraClass="";if(cleanLabel==="Required for Resaw"||cleanLabel==="Required for Moulder"){if(cleanValue.toUpperCase()==="YES"){valueHtml='<span class="stockRequiredYes">YES</span>';extraClass=" requiredTileYes"}else if(cleanValue.toUpperCase()==="NO"){valueHtml='<span class="stockRequiredNo">NO</span>';extraClass=" requiredTileNo"}}return '<div class="stockPickerTile'+extraClass+'"><div class="stockPickerTileLabel">'+escapeHtml(cleanLabel)+'</div><div class="stockPickerTileValue">'+valueHtml+'</div></div>'}
 function backFromStockPicker(){hideStockPickerScreen();hideCoatingOverviewScreen();if(currentJob){document.getElementById("step0_entry").classList.remove("hidden");document.getElementById("teamQueueBlock").classList.add("hidden")}else{document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden")}updateUI()}
 function hideStockPickerScreen(){const panel=document.getElementById("stockPickerPanel");if(panel)panel.classList.add("hidden")}
 function loadCoatingOverview(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("coatingOverviewPanel").classList.remove("hidden");document.getElementById("coatingOverviewTitle").innerText="Team "+currentTeam+" Coating Overview";document.getElementById("coatingOverviewStatus").innerText="Loading coating overview...";document.getElementById("coatingOverviewTotals").innerHTML="";document.getElementById("coatingOverviewRows").innerHTML="";const callbackName="pwaCoatingOverviewCallback_"+Date.now();window[callbackName]=function(data){delete window[callbackName];if(!data||!data.ok){document.getElementById("coatingOverviewStatus").innerText="Could not load coating overview.";return}renderCoatingOverview(data.summary||[],data.rows||[])};const script=document.createElement("script");script.src=REJECT_LOG_WEB_APP_URL+"?action=getCoatingOverview&team="+encodeURIComponent(currentTeam)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();script.onerror=function(){document.getElementById("coatingOverviewStatus").innerText="Coating overview load failed.";delete window[callbackName]};document.body.appendChild(script)}
