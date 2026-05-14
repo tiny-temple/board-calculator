@@ -153,10 +153,101 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 .stockPickerAction.return{background:#f1f1f1;color:#111;border:1px solid rgba(0,0,0,.18)}
 @media (min-width:700px){.processSection{padding:clamp(14px,1.6vw,24px);margin-bottom:16px}.processSectionTitle{font-size:clamp(22px,2vw,32px);margin-bottom:14px}.processInfoText{font-size:clamp(18px,1.6vw,24px)}.processPackGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.processPackId{font-size:clamp(24px,2vw,34px)}.processPackLocation,.stockPickerValue{font-size:clamp(22px,1.9vw,30px)}.stockPickerHeaderGrid{grid-template-columns:1fr 1fr;gap:12px}.stockPickerLabel{font-size:clamp(14px,1.2vw,18px)}.processModeButtonSub{font-size:clamp(13px,1.1vw,17px)}}
 
+
+.stockPickerCard,
+.stockItemCard,
+.stockJobCard {
+  border: 3px solid rgba(0,0,0,0.32) !important;
+  background: #fff !important;
+  border-radius: 18px !important;
+  padding: clamp(16px, 2vw, 28px) !important;
+  margin-bottom: 18px !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.12) !important;
+}
+
+.stockPickerCard:nth-child(even),
+.stockItemCard:nth-child(even),
+.stockJobCard:nth-child(even) {
+  background: #f1f1f1 !important;
+}
+
+.stockPickerCard + .stockPickerCard,
+.stockItemCard + .stockItemCard,
+.stockJobCard + .stockJobCard {
+  margin-top: 20px !important;
+}
+
+.stockPickerCard .processJobTile,
+.stockItemCard .processJobTile,
+.stockJobCard .processJobTile {
+  background: #fff !important;
+  border: 2px solid rgba(0,0,0,0.18) !important;
+}
+
+.stockPickerCard:nth-child(even) .processJobTile,
+.stockItemCard:nth-child(even) .processJobTile,
+.stockJobCard:nth-child(even) .processJobTile {
+  background: #fafafa !important;
+}
+
+.stockPickerCard [data-label="Required for Resaw"],
+.stockPickerCard [data-label="Required for Moulder"],
+.stockItemCard [data-label="Required for Resaw"],
+.stockItemCard [data-label="Required for Moulder"],
+.stockJobCard [data-label="Required for Resaw"],
+.stockJobCard [data-label="Required for Moulder"] {
+  border: 3px solid rgba(0,0,0,0.26) !important;
+}
+
+.stockRequiredYes,
+.stockPickerCard .requiredYes,
+.stockItemCard .requiredYes,
+.stockJobCard .requiredYes {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 110px !important;
+  min-height: 52px !important;
+  padding: 10px 16px !important;
+  border-radius: 14px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  font-size: clamp(28px, 3vw, 44px) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.04em !important;
+}
+
+.stockRequiredNo,
+.stockPickerCard .requiredNo,
+.stockItemCard .requiredNo,
+.stockJobCard .requiredNo {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 80px !important;
+  padding: 8px 12px !important;
+  border-radius: 12px !important;
+  background: #e7e7e7 !important;
+  color: #555 !important;
+  font-weight: 700 !important;
+}
+
+.stockPickerCard .stockPackId,
+.stockItemCard .stockPackId,
+.stockJobCard .stockPackId,
+.stockPickerCard .stockLocation,
+.stockItemCard .stockLocation,
+.stockJobCard .stockLocation {
+  font-size: clamp(26px, 2.6vw, 40px) !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.18)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.19)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button></div><div id="jobQueue"></div></div>
@@ -206,6 +297,23 @@ function renderProcessJobCard(mode){const card=document.getElementById("processJ
 function processSection(title,html){return '<div class="processSection"><div class="processSectionTitle">'+escapeHtml(title)+'</div>'+html+'</div>'}
 function buildProcessPackCards(){const packs=currentJob&&Array.isArray(currentJob.packs)?currentJob.packs:[];if(!packs.length)return '<div class="processInfoText">No Pack ID found for this job.</div>';let html='<div class="processPackGrid">';packs.forEach(pack=>{html+='<div class="processPackCard"><div class="processPackId">Pack ID: '+escapeHtml(pack.packId||"")+'</div><div class="processPackLocation">Location: '+escapeHtml(pack.location||"Location not set")+'</div>'+(pack.rawKey?'<div class="processInfoText">Raw key: '+escapeHtml(pack.rawKey)+'</div>':"")+(pack.stockCheck&&pack.stockCheck!=="OK"?'<div class="processInfoText">Stock check: '+escapeHtml(pack.stockCheck)+'</div>':"")+'</div>'});html+='</div>';return html}
 function getProcessFieldValuesForCurrentJob(processStage){if(!currentJob||!currentJob.processFieldValues)return[];const keys=Object.keys(currentJob.processFieldValues);const matchKey=keys.find(key=>normalise(key)===normalise(processStage));const rows=matchKey?currentJob.processFieldValues[matchKey]:[];return Array.isArray(rows)?rows:[]}
+
+function formatStockPickerValue(label,value){
+  const text=String(value||"").trim();
+  const cleanLabel=String(label||"").trim().toLowerCase();
+  if(cleanLabel==="required for resaw"||cleanLabel==="required for moulder"){
+    if(text.toUpperCase()==="YES") return '<span class="stockRequiredYes">YES</span>';
+    if(text.toUpperCase()==="NO") return '<span class="stockRequiredNo">NO</span>';
+  }
+  if(cleanLabel==="pack id") return '<span class="stockPackId">'+escapeHtml(text)+'</span>';
+  if(cleanLabel==="pack location"||cleanLabel==="location") return '<span class="stockLocation">'+escapeHtml(text)+'</span>';
+  return escapeHtml(text);
+}
+function stockTile(label,value){
+  const safeLabel=escapeHtml(label||"");
+  return '<div class="processJobTile" data-label="'+safeLabel+'"><div class="processJobTileLabel">'+safeLabel+'</div><div class="processJobTileValue">'+formatStockPickerValue(label,value)+'</div></div>';
+}
+
 function buildTileRows(tiles){let html="";for(let i=0;i<tiles.length;i+=4){html+='<div class="processJobRow">';tiles.slice(i,i+4).forEach(tile=>html+=processTile(tile[0],tile[1]));html+='</div>'}return html}
 function processTile(label,value){return '<div class="processJobTile"><div class="processJobTileLabel">'+escapeHtml(label)+'</div><div class="processJobTileValue">'+escapeHtml(value||"")+'</div></div>'}
 function escapeHtml(value){return String(value||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
