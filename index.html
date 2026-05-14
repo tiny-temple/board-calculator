@@ -297,7 +297,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.20)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.21)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button></div><div id="jobQueue"></div></div>
@@ -325,7 +325,48 @@ const modeSel=document.getElementById("mode"),looseSel=document.getElementById("
 BOARD_LENGTHS.forEach(v=>{const o=document.createElement("option");o.value=v==="Select Board Length"?"":v;o.textContent=v;bl.appendChild(o)});bl.value="";
 for(let i=1;i<=6;i++){const o=document.createElement("option");o.value=i;o.textContent=i;yieldSel.appendChild(o)}yieldSel.value=1;
 function buildProcessMenu(){const wrap=document.getElementById("processModeButtons");wrap.innerHTML="";PROCESS_MENU_ORDER.forEach(mode=>{const config=ENTRY_MODES[mode];if(!config)return;const availability=getProcessAvailability(mode);const btn=document.createElement("button");btn.type="button";btn.className=mode==="pack_visualiser"?"primaryBtn":"";if(!availability.available){btn.classList.add("processModeButtonUnavailable");btn.disabled=true}btn.innerHTML=escapeHtml(config.menuLabel||config.label)+(availability.reason?'<span class="processModeButtonSub">'+escapeHtml(availability.reason)+'</span>':"");btn.onclick=()=>{if(!availability.available)return;setEntryMode(mode)};wrap.appendChild(btn)})}
-function getProcessAvailability(mode){if(!currentJob||mode==="pack_visualiser")return{available:true,reason:""};const config=ENTRY_MODES[mode]||{};const coating=normalise(currentJob.coating||"");if(mode==="resaw_rejects"&&currentJob.requiredForResaw){return currentJob.requiredForResaw==="YES"?{available:true,reason:""}:{available:false,reason:"Not required for this job"}}if(mode==="moulder_rejects"&&currentJob.requiredForMoulder){return currentJob.requiredForMoulder==="YES"?{available:true,reason:""}:{available:false,reason:"Not required for this job"}}if(mode==="paint_room_rejects"){if(!coating||coating==="uncoated"||coating==="no coating"||coating==="none")return{available:false,reason:"No coating shown"}}return{available:true,reason:""}}
+function getProcessAvailability(mode){
+  if(!currentJob||mode==="pack_visualiser")return{available:true,reason:""};
+  const coating=normalise(currentJob.coating||"");
+  const texture=normalise(currentJob.texture||"");
+  const profile=normalise(currentJob.profile||"");
+  const fire=normalise(currentJob.fireTreatment||"");
+  const combined=[texture,profile,coating,fire].join(" ");
+
+  if(mode==="resaw_rejects"&&currentJob.requiredForResaw){
+    return currentJob.requiredForResaw==="YES"?{available:true,reason:""}:{available:false,reason:"Not required for this job"};
+  }
+
+  if(mode==="moulder_rejects"&&currentJob.requiredForMoulder){
+    return currentJob.requiredForMoulder==="YES"?{available:true,reason:""}:{available:false,reason:"Not required for this job"};
+  }
+
+  if(mode==="charring_machine_rejects"){
+    if(!(combined.indexOf("char")!==-1||combined.indexOf("shou")!==-1||combined.indexOf("yaki")!==-1)){
+      return{available:false,reason:"No charring shown"};
+    }
+  }
+
+  if(mode==="sander_rejects"){
+    if(!(combined.indexOf("sand")!==-1||combined.indexOf("sanded")!==-1)){
+      return{available:false,reason:"No sanding shown"};
+    }
+  }
+
+  if(mode==="brushing_machine_rejects"){
+    if(!(combined.indexOf("brush")!==-1||combined.indexOf("brushed")!==-1)){
+      return{available:false,reason:"No brushing shown"};
+    }
+  }
+
+  if(mode==="paint_room_rejects"){
+    if(!coating||coating==="uncoated"||coating==="no coating"||coating==="none"){
+      return{available:false,reason:"No coating shown"};
+    }
+  }
+
+  return{available:true,reason:""};
+}
 function loadTeamQueue(team){hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentTeam=team;currentJob=null;currentEntryMode="";currentProcessSetup={};step=0;clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerButtonWrap").classList.add("hidden");updateJobContextBar();document.getElementById("queueStatus").innerText="Loading Team "+team+" queue...";document.getElementById("jobQueue").innerHTML="";const callbackName="pwaQueueCallback_"+Date.now();window[callbackName]=function(data){delete window[callbackName];if(!data||!data.ok){document.getElementById("queueStatus").innerText="Could not load queue.";return}currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];renderJobQueue(data.jobs||[])};const script=document.createElement("script");script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();script.onerror=function(){document.getElementById("queueStatus").innerText="Queue load failed.";delete window[callbackName]};document.body.appendChild(script)}
 function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";document.getElementById("stockPickerButtonWrap").classList.add("hidden");return}document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs";document.getElementById("stockPickerButtonWrap").classList.remove("hidden");wrap.innerHTML="";jobs.forEach(job=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+"</strong><br>Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
 function loadStockPicker(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideCoatingOverviewScreen();document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerPanel").classList.remove("hidden");document.getElementById("stockPickerTitle").innerText="Team "+currentTeam+" Stock Picker";document.getElementById("stockPickerStatus").innerText="Loading stock picker...";document.getElementById("stockPickerRows").innerHTML="";const callbackName="pwaStockPickerCallback_"+Date.now();window[callbackName]=function(data){delete window[callbackName];if(!data||!data.ok){document.getElementById("stockPickerStatus").innerText="Could not load stock picker.";return}renderStockPickerRows(data.rows||[])};const script=document.createElement("script");script.src=REJECT_LOG_WEB_APP_URL+"?action=getStockPicker&team="+encodeURIComponent(currentTeam)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();script.onerror=function(){document.getElementById("stockPickerStatus").innerText="Stock picker load failed.";delete window[callbackName]};document.body.appendChild(script)}
