@@ -294,10 +294,84 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
   line-height: 1 !important;
 }
 
+
+.processRoutingGrid .processJobTile {
+  border: 3px solid rgba(0,0,0,0.22) !important;
+}
+
+.processTileYes {
+  background: #fff !important;
+  border-color: #1f1f1f !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.14) !important;
+}
+
+.processTileNo {
+  background: #ececec !important;
+  color: #555 !important;
+}
+
+.processTileImportant {
+  border: 3px solid rgba(0,0,0,0.18) !important;
+}
+
+.processRequiredYes {
+  display: flex !important;
+  width: 100% !important;
+  min-height: clamp(54px, 5vw, 86px) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 14px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  font-size: clamp(30px, 3.2vw, 54px) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.05em !important;
+}
+
+.processRequiredNo {
+  display: flex !important;
+  width: 100% !important;
+  min-height: clamp(42px, 3.6vw, 60px) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 12px !important;
+  background: #d9d9d9 !important;
+  color: #555 !important;
+  font-size: clamp(20px, 2vw, 32px) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
+
+.processExtraFieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width:700px) {
+  .processExtraFieldsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .processRoutingGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width:1100px) {
+  .processExtraFieldsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .processRoutingGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.21)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.24)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button></div><div id="jobQueue"></div></div>
@@ -327,22 +401,34 @@ for(let i=1;i<=6;i++){const o=document.createElement("option");o.value=i;o.textC
 function buildProcessMenu(){const wrap=document.getElementById("processModeButtons");wrap.innerHTML="";PROCESS_MENU_ORDER.forEach(mode=>{const config=ENTRY_MODES[mode];if(!config)return;const availability=getProcessAvailability(mode);const btn=document.createElement("button");btn.type="button";btn.className=mode==="pack_visualiser"?"primaryBtn":"";if(!availability.available){btn.classList.add("processModeButtonUnavailable");btn.disabled=true}btn.innerHTML=escapeHtml(config.menuLabel||config.label)+(availability.reason?'<span class="processModeButtonSub">'+escapeHtml(availability.reason)+'</span>':"");btn.onclick=()=>{if(!availability.available)return;setEntryMode(mode)};wrap.appendChild(btn)})}
 function getProcessAvailability(mode){
   if(!currentJob||mode==="pack_visualiser")return{available:true,reason:""};
+
+  const flagMap={
+    resaw_rejects:["requiredForResaw","Not required for this job"],
+    moulder_rejects:["requiredForMoulder","Not required for this job"],
+    charring_machine_rejects:["charringMachineRequired","No charring shown"],
+    sander_rejects:["sanderRequired","No sanding shown"],
+    brushing_machine_rejects:["brushingMachineRequired","No brushing shown"],
+    paint_room_rejects:["paintRoomRequired","No coating shown"],
+    packing_rejects:["packingRequired","Not required for this job"]
+  };
+
+  if(flagMap[mode]){
+    const flagName=flagMap[mode][0];
+    const reason=flagMap[mode][1];
+    const flagValue=normaliseProcessFlag(currentJob[flagName]);
+
+    if(flagValue==="YES")return{available:true,reason:""};
+    if(flagValue==="NO")return{available:false,reason:reason};
+  }
+
   const coating=normalise(currentJob.coating||"");
   const texture=normalise(currentJob.texture||"");
   const profile=normalise(currentJob.profile||"");
   const fire=normalise(currentJob.fireTreatment||"");
   const combined=[texture,profile,coating,fire].join(" ");
 
-  if(mode==="resaw_rejects"&&currentJob.requiredForResaw){
-    return currentJob.requiredForResaw==="YES"?{available:true,reason:""}:{available:false,reason:"Not required for this job"};
-  }
-
-  if(mode==="moulder_rejects"&&currentJob.requiredForMoulder){
-    return currentJob.requiredForMoulder==="YES"?{available:true,reason:""}:{available:false,reason:"Not required for this job"};
-  }
-
   if(mode==="charring_machine_rejects"){
-    if(!(combined.indexOf("char")!==-1||combined.indexOf("shou")!==-1||combined.indexOf("yaki")!==-1)){
+    if(!(combined.indexOf("char")!==-1||combined.indexOf("shou")!==-1)){
       return{available:false,reason:"No charring shown"};
     }
   }
@@ -384,7 +470,8 @@ function hideProcessSetupScreen(){const panel=document.getElementById("processSe
 function buildOperatorSelect(){const sel=document.getElementById("operatorId");sel.innerHTML="";const ph=document.createElement("option");ph.value="";ph.textContent="Select operator";ph.disabled=true;ph.selected=true;sel.appendChild(ph);currentOperators.forEach(name=>{const o=document.createElement("option");o.value=name;o.textContent=name;sel.appendChild(o)});sel.value=""}
 function fillSetupPackIdField(){populatePackSelect(document.getElementById("setupPackId"),jobContext.packId||"")}
 function configureProcessChecks(mode){const processStage=(ENTRY_MODES[mode]||{}).processStage||"";currentProcessCheckItems=currentBackendProcessChecks.filter(row=>normalise(row.process)===normalise(processStage));currentProcessCheckItems.sort((a,b)=>Number(a.displayOrder||9999)-Number(b.displayOrder||9999));const wrap=document.getElementById("processChecks");wrap.innerHTML="";if(!currentProcessCheckItems.length){const line=document.createElement("div");line.className="processReminderBox";line.innerText="No setup checks configured for "+processStage+".";wrap.appendChild(line);return}currentProcessCheckItems.forEach((item,index)=>{const label=document.createElement("label");label.className="checkLine";const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.id="processCheck_"+index;checkbox.dataset.checkKey=item.checkKey||"";checkbox.dataset.checkLabel=item.checkLabel||"";checkbox.dataset.required=String(item.required!==false);const span=document.createElement("span");span.textContent=item.checkLabel||"";label.appendChild(checkbox);label.appendChild(span);wrap.appendChild(label)})}
-function renderProcessJobCard(mode){const card=document.getElementById("processJobCard"),title=document.getElementById("processSetupTitle"),customInfoBox=document.getElementById("processCustomInfo"),reminderBox=document.getElementById("processReminderBox"),config=ENTRY_MODES[mode]||{};const processStage=config.processStage||"Process";title.innerText=processStage+" Setup Check";if(!currentJob){card.innerHTML="";customInfoBox.classList.add("hidden");reminderBox.classList.add("hidden");return}const jobTiles=[["Job",currentJob.sheetJob||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Texture",currentJob.texture||""]];let html=processSection("Job Summary",buildTileRows(jobTiles));const processTiles=[];if(currentJob.startTime)processTiles.push(["Start",currentJob.startTime]);if(currentJob.targetTime)processTiles.push(["Target",currentJob.targetTime]);if(processStage==="Paint Room"&&currentJob.paintQty)processTiles.push(["Paint qty",currentJob.paintQty]);if(currentJob.coating)processTiles.push(["Coating",currentJob.coating]);if(currentJob.fireTreatment)processTiles.push(["Fire treatment",currentJob.fireTreatment]);if(currentJob.deliveryType&&processStage==="Packing")processTiles.push(["Delivery type",currentJob.deliveryType]);const extraFields=getProcessFieldValuesForCurrentJob(processStage).filter(field=>String(field.value||"").trim()!=="");extraFields.forEach(field=>{if(!processTiles.some(tile=>normalise(tile[0])===normalise(field.fieldLabel||field.fieldKey)))processTiles.push([field.fieldLabel||field.fieldKey||"",field.value||""])});if(processTiles.length)html+=processSection("Process Info",'<div class="processExtraFieldsGrid">'+processTiles.map(tile=>processTile(tile[0],tile[1])).join("")+'</div>');html+=processSection("Pack / Material",buildProcessPackCards());card.innerHTML=html;const customInfo=String(currentJob.customInfo||"").trim();if(customInfo){customInfoBox.innerText=customInfo;customInfoBox.classList.remove("hidden");customInfoBox.classList.add("collapsed")}else customInfoBox.classList.add("hidden");const reminder=getReminderForEntryMode(mode);if(reminder){reminderBox.innerText="Reminder: "+reminder;reminderBox.classList.remove("hidden")}else reminderBox.classList.add("hidden")}
+function renderProcessJobCard(mode){const card=document.getElementById("processJobCard"),title=document.getElementById("processSetupTitle"),customInfoBox=document.getElementById("processCustomInfo"),reminderBox=document.getElementById("processReminderBox"),config=ENTRY_MODES[mode]||{};const processStage=config.processStage||"Process";title.innerText=processStage+" Setup Check";if(!currentJob){card.innerHTML="";customInfoBox.classList.add("hidden");reminderBox.classList.add("hidden");return}const jobTiles=[["Job",currentJob.sheetJob||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Texture",currentJob.texture||""]];let html=processSection("Job Summary",buildTileRows(jobTiles));const allExtraFields=getProcessFieldValuesForCurrentJob(processStage).filter(field=>String(field.value||"").trim()!=="");const routeFields=allExtraFields.filter(field=>isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const infoFields=allExtraFields.filter(field=>!isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));if(routeFields.length)html+=processSection("Routing / Requirements",'<div class="processExtraFieldsGrid processRoutingGrid">'+routeFields.map(field=>processTile(field.fieldLabel||field.fieldKey||"",field.value||"")).join("")+'</div>');const processTiles=[];if(currentJob.startTime)processTiles.push(["Start",currentJob.startTime]);if(currentJob.targetTime)processTiles.push(["Target",currentJob.targetTime]);if(processStage==="Paint Room"&&currentJob.paintQty)processTiles.push(["Paint qty",currentJob.paintQty]);if(currentJob.coating)processTiles.push(["Coating",currentJob.coating]);if(currentJob.fireTreatment)processTiles.push(["Fire treatment",currentJob.fireTreatment]);if(currentJob.deliveryType&&processStage==="Packing")processTiles.push(["Delivery type",currentJob.deliveryType]);infoFields.forEach(field=>{if(!processTiles.some(tile=>normalise(tile[0])===normalise(field.fieldLabel||field.fieldKey)))processTiles.push([field.fieldLabel||field.fieldKey||"",field.value||""])});if(processTiles.length)html+=processSection("Process Info",'<div class="processExtraFieldsGrid">'+processTiles.map(tile=>processTile(tile[0],tile[1])).join("")+'</div>');html+=processSection("Pack / Material",buildProcessPackCards());card.innerHTML=html;const customInfo=String(currentJob.customInfo||"").trim();if(customInfo){customInfoBox.innerText=customInfo;customInfoBox.classList.remove("hidden");customInfoBox.classList.add("collapsed")}else customInfoBox.classList.add("hidden");const reminder=getReminderForEntryMode(mode);if(reminder){reminderBox.innerText="Reminder: "+reminder;reminderBox.classList.remove("hidden")}else reminderBox.classList.add("hidden")}
+function isRoutingFieldLabel(label){const t=normalise(label);return t.indexOf("required")!==-1||t==="resaw"||t==="moulder"||t==="charring"||t==="sander"||t==="brushing"||t==="paint room"||t==="packing"}
 function processSection(title,html){return '<div class="processSection"><div class="processSectionTitle">'+escapeHtml(title)+'</div>'+html+'</div>'}
 function buildProcessPackCards(){const packs=currentJob&&Array.isArray(currentJob.packs)?currentJob.packs:[];if(!packs.length)return '<div class="processInfoText">No Pack ID found for this job.</div>';let html='<div class="processPackGrid">';packs.forEach(pack=>{html+='<div class="processPackCard"><div class="processPackId">Pack ID: '+escapeHtml(pack.packId||"")+'</div><div class="processPackLocation">Location: '+escapeHtml(pack.location||"Location not set")+'</div>'+(pack.rawKey?'<div class="processInfoText">Raw key: '+escapeHtml(pack.rawKey)+'</div>':"")+(pack.stockCheck&&pack.stockCheck!=="OK"?'<div class="processInfoText">Stock check: '+escapeHtml(pack.stockCheck)+'</div>':"")+'</div>'});html+='</div>';return html}
 function getProcessFieldValuesForCurrentJob(processStage){if(!currentJob||!currentJob.processFieldValues)return[];const keys=Object.keys(currentJob.processFieldValues);const matchKey=keys.find(key=>normalise(key)===normalise(processStage));const rows=matchKey?currentJob.processFieldValues[matchKey]:[];return Array.isArray(rows)?rows:[]}
@@ -406,9 +493,9 @@ function stockTile(label,value){
 }
 
 function buildTileRows(tiles){let html="";for(let i=0;i<tiles.length;i+=4){html+='<div class="processJobRow">';tiles.slice(i,i+4).forEach(tile=>html+=processTile(tile[0],tile[1]));html+='</div>'}return html}
-function processTile(label,value){return '<div class="processJobTile"><div class="processJobTileLabel">'+escapeHtml(label)+'</div><div class="processJobTileValue">'+escapeHtml(value||"")+'</div></div>'}
+function processTile(label,value){const cleanLabel=String(label||"").trim();const cleanValue=String(value||"").trim();let valueHtml=escapeHtml(cleanValue);let extraClass="";const labelKey=normalise(cleanLabel);if(labelKey.indexOf("required")!==-1){if(cleanValue.toUpperCase()==="YES"){valueHtml='<span class="processRequiredYes">YES</span>';extraClass=" processTileYes"}else if(cleanValue.toUpperCase()==="NO"){valueHtml='<span class="processRequiredNo">NO</span>';extraClass=" processTileNo"}}if(["paint qty","coating","pack location","delivery type","ironmongery required"].indexOf(labelKey)!==-1)extraClass+=" processTileImportant";return '<div class="processJobTile'+extraClass+'"><div class="processJobTileLabel">'+escapeHtml(cleanLabel)+'</div><div class="processJobTileValue">'+valueHtml+'</div></div>'}
 function escapeHtml(value){return String(value||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
-function normalise(value){return String(value||"").toLowerCase().replace(/\s+/g," ").trim()}
+function normalise(value){return String(value||"").toLowerCase().replace(/\s+/g," ").trim()}function normaliseProcessFlag(value){const text=String(value||"").trim().toUpperCase();if(["YES","Y","TRUE","1","REQUIRED"].indexOf(text)!==-1)return"YES";if(["NO","N","FALSE","0","NOT REQUIRED"].indexOf(text)!==-1)return"NO";return""}
 function getReminderForEntryMode(mode){if(!currentJob)return"";const key=(ENTRY_MODES[mode]||{}).reminderKey;return key?(currentJob[key]||""):""}
 function toggleCustomInfoExpand(){document.getElementById("processCustomInfo").classList.toggle("collapsed")}
 function resetProcessChecks(){document.getElementById("operatorId").value="";document.getElementById("guestOperatorName").value="";document.querySelectorAll("#processChecks input[type=checkbox]").forEach(cb=>cb.checked=false);document.getElementById("processSetupNotes").value=""}
