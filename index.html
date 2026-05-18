@@ -413,13 +413,13 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.38)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.39)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
 <div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Job breakdown</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
 <div id="step0_entry" class="hidden"><div class="fieldBlock"><label>What do you want to do?</label><div class="modeButtons" id="processModeButtons"></div></div><div class="basketActions"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
-<div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div class="basketActions"><button type="button" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
+<div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="modeBlock" class="hidden"><label>Target Total is measured in:</label><select id="mode"></select></div>
 <div id="step1_boards" class="step hidden"><div id="boardsWrap"><input id="boards" type="number" placeholder="Quantity of Boards Required" /></div><div id="linearWrap"><input id="metres" type="number" placeholder="Number of Linear Metres Required" /><select id="boardLength"></select></div></div><div id="step2_perRow" class="step hidden"><select id="perRow"></select></div><div id="step3_yield" class="step hidden"><label>Yield when bandsawing</label><select id="yield"></select></div><div id="step4_loose" class="step hidden"><select id="topLoose"></select></div><div id="step5_rejects" class="step hidden step5Bar"><select id="rejects"></select><div class="step5Buttons"><button onclick="prevStep()">Back</button><button onclick="resetAll()">Reset</button><button onclick="backToProcessMenu()">Back to process menu</button></div></div>
 <div id="simpleLogger" class="hidden simpleBox"><div class="fieldBlock"><label id="simpleLoggerTitle">Log Rejects</label></div><div class="fieldBlock"><label>Pack ID used</label><select id="simplePackId"></select></div><div class="rejectLoggerLayout"><div class="rejectLoggerLeft"><div class="fieldBlock"><label>Tap defects as they happen</label><div id="rejectButtonGrid" class="rejectButtonGrid"></div></div></div><div class="rejectLoggerRight"><div id="rejectBasketTotals" class="rejectBasketTotals">No rejects logged yet.</div><div id="rejectNoteBlock" class="fieldBlock hidden" style="margin-top:10px;"><label id="rejectNoteLabel">Reject note required</label><textarea id="rejectNote" rows="3" placeholder="Add detail for Other or note-required defects"></textarea></div><div class="basketActions"><button onclick="undoLastReject()">Undo Last</button><button onclick="clearRejectBasket()">Clear</button><button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button><button onclick="returnToMenu()">Back to menu</button></div></div></div></div>
@@ -787,7 +787,70 @@ function populateOperatorSelectElement(sel,labelText){
   });
   sel.value="";
 }
-function showProcessSetupScreen(mode){hidePostSaveScreen();hideStockPickerScreen();hideCoatingOverviewScreen();document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.getElementById("processSetupPanel").classList.remove("hidden");document.querySelector(".btnRow").classList.add("hidden");currentProcessSetup={};buildOperatorSelect();fillSetupPackIdField();configureProcessChecks(mode);renderProcessJobCard(mode);resetProcessChecks();updateOperatorGuestVisibility()}
+function isVisualiserUsefulForProcess(mode){
+  return mode==="resaw_rejects"||mode==="moulder_rejects";
+}
+function updateProcessVisualiserButton(mode){
+  const btn=document.getElementById("processVisualiserBtn");
+  if(!btn)return;
+  const show=isVisualiserUsefulForProcess(mode);
+  btn.classList.toggle("hidden",!show);
+  if(show){
+    const processStage=(ENTRY_MODES[mode]||{}).processStage||"";
+    btn.innerText="Open Pack Visualiser for "+processStage;
+  }
+}
+function parseJobBoardQuantity(){
+  const raw=String(currentJob&&currentJob.quantity||"").trim();
+  const n=Number(raw.replace(/[^0-9.]/g,""));
+  return isFinite(n)&&n>0?Math.ceil(n):0;
+}
+function openPreloadedVisualiserFromProcess(){
+  if(!currentJob){
+    showProcessWarning("Select a job first.");
+    return;
+  }
+
+  const qty=parseJobBoardQuantity();
+
+  if(!qty){
+    showProcessWarning("No job quantity found to preload into the visualiser.");
+    return;
+  }
+
+  const setupPackSelect=document.getElementById("setupPackId");
+  const selectedPackId=setupPackSelect?String(setupPackSelect.value||"").trim():"";
+  if(selectedPackId){
+    jobContext.packId=selectedPackId;
+    updateJobContextBar();
+  }
+
+  hideProcessSetupScreen();
+  hidePostSaveScreen();
+  hideStockPickerScreen();
+  hideCoatingOverviewScreen();
+  document.getElementById("step0_entry").classList.add("hidden");
+  document.getElementById("simpleLogger").classList.add("hidden");
+
+  currentEntryMode="pack_visualiser";
+  currentProcessSetup={};
+  step=2;
+
+  modeSel.value="boards";
+  document.getElementById("boards").value=qty;
+  document.getElementById("metres").value="";
+  document.getElementById("boardLength").value="";
+  yieldSel.value=1;
+  perRowSel.value="";
+  looseSel.value="";
+  rejectsSel.value="";
+
+  fillPackIdFields();
+  document.getElementById("saveStatus").innerText="Pack Visualiser preloaded with "+qty+" boards from "+(currentJob.sheetJob||"this job")+".";
+  updateUI();
+  render();
+}
+function showProcessSetupScreen(mode){hidePostSaveScreen();hideStockPickerScreen();hideCoatingOverviewScreen();document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.getElementById("processSetupPanel").classList.remove("hidden");document.querySelector(".btnRow").classList.add("hidden");currentProcessSetup={};buildOperatorSelect();fillSetupPackIdField();configureProcessChecks(mode);renderProcessJobCard(mode);resetProcessChecks();updateOperatorGuestVisibility();updateProcessVisualiserButton(mode)}
 function hideProcessSetupScreen(){const panel=document.getElementById("processSetupPanel");if(panel)panel.classList.add("hidden")}
 function buildOperatorSelect(){const slots=getOperatorSlotCountForCurrentProcess();const sel=document.getElementById("operatorId");populateOperatorSelectElement(sel,slots>1?"Select operator 1":"Select operator");const extra=document.getElementById("extraOperatorSlots");if(extra)extra.innerHTML="";for(let i=2;i<=slots;i++){const block=document.createElement("div");block.className="fieldBlock";const label=document.createElement("label");label.textContent="Operator ID "+i;const select=document.createElement("select");select.className="operatorSlotSelect";select.dataset.operatorSlot=String(i);populateOperatorSelectElement(select,"Select operator "+i);select.onchange=updateOperatorGuestVisibility;block.appendChild(label);block.appendChild(select);if(extra)extra.appendChild(block)}sel.onchange=updateOperatorGuestVisibility}
 
