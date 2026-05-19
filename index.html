@@ -410,10 +410,42 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
   letter-spacing: 0.06em !important;
 }
 
+
+.jobQueueComplete {
+  opacity: .42;
+  filter: grayscale(1);
+  background: #efefef !important;
+  border-style: dashed !important;
+}
+
+.jobCompleteBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #333;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+
+.jobCachedBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #f1f1f1;
+  color: #333;
+  border: 1px solid rgba(0,0,0,.15);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.41)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.42)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -428,7 +460,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </div>
 <div id="summary" style="font-size:13px;margin-top:8px;color:#333;"></div><div id="saveStatus"></div><div class="grid" id="grid"></div><div id="processWarningOverlay" class="hidden processWarningOverlay"><div class="processWarningBox"><div id="processWarningText" class="processWarningText"></div><button type="button" class="primaryBtn" onclick="closeProcessWarning()">OK</button></div></div>
 <script>
-let step=0,currentEntryMode="",currentTeam="",currentJob=null,currentTeamDashboard=null,visualiserSourceProcess="",rejectBasket={},rejectHistory=[],currentProcessSetup={},currentOperators=["Beren","Jim","Saul","Shaun","Tony","Guest"],currentProcessCheckItems=[],currentBackendProcessChecks=[],currentBackendProcessSettings=[],currentDefectConfigRows=[];
+let step=0,currentEntryMode="",currentTeam="",currentJob=null,currentTeamDashboard=null,visualiserSourceProcess="",jobDetailRequests={},rejectBasket={},rejectHistory=[],currentProcessSetup={},currentOperators=["Beren","Jim","Saul","Shaun","Tony","Guest"],currentProcessCheckItems=[],currentBackendProcessChecks=[],currentBackendProcessSettings=[],currentDefectConfigRows=[];
 const REJECT_DRAFT_PREFIX="ttRejectDraft",REJECT_SUBMITTED_PREFIX="ttRejectSubmitted",REJECT_OUTBOX_PREFIX="ttRejectOutbox|",REJECT_DEVICE_ID_KEY="ttRejectDeviceId";
 const REJECT_LOG_WEB_APP_URL="https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
 const urlParams=new URLSearchParams(window.location.search);let jobContext={productionRow:urlParams.get("row")||"",jobNo:urlParams.get("jobNo")||"",sheetJob:urlParams.get("sheetJob")||urlParams.get("job")||"",packId:urlParams.get("packId")||""};
@@ -495,19 +527,256 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.38|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.42|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-function saveTeamDashboardToLocalCache(team,data){if(!team||!data||!data.ok)return;try{localStorage.setItem(getTeamDashboardCacheKey(team),JSON.stringify({savedAt:new Date().toISOString(),data:data}))}catch(err){}}
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.42|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.42|";
+
+function jobKeyParts(job){
+  const keys=[];
+  const sheet=String(job&&job.sheetJob||"").trim();
+  const helper=String(job&&job.helperSheetName||"").trim();
+  if(sheet)keys.push(sheet);
+  if(helper&&keys.indexOf(helper)===-1)keys.push(helper);
+  return keys;
+}
+
+function primaryJobKey(job){
+  const keys=jobKeyParts(job);
+  return keys.length?keys[0]:"";
+}
+
+function getJobDetailsCacheKey(team,job){
+  return JOB_DETAIL_CACHE_PREFIX+String(team||"").toUpperCase().trim()+"|"+encodeURIComponent(primaryJobKey(job));
+}
+
+function getJobDetailsFromLocalCache(job){
+  const key=getJobDetailsCacheKey(currentTeam,job);
+  if(!key)return null;
+  try{
+    const raw=localStorage.getItem(key);
+    if(!raw)return null;
+    const item=JSON.parse(raw);
+    if(!item||!item.data||!item.data.ok||!item.data.job)return null;
+    return item.data;
+  }catch(err){
+    return null;
+  }
+}
+
+function saveJobDetailsToLocalCache(job,data){
+  if(!data||!data.ok||!data.job)return;
+  try{
+    localStorage.setItem(getJobDetailsCacheKey(currentTeam,job),JSON.stringify({savedAt:new Date().toISOString(),data:data}));
+  }catch(err){}
+}
+
+function clearJobDetailCacheForTeam(team){
+  const prefix=JOB_DETAIL_CACHE_PREFIX+String(team||"").toUpperCase().trim()+"|";
+  try{
+    for(let i=localStorage.length-1;i>=0;i--){
+      const key=localStorage.key(i);
+      if(key&&key.indexOf(prefix)===0)localStorage.removeItem(key);
+    }
+  }catch(err){}
+}
+
+function getCompletedJobsKey(team){
+  return JOB_COMPLETION_PREFIX+String(team||"").toUpperCase().trim();
+}
+
+function getCompletedJobsMap(team){
+  try{
+    const raw=localStorage.getItem(getCompletedJobsKey(team));
+    return raw?JSON.parse(raw):{};
+  }catch(err){
+    return {};
+  }
+}
+
+function saveCompletedJobsMap(team,map){
+  try{
+    localStorage.setItem(getCompletedJobsKey(team),JSON.stringify(map||{}));
+  }catch(err){}
+}
+
+function isJobCompleted(job){
+  const map=getCompletedJobsMap(currentTeam);
+  return jobKeyParts(job).some(key=>map[key]);
+}
+
+function applyCompletedStateToJobs(jobs){
+  (jobs||[]).forEach(job=>{
+    job.completed=isJobCompleted(job);
+  });
+}
+
+function applyCompletedStateToDashboard(data){
+  if(data&&Array.isArray(data.jobs))applyCompletedStateToJobs(data.jobs);
+}
+
+function updateCurrentDashboardJob(job){
+  if(!currentTeamDashboard||!Array.isArray(currentTeamDashboard.jobs)||!job)return;
+  const keys=jobKeyParts(job);
+  const idx=currentTeamDashboard.jobs.findIndex(existing=>jobKeyParts(existing).some(key=>keys.indexOf(key)!==-1));
+  if(idx!==-1){
+    currentTeamDashboard.jobs[idx]=Object.assign({},currentTeamDashboard.jobs[idx],job);
+    currentTeamDashboard.jobs[idx].completed=isJobCompleted(currentTeamDashboard.jobs[idx]);
+    saveTeamDashboardToLocalCache(currentTeam,currentTeamDashboard);
+  }
+}
+
+function applyJobDetailResponse(data){
+  if(!data||!data.ok)return;
+  currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
+  currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:currentBackendProcessChecks;
+  currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:currentBackendProcessSettings;
+  currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:currentDefectConfigRows;
+}
+
+function fetchJobDetailsForCache(job,onDone,silent){
+  const sheetJob=job&&String(job.helperSheetName||job.sheetJob||"").trim();
+  if(!sheetJob){
+    if(onDone)onDone(null);
+    return;
+  }
+
+  const cacheKey=getJobDetailsCacheKey(currentTeam,job);
+  const cached=getJobDetailsFromLocalCache(job);
+  if(cached){
+    if(onDone)onDone(cached);
+    return;
+  }
+
+  if(jobDetailRequests[cacheKey]){
+    if(onDone)jobDetailRequests[cacheKey].push(onDone);
+    return;
+  }
+
+  jobDetailRequests[cacheKey]=onDone?[onDone]:[];
+
+  const callbackName="pwaJobDetailsCacheCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+  window[callbackName]=function(data){
+    const callbacks=jobDetailRequests[cacheKey]||[];
+    delete jobDetailRequests[cacheKey];
+    delete window[callbackName];
+
+    if(data&&data.ok&&data.job){
+      saveJobDetailsToLocalCache(job,data);
+      const merged=mergeJobDetails(job,data.job);
+      updateCurrentDashboardJob(merged);
+      callbacks.forEach(cb=>{if(cb)cb(data)});
+      return;
+    }
+
+    callbacks.forEach(cb=>{if(cb)cb(null)});
+  };
+
+  const script=document.createElement("script");
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=getJobDetails&team="+encodeURIComponent(currentTeam||"")+"&sheetJob="+encodeURIComponent(sheetJob)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.onerror=function(){
+    const callbacks=jobDetailRequests[cacheKey]||[];
+    delete jobDetailRequests[cacheKey];
+    delete window[callbackName];
+    callbacks.forEach(cb=>{if(cb)cb(null)});
+  };
+  document.body.appendChild(script);
+}
+
+function getQueueJobIndex(job){
+  const dashboard=getCurrentTeamDashboardOrCache();
+  const jobs=dashboard&&Array.isArray(dashboard.jobs)?dashboard.jobs:[];
+  const keys=jobKeyParts(job);
+  return jobs.findIndex(existing=>jobKeyParts(existing).some(key=>keys.indexOf(key)!==-1));
+}
+
+function prefetchQueueJobDetailsFrom(startIndex,count){
+  const dashboard=getCurrentTeamDashboardOrCache();
+  const jobs=dashboard&&Array.isArray(dashboard.jobs)?dashboard.jobs:[];
+  let loaded=0;
+
+  for(let i=Math.max(0,startIndex);i<jobs.length&&loaded<count;i++){
+    const job=jobs[i];
+    if(isJobCompleted(job))continue;
+    if(!getJobDetailsFromLocalCache(job)){
+      fetchJobDetailsForCache(job,null,true);
+      loaded++;
+    }
+  }
+}
+
+function prefetchAfterJob(job,count){
+  const idx=getQueueJobIndex(job);
+  if(idx!==-1)prefetchQueueJobDetailsFrom(idx+1,count);
+}
+
+function valueIsYes(value){
+  return String(value||"").trim().toUpperCase()==="YES";
+}
+
+function getMostDownstreamRequiredMode(job){
+  const order=[
+    ["resaw_rejects","requiredForResaw"],
+    ["moulder_rejects","requiredForMoulder"],
+    ["charring_machine_rejects","charringMachineRequired"],
+    ["sander_rejects","sanderRequired"],
+    ["brushing_machine_rejects","brushingMachineRequired"],
+    ["paint_room_rejects","paintRoomRequired"]
+  ];
+
+  let last="";
+  order.forEach(item=>{
+    if(valueIsYes(job&&job[item[1]]))last=item[0];
+  });
+
+  return last;
+}
+
+function markJobCompleteLocally(job,payload){
+  if(!job)return;
+  const map=getCompletedJobsMap(currentTeam);
+  const stamp=new Date().toISOString();
+  jobKeyParts(job).forEach(key=>{
+    map[key]={
+      completedAt:stamp,
+      processStage:payload&&payload.processStage||"",
+      entryMode:payload&&payload.entryMode||""
+    };
+  });
+  saveCompletedJobsMap(currentTeam,map);
+  job.completed=true;
+  updateCurrentDashboardJob(job);
+
+  const dashboard=getCurrentTeamDashboardOrCache();
+  if(dashboard&&Array.isArray(dashboard.jobs)){
+    applyCompletedStateToJobs(dashboard.jobs);
+    saveTeamDashboardToLocalCache(currentTeam,dashboard);
+  }
+}
+
+function markJobCompleteIfFinalProcess(payload){
+  if(!currentJob||!currentEntryMode||currentEntryMode==="packing_rejects")return;
+  const finalMode=getMostDownstreamRequiredMode(currentJob);
+  if(finalMode&&currentEntryMode===finalMode){
+    markJobCompleteLocally(currentJob,payload);
+    prefetchAfterJob(currentJob,2);
+  }
+}
+
+function saveTeamDashboardToLocalCache(team,data){if(!team||!data||!data.ok)return;try{applyCompletedStateToDashboard(data);localStorage.setItem(getTeamDashboardCacheKey(team),JSON.stringify({savedAt:new Date().toISOString(),data:data}))}catch(err){}}
+
 function getTeamDashboardFromLocalCache(team){try{const raw=localStorage.getItem(getTeamDashboardCacheKey(team));if(!raw)return null;const item=JSON.parse(raw);if(!item||!item.data||!item.data.ok)return null;return item}catch(err){return null}}
 function getDashboardTimeText(dataOrItem){const stamp=(dataOrItem&&dataOrItem.savedAt)||(dataOrItem&&dataOrItem.generatedAt)||(dataOrItem&&dataOrItem.data&&dataOrItem.data.generatedAt)||"";if(!stamp)return"";const d=new Date(stamp);if(isNaN(d.getTime()))return stamp;return d.toLocaleString()}
-function applyTeamDashboardData(data,fromLocal){currentTeamDashboard=data||null;currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];renderJobQueue(data.jobs||[]);const timeText=getDashboardTimeText(data);if(fromLocal){document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved schedule"+(timeText?" from "+timeText:"")+". Tap Force Refresh Schedule after schedule changes."}else{document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — refreshed"+(timeText?" "+timeText:"")}}
+function applyTeamDashboardData(data,fromLocal){currentTeamDashboard=data||null;applyCompletedStateToDashboard(currentTeamDashboard);currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];renderJobQueue(data.jobs||[]);prefetchQueueJobDetailsFrom(0,2);const timeText=getDashboardTimeText(data);if(fromLocal){document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved schedule"+(timeText?" from "+timeText:"")+". Tap Force Refresh Schedule after schedule changes."}else{document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — refreshed"+(timeText?" "+timeText:"")}}
+
 function fetchTeamDashboard(team,forceFresh){document.getElementById("queueStatus").innerText=forceFresh?"Refreshing Team "+team+" queue from workbook. Please wait...":"Loading Team "+team+" queue...";const callbackName="pwaQueueCallback_"+Date.now();window[callbackName]=function(data){delete window[callbackName];if(!data||!data.ok){document.getElementById("queueStatus").innerText="Could not load queue.";return}saveTeamDashboardToLocalCache(team,data);applyTeamDashboardData(data,false)};const script=document.createElement("script");script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+(forceFresh?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();script.onerror=function(){document.getElementById("queueStatus").innerText="Queue load failed.";delete window[callbackName]};document.body.appendChild(script)}
 
-function refreshCurrentTeamDashboard(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;try{localStorage.removeItem(getTeamDashboardCacheKey(currentTeam))}catch(err){}clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerButtonWrap").classList.add("hidden");document.getElementById("jobQueue").innerHTML="";document.getElementById("queueStatus").innerText="Cleared saved Team "+currentTeam+" queue. Refreshing from workbook...";updateJobContextBar();fetchTeamDashboard(currentTeam,true)}
-function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDashboard.ok)return currentTeamDashboard;const cached=getTeamDashboardFromLocalCache(currentTeam);if(cached&&cached.data){currentTeamDashboard=cached.data;return cached.data}return null}
+function refreshCurrentTeamDashboard(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;try{localStorage.removeItem(getTeamDashboardCacheKey(currentTeam));clearJobDetailCacheForTeam(currentTeam)}catch(err){}clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerButtonWrap").classList.add("hidden");document.getElementById("jobQueue").innerHTML="";document.getElementById("queueStatus").innerText="Cleared saved Team "+currentTeam+" queue. Refreshing from workbook...";updateJobContextBar();fetchTeamDashboard(currentTeam,true)}
+function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDashboard.ok){applyCompletedStateToDashboard(currentTeamDashboard);return currentTeamDashboard}const cached=getTeamDashboardFromLocalCache(currentTeam);if(cached&&cached.data){currentTeamDashboard=cached.data;applyCompletedStateToDashboard(currentTeamDashboard);return cached.data}return null}
+
 function loadTeamQueue(team,forceFresh){hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentTeam=team;currentJob=null;currentEntryMode="";currentProcessSetup={};step=0;clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerButtonWrap").classList.remove("hidden");updateJobContextBar();document.getElementById("jobQueue").innerHTML="";const cached=getTeamDashboardFromLocalCache(team);if(cached&&!forceFresh){applyTeamDashboardData(cached.data,true);return}fetchTeamDashboard(team,forceFresh===true)}
 
-function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";document.getElementById("stockPickerButtonWrap").classList.add("hidden");return}document.getElementById("stockPickerButtonWrap").classList.remove("hidden");wrap.innerHTML="";jobs.forEach(job=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+"</strong><br>Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
+function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");applyCompletedStateToJobs(jobs||[]);if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";document.getElementById("stockPickerButtonWrap").classList.add("hidden");return}document.getElementById("stockPickerButtonWrap").classList.remove("hidden");wrap.innerHTML="";jobs.forEach((job,index)=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");const completed=isJobCompleted(job);if(completed)btn.classList.add("jobQueueComplete");const cached=getJobDetailsFromLocalCache(job);const badges=(completed?'<span class="jobCompleteBadge">COMPLETED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+badges+"</strong><br>Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
 
 function parseLitresText(value){
   const m=String(value||"").match(/[-+]?\d*\.?\d+/);
@@ -903,6 +1172,7 @@ function mergeJobDetails(baseJob,detailsJob){
 }
 function finishSelectQueueJob(job,modeAfterLoad){
   currentJob=job;
+  updateCurrentDashboardJob(job);
   jobContext.productionRow=job.productionRow||"";
   jobContext.jobNo=job.jobNo||"";
   jobContext.sheetJob=job.sheetJob||"";
@@ -927,36 +1197,32 @@ function loadJobDetailsAndSelect(job,modeAfterLoad){
     return;
   }
 
+  const cached=getJobDetailsFromLocalCache(job);
+  if(cached&&cached.job){
+    applyJobDetailResponse(cached);
+    const merged=mergeJobDetails(job,cached.job);
+    finishSelectQueueJob(merged,modeAfterLoad);
+    prefetchAfterJob(merged,2);
+    return;
+  }
+
   document.getElementById("queueStatus").innerText="Loading job details...";
   document.getElementById("saveStatus").innerText="Loading job details...";
 
-  const callbackName="pwaJobDetailsCallback_"+Date.now();
-  window[callbackName]=function(data){
-    delete window[callbackName];
-
+  fetchJobDetailsForCache(job,function(data){
     if(data&&data.ok&&data.job){
-      currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
-      currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:currentBackendProcessChecks;
-      currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:currentBackendProcessSettings;
-      currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:currentDefectConfigRows;
+      applyJobDetailResponse(data);
       const merged=mergeJobDetails(job,data.job);
       finishSelectQueueJob(merged,modeAfterLoad);
+      prefetchAfterJob(merged,2);
       return;
     }
 
     document.getElementById("saveStatus").innerText="Could not load full job details. Opening saved queue data.";
     finishSelectQueueJob(job,modeAfterLoad);
-  };
-
-  const script=document.createElement("script");
-  script.src=REJECT_LOG_WEB_APP_URL+"?action=getJobDetails&team="+encodeURIComponent(currentTeam||"")+"&sheetJob="+encodeURIComponent(sheetJob)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
-  script.onerror=function(){
-    delete window[callbackName];
-    document.getElementById("saveStatus").innerText="Job detail load failed. Opening saved queue data.";
-    finishSelectQueueJob(job,modeAfterLoad);
-  };
-  document.body.appendChild(script);
+  },false);
 }
+
 function selectQueueJob(job,modeAfterLoad){if(job&&job.detailsLoaded){finishSelectQueueJob(job,modeAfterLoad);return}loadJobDetailsAndSelect(job,modeAfterLoad)}
 
 function buildPerRow(){perRowSel.innerHTML="";const ph=document.createElement("option");ph.value="";ph.textContent="How many boards per row?";ph.disabled=true;ph.selected=true;perRowSel.appendChild(ph);for(let i=1;i<=15;i++){const o=document.createElement("option");o.value=i;o.textContent=i;perRowSel.appendChild(o)}}buildPerRow();
@@ -971,7 +1237,8 @@ function showPostSaveScreen(payload,totalRejects){document.getElementById("simpl
 function hidePostSaveScreen(){const panel=document.getElementById("postSavePanel");if(panel)panel.classList.add("hidden")}
 function logAnotherPack(){hidePostSaveScreen();rejectBasket={};rejectHistory=[];renderRejectBasket();document.getElementById("saveStatus").innerText="";const packSelect=document.getElementById("simplePackId");if(currentJob&&currentJob.packs&&currentJob.packs.length>1&&packSelect){const currentPack=packSelect.value,packs=currentJob.packs.map(p=>p.packId),currentIndex=packs.indexOf(currentPack);if(currentIndex>=0&&currentIndex<packs.length-1){packSelect.value=packs[currentIndex+1];jobContext.packId=packSelect.value;updateJobContextBar()}}if((ENTRY_MODES[currentEntryMode]||{}).showSetup){fillSetupPackIdField();showProcessSetupScreen(currentEntryMode)}else{restoreRejectDraft();document.getElementById("simpleLogger").classList.remove("hidden");updateUI()}}
 function backToProcessMenu(){hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentEntryMode="";currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";buildProcessMenu();updateUI()}
-function backToJobQueue(){hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentEntryMode="";currentJob=null;currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];jobContext={productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";updateJobContextBar();document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");if(currentTeam)loadTeamQueue(currentTeam);else{document.getElementById("queueStatus").innerText="";document.getElementById("jobQueue").innerHTML=""}}
+function backToJobQueue(){hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentEntryMode="";currentJob=null;currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];jobContext={productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";updateJobContextBar();document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");if(currentTeam){const dashboard=getCurrentTeamDashboardOrCache();if(dashboard&&Array.isArray(dashboard.jobs)){renderJobQueue(dashboard.jobs);document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved queue.";prefetchQueueJobDetailsFrom(0,2)}else loadTeamQueue(currentTeam)}else{document.getElementById("queueStatus").innerText="";document.getElementById("jobQueue").innerHTML=""}}
+
 function state(){return{mode:modeSel.value,boards:+document.getElementById("boards").value||0,metres:+document.getElementById("metres").value||0,boardLength:+document.getElementById("boardLength").value||0,perRow:+perRowSel.value||0,yield:+document.getElementById("yield").value||1,topLoose:looseSel.value===""?null:parseInt(looseSel.value),rejects:+rejectsSel.value||0}}
 function basePieces(s){if(s.mode==="linear"){if(!s.metres||!s.boardLength)return 0;return Math.ceil(s.metres/s.boardLength)}return s.boards}
 function calculationResult(){const s=state(),base=basePieces(s),total=base+s.rejects,physicalBoards=Math.ceil(total/s.yield),basePhysicalBoards=Math.ceil(base/s.yield);let rows=[],rem=physicalBoards;if(s.topLoose!==null){const t=Math.min(s.topLoose,rem);rows.push(t);rem-=t}while(rem>0){const c=Math.min(s.perRow,rem);rows.push(c);rem-=c}return{mode:s.mode,inputBoards:s.boards,inputMetres:s.metres,boardLength:s.boardLength,yield:s.yield,topLoose:s.topLoose,rows:rows.length,baseBoards:base,basePhysicalBoards,perRow:s.perRow,rejects:s.rejects,total,physicalBoards}}
@@ -1017,7 +1284,7 @@ function updateLocalOutboxStatus(){const el=document.getElementById("localOutbox
 function resendLocalOutbox(){const status=document.getElementById("saveStatus"),items=getLocalOutboxItems();if(!items.length){status.innerText="No local backup submissions to resend.";updateLocalOutboxStatus();return}const ok=window.confirm("This will resend "+items.length+" local backup submission(s).\n\nOnly do this if the entries are missing from the Reject Log, otherwise duplicates may be created.");if(!ok){status.innerText="Resend cancelled.";return}items.forEach(item=>sendRejectPayloadInBackground(item.record.payload));status.innerText="Resent "+items.length+" local backup submission(s).";updateLocalOutboxStatus()}
 function clearLocalOutboxBackups(){const status=document.getElementById("saveStatus"),items=getLocalOutboxItems();if(!items.length){status.innerText="No local backup submissions to clear.";updateLocalOutboxStatus();return}const ok=window.confirm("Clear "+items.length+" local backup submission(s) from this iPad?\n\nOnly clear them after checking the Reject Log has the saved entries.");if(!ok){status.innerText="Clear cancelled.";return}items.forEach(item=>localStorage.removeItem(item.key));status.innerText="Local backup submissions cleared from this iPad.";updateLocalOutboxStatus()}
 function sendRejectPayloadInBackground(payload){if(!payload.submissionId)payload.submissionId=createRejectSubmissionId();payload.deviceId=getRejectDeviceId();savePayloadToOutbox(payload);markOutboxAttempt(payload.submissionId);const body=JSON.stringify(payload);try{if(navigator.sendBeacon){const blob=new Blob([body],{type:"text/plain;charset=utf-8"}),queued=navigator.sendBeacon(REJECT_LOG_WEB_APP_URL,blob);if(queued){updateLocalOutboxStatus();return}}fetch(REJECT_LOG_WEB_APP_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body,keepalive:true}).catch(err=>localStorage.setItem(["ttRejectSendError",payload.team||"",payload.productionRow||"",payload.entryMode||"",payload.packId||"",Date.now()].join("|"),JSON.stringify({error:err.message,payload})))}catch(err){localStorage.setItem(["ttRejectSendError",payload.team||"",payload.productionRow||"",payload.entryMode||"",payload.packId||"",Date.now()].join("|"),JSON.stringify({error:err.message,payload}))}updateLocalOutboxStatus()}
-async function reviewAndSaveBasket(){const status=document.getElementById("saveStatus"),saveBtn=document.getElementById("simpleSaveBtn");if(!currentEntryMode||currentEntryMode==="pack_visualiser"){status.innerText="Choose a process first.";return}if(!jobContext.productionRow){status.innerText="No Production row found. Select a scheduled job first.";return}const config=ENTRY_MODES[currentEntryMode],packId=document.getElementById("simplePackId").value.trim(),rejectLines=getBasketRejectLines();if(!packId){status.innerText="Select the Pack ID before reviewing.";return}if(!rejectLines.length){status.innerText="Tap at least one reject type, or select No Rejects.";return}const totalRejects=rejectLines.reduce((sum,line)=>sum+Number(line.rejectQty||0),0);const rejectNote=getRejectNote();if(basketRequiresNote()&&!rejectNote){status.innerText="Add a reject note before reviewing.";showProcessWarning("Add a reject note before reviewing. This is required for Other or note-required defects.");return}const recapLines=["Review pack reject log","","Team: "+(currentTeam||""),"Job: "+(jobContext.sheetJob||""),"Production Row: "+(jobContext.productionRow||"")];if(currentJob)recapLines.push("Client: "+(currentJob.client||""),"Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""));recapLines.push("Process: "+(config.processStage||""),"Pack ID: "+packId,"","Rejects:");rejectLines.forEach(line=>recapLines.push("- "+line.defectType+": "+line.rejectQty));if(rejectNote)recapLines.push("","Reject note: "+rejectNote);recapLines.push("","Total rejects: "+totalRejects,"Logged As: "+(config.rejectColumn==="machine"?"Machine Defect":"Pre Process Reject"));if(!window.confirm(recapLines.join("\n"))){status.innerText="Save cancelled. Continue logging or edit the basket.";return}const payload={source:"TT Process Logger",team:currentTeam,timestamp:new Date().toISOString(),productionRow:jobContext.productionRow,jobNo:jobContext.jobNo,sheetJob:jobContext.sheetJob,packId:packId,entryMode:currentEntryMode,entryModeLabel:config.label,processStage:config.processStage,rejectColumn:config.rejectColumn,processSetup:currentProcessSetup,jobData:getCurrentJobDataForPayload(),rejectNote:rejectNote,rejects:rejectLines};saveBtn.disabled=true;status.innerText="Submitting...";archiveSubmittedDraft(payload);clearRejectDraft();rejectBasket={};rejectHistory=[];renderRejectBasket();sendRejectPayloadInBackground(payload);status.innerText="";saveBtn.disabled=false;showPostSaveScreen(payload,totalRejects)}
+async function reviewAndSaveBasket(){const status=document.getElementById("saveStatus"),saveBtn=document.getElementById("simpleSaveBtn");if(!currentEntryMode||currentEntryMode==="pack_visualiser"){status.innerText="Choose a process first.";return}if(!jobContext.productionRow){status.innerText="No Production row found. Select a scheduled job first.";return}const config=ENTRY_MODES[currentEntryMode],packId=document.getElementById("simplePackId").value.trim(),rejectLines=getBasketRejectLines();if(!packId){status.innerText="Select the Pack ID before reviewing.";return}if(!rejectLines.length){status.innerText="Tap at least one reject type, or select No Rejects.";return}const totalRejects=rejectLines.reduce((sum,line)=>sum+Number(line.rejectQty||0),0);const rejectNote=getRejectNote();if(basketRequiresNote()&&!rejectNote){status.innerText="Add a reject note before reviewing.";showProcessWarning("Add a reject note before reviewing. This is required for Other or note-required defects.");return}const recapLines=["Review pack reject log","","Team: "+(currentTeam||""),"Job: "+(jobContext.sheetJob||""),"Production Row: "+(jobContext.productionRow||"")];if(currentJob)recapLines.push("Client: "+(currentJob.client||""),"Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""));recapLines.push("Process: "+(config.processStage||""),"Pack ID: "+packId,"","Rejects:");rejectLines.forEach(line=>recapLines.push("- "+line.defectType+": "+line.rejectQty));if(rejectNote)recapLines.push("","Reject note: "+rejectNote);recapLines.push("","Total rejects: "+totalRejects,"Logged As: "+(config.rejectColumn==="machine"?"Machine Defect":"Pre Process Reject"));if(!window.confirm(recapLines.join("\n"))){status.innerText="Save cancelled. Continue logging or edit the basket.";return}const payload={source:"TT Process Logger",team:currentTeam,timestamp:new Date().toISOString(),productionRow:jobContext.productionRow,jobNo:jobContext.jobNo,sheetJob:jobContext.sheetJob,packId:packId,entryMode:currentEntryMode,entryModeLabel:config.label,processStage:config.processStage,rejectColumn:config.rejectColumn,processSetup:currentProcessSetup,jobData:getCurrentJobDataForPayload(),rejectNote:rejectNote,rejects:rejectLines};saveBtn.disabled=true;status.innerText="Submitting...";archiveSubmittedDraft(payload);clearRejectDraft();rejectBasket={};rejectHistory=[];renderRejectBasket();sendRejectPayloadInBackground(payload);markJobCompleteIfFinalProcess(payload);status.innerText="";saveBtn.disabled=false;showPostSaveScreen(payload,totalRejects)}
 function getCurrentJobDataForPayload(){if(!currentJob)return{};return{client:currentJob.client||"",species:currentJob.species||"",finishedSize:currentJob.finishedSize||"",profile:currentJob.profile||"",texture:currentJob.texture||"",coating:currentJob.coating||"",length:currentJob.length||"",quantity:currentJob.quantity||"",linearMetres:currentJob.linearMetres||"",fireTreatment:currentJob.fireTreatment||"",deliveryType:currentJob.deliveryType||""}}
 document.getElementById("operatorId").addEventListener("change",()=>updateOperatorGuestVisibility());
 document.getElementById("simplePackId").addEventListener("change",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser"){document.getElementById("saveStatus").innerText="";jobContext.packId=this.value;updateJobContextBar();restoreRejectDraft()}});document.getElementById("rejectNote").addEventListener("input",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser")saveRejectDraft()});
