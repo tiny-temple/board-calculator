@@ -24,7 +24,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .btnRow,.modeButtons,.fieldBlock,.basketActions{width:100%;max-width:100%;min-width:0}
 .btnRow,.modeButtons,.basketActions{display:flex;flex-direction:column;gap:8px}
 .fieldBlock{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
-.grid{display:flex;flex-direction:column;gap:6px;margin:12px auto 0 auto;width:100%;max-width:1200px;min-width:0;overflow-x:hidden}
+.grid{display:flex;flex-direction:column;gap:6px;margin:12px auto 28px auto;width:100%;max-width:1200px;min-width:0;overflow-x:hidden}
 .row{display:flex;gap:4px;align-items:stretch;width:100%;max-width:100%;min-width:0}
 .row.loose{margin-bottom:12px}
 .cell,.empty{flex:1 1 0;min-width:0;aspect-ratio:3/1;box-sizing:border-box}
@@ -34,9 +34,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .loose .cell{background:#a06a3a}
 .rowNum{font-size:11px;color:#666;padding-left:8px;min-width:20px;flex:0 0 auto}
 #jobContextBar{font-size:13px;line-height:1.35;background:#f6f6f6;border:1px solid rgba(0,0,0,.12);border-radius:8px;padding:8px 10px;margin:0 auto 10px auto;color:#333;width:100%;max-width:1200px;min-width:0;overflow-x:hidden}
-#saveStatus,#summary{font-size:13px;margin:8px auto 0 auto;color:#333;width:100%;max-width:1200px}
+#saveStatus,#summary{font-size:15px;font-weight:700;margin:10px auto 0 auto;color:#333;width:100%;max-width:1200px}
 .simpleBox{border:1px solid rgba(0,0,0,.12);border-radius:10px;padding:10px;background:#fafafa;width:100%;max-width:100%;min-width:0;overflow-x:hidden}
-#step5_rejects{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid rgba(0,0,0,.12);padding:10px 12px;z-index:1000;display:flex;flex-direction:column;gap:8px;box-sizing:border-box}
+#step5_rejects{position:static;background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:10px;padding:10px 12px;margin:10px auto 10px auto;display:flex;flex-direction:column;gap:8px;box-sizing:border-box;width:100%;max-width:1200px}
 .step5Buttons{display:flex;flex-direction:row;gap:8px;width:100%}
 .step5Buttons button{flex:1 1 0;width:auto!important;margin-top:0!important}
 #teamQueueBlock,#step0_entry,#jobQueue,#stockPickerButtonWrap{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
@@ -413,7 +413,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.40)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.41)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
