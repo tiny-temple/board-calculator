@@ -582,10 +582,38 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
   margin-top: 6px;
 }
 
+
+.coatingTotalsRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.coatingVacuumExtra {
+  display: inline-block;
+  width: 100%;
+  border-radius: 10px;
+  background: #eeeeee;
+  border: 1px solid rgba(0,0,0,.10);
+  color: #555;
+  padding: 8px 12px;
+  font-size: clamp(16px, 1.4vw, 22px);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+@media (min-width:700px) {
+  .coatingTotalsRow {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.52)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.54)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -667,10 +695,10 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.52|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.54|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.52|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.52|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.54|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.54|";
 
 function completionKeyForParts(team,sheetJob,productionRow){
   const t=normalise(team||"");
@@ -1426,6 +1454,7 @@ function buildCoatingOverviewFromJobs(jobs){
   const summary=Object.keys(summaryMap).map(key=>{
     const item=summaryMap[key];
     item.totalLitresDisplay=formatLitresValue(item.totalLitres);
+    item.totalLitresWithVacuumExtraDisplay=formatLitresValue(item.totalLitres+3);
     item.totalShelvesDisplay=item.totalShelves?String(item.totalShelves):"";
     item.totalRacksDisplay=item.totalShelves?String(Math.ceil(item.totalShelves/12)):"";
     item.jobRackTotalDisplay=item.jobRackTotal?String(item.jobRackTotal):"";
@@ -1493,7 +1522,7 @@ function renderCoatingOverview(summary,rows){
     const card=document.createElement("div");
     card.className="stockPickerCard";
     const sequenceHtml=(item.sequenceLines||[]).map(line=>'<div class="coatingSummarySequence">'+escapeHtml(line)+'</div>').join("");
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+'</div><div class="stockPickerAction">'+escapeHtml(item.totalLitresDisplay||"")+'</div><div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+sequenceHtml+'</div>';
+    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+'</div><div class="coatingTotalsRow"><div class="stockPickerAction">'+escapeHtml(item.totalLitresDisplay||"")+'</div><div class="coatingVacuumExtra">'+escapeHtml(item.totalLitresWithVacuumExtraDisplay||"")+' inc extra for vacuum coater</div></div><div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+sequenceHtml+'</div>';
     totalsWrap.appendChild(card);
   });
 
@@ -1503,7 +1532,7 @@ function renderCoatingOverview(summary,rows){
     const badgeClass=getCoatingStageBadgeClass(row.coatingStage||"");
     const title=(row.coatingStage?row.coatingStage+" — ":"")+(row.client||"");
     const racking=row.rackRuleFound==="YES"?'Shelves: '+escapeHtml(row.shelvesRequired||"")+' | Racks: '+escapeHtml(row.racksRequired||"")+' | '+escapeHtml(row.piecesPerShelf||"")+' pcs/shelf':'No rack rule found';
-    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"COATING PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div><div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div><div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div><div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div><div class="coatingClickPrompt">Open job</div></div>';
+    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"COATING PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div><div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div><div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div><div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div><div class="coatingClickPrompt">Open Paint Room job</div></div>';
     card.onclick=()=>openPaintRoomFromCoatingOverview(row);
     rowsWrap.appendChild(card);
   });
@@ -1518,7 +1547,11 @@ function getCurrentProcessStage(){
 function getProcessSettingForStage(processStage){
   const stage=normalise(processStage||"");
   const match=(currentBackendProcessSettings||[]).find(row=>normalise(row.process||"")===stage);
-  return match||{process:processStage||"",operatorSlots:1,requireOperator:true};
+  return match||{process:processStage||"",operatorSlots:1,requireOperator:true,showPackMaterial:true};
+}
+function shouldShowPackMaterialForProcess(processStage){
+  const setting=getProcessSettingForStage(processStage);
+  return setting.showPackMaterial!==false;
 }
 function getOperatorSlotCountForCurrentProcess(){
   const setting=getProcessSettingForStage(getCurrentProcessStage());
@@ -1619,7 +1652,7 @@ function buildOperatorSelect(){const slots=getOperatorSlotCountForCurrentProcess
 function fillSetupPackIdField(){populatePackSelect(document.getElementById("setupPackId"),jobContext.packId||"")}
 function configureProcessChecks(mode){const processStage=(ENTRY_MODES[mode]||{}).processStage||"";const jobVariant=getJobProcessVariant(currentJob);currentProcessCheckItems=currentBackendProcessChecks.filter(row=>normalise(row.process)===normalise(processStage)&&checkVariantMatches(row.processVariant||"",jobVariant));currentProcessCheckItems.sort((a,b)=>Number(a.displayOrder||9999)-Number(b.displayOrder||9999));const wrap=document.getElementById("processChecks");wrap.innerHTML="";if(!currentProcessCheckItems.length){const line=document.createElement("div");line.className="processReminderBox";line.innerText="No setup checks configured for "+getProcessStageTitle(processStage,currentJob)+".";wrap.appendChild(line);return}currentProcessCheckItems.forEach((item,index)=>{const label=document.createElement("label");label.className="checkLine";const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.id="processCheck_"+index;checkbox.dataset.checkKey=item.checkKey||"";checkbox.dataset.checkLabel=item.checkLabel||"";checkbox.dataset.required=String(item.required!==false);const span=document.createElement("span");span.textContent=item.checkLabel||"";label.appendChild(checkbox);label.appendChild(span);wrap.appendChild(label)})}
 
-function renderProcessJobCard(mode){const card=document.getElementById("processJobCard"),title=document.getElementById("processSetupTitle"),customInfoBox=document.getElementById("processCustomInfo"),reminderBox=document.getElementById("processReminderBox"),config=ENTRY_MODES[mode]||{};const processStage=config.processStage||"Process";const stageTitle=getProcessStageTitle(processStage,currentJob);title.innerText=stageTitle+" Setup Check";if(!currentJob){card.innerHTML="";customInfoBox.classList.add("hidden");reminderBox.classList.add("hidden");return}let jobTiles;if(processStage==="Paint Room"&&isRecoatJob(currentJob)){jobTiles=[["Job",currentJob.sheetJob||""],["Stage",getJobProcessVariant(currentJob)],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Coating",currentJob.coating||""],["Paint qty",currentJob.paintQty||""]]}else{jobTiles=[["Job",currentJob.sheetJob||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Texture",currentJob.texture||""]]}let html=processSection("Job Summary",buildTileRows(jobTiles));const allExtraFields=getProcessFieldValuesForCurrentJob(processStage).filter(field=>String(field.value||"").trim()!=="");const routeFields=allExtraFields.filter(field=>isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const infoFields=allExtraFields.filter(field=>!isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const processTiles=[];infoFields.forEach(field=>{if(String(field.value||"").trim()!==""&&!processTiles.some(tile=>normalise(tile[0])===normalise(field.fieldLabel||field.fieldKey)))processTiles.push([field.fieldLabel||field.fieldKey||"",field.value||""])});if(processTiles.length)html+=processSection("Process Info",'<div class="processExtraFieldsGrid">'+processTiles.map(tile=>processTile(tile[0],tile[1])).join("")+'</div>');html+=processSection("Pack / Material",buildProcessPackCards());card.innerHTML=html;const customInfo=String(currentJob.customInfo||"").trim();if(customInfo){customInfoBox.innerText=customInfo;customInfoBox.classList.remove("hidden");customInfoBox.classList.add("collapsed")}else customInfoBox.classList.add("hidden");const reminder=getReminderForEntryMode(mode);if(reminder){reminderBox.innerText="Reminder: "+reminder;reminderBox.classList.remove("hidden")}else reminderBox.classList.add("hidden")}
+function renderProcessJobCard(mode){const card=document.getElementById("processJobCard"),title=document.getElementById("processSetupTitle"),customInfoBox=document.getElementById("processCustomInfo"),reminderBox=document.getElementById("processReminderBox"),config=ENTRY_MODES[mode]||{};const processStage=config.processStage||"Process";const stageTitle=getProcessStageTitle(processStage,currentJob);title.innerText=stageTitle+" Setup Check";if(!currentJob){card.innerHTML="";customInfoBox.classList.add("hidden");reminderBox.classList.add("hidden");return}let jobTiles;if(processStage==="Paint Room"&&isRecoatJob(currentJob)){jobTiles=[["Job",currentJob.sheetJob||""],["Stage",getJobProcessVariant(currentJob)],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Coating",currentJob.coating||""],["Paint qty",currentJob.paintQty||""]]}else{jobTiles=[["Job",currentJob.sheetJob||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Texture",currentJob.texture||""]]}let html=processSection("Job Summary",buildTileRows(jobTiles));const allExtraFields=getProcessFieldValuesForCurrentJob(processStage).filter(field=>String(field.value||"").trim()!=="");const routeFields=allExtraFields.filter(field=>isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const infoFields=allExtraFields.filter(field=>!isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const processTiles=[];infoFields.forEach(field=>{if(String(field.value||"").trim()!==""&&!processTiles.some(tile=>normalise(tile[0])===normalise(field.fieldLabel||field.fieldKey)))processTiles.push([field.fieldLabel||field.fieldKey||"",field.value||""])});if(processTiles.length)html+=processSection("Process Info",'<div class="processExtraFieldsGrid">'+processTiles.map(tile=>processTile(tile[0],tile[1])).join("")+'</div>');if(shouldShowPackMaterialForProcess(processStage))html+=processSection("Pack / Material",buildProcessPackCards());card.innerHTML=html;const customInfo=String(currentJob.customInfo||"").trim();if(customInfo){customInfoBox.innerText=customInfo;customInfoBox.classList.remove("hidden");customInfoBox.classList.add("collapsed")}else customInfoBox.classList.add("hidden");const reminder=getReminderForEntryMode(mode);if(reminder){reminderBox.innerText="Reminder: "+reminder;reminderBox.classList.remove("hidden")}else reminderBox.classList.add("hidden")}
 
 function isRoutingFieldLabel(label){const t=normalise(label);return t.indexOf("required")!==-1||t==="resaw"||t==="moulder"||t==="charring"||t==="sander"||t==="brushing"||t==="paint room"||t==="packing"}
 function processSection(title,html){return '<div class="processSection"><div class="processSectionTitle">'+escapeHtml(title)+'</div>'+html+'</div>'}
