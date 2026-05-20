@@ -671,7 +671,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.58)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.59)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -753,10 +753,10 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.58|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.59|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.58|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.58|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.59|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.59|";
 
 function completionKeyForParts(team,sheetJob,productionRow){
   const t=normalise(team||"");
@@ -1336,11 +1336,12 @@ function getFireTreatmentDisplay(job){
   return raw;
 }
 function isPaintRoomRelevantJob(job){
-  return isCoatingRelevantFrontEnd(job&&job.coating)||isFireTreatmentActive(job);
+  return isCoatingRelevantFrontEnd(job&&job.coating)||isFireTreatmentActive(job)||isFrTreatmentStage(job);
 }
 function getPaintRoomTreatmentName(job){
   const coating=String(job&&job.coating||"").trim();
   if(isCoatingRelevantFrontEnd(coating))return coating;
+  if(isFrTreatmentStage(job))return getFireTreatmentDisplay(job)||"Fire Treatment";
   return getFireTreatmentDisplay(job)||"Fire Treatment";
 }
 function isFrTreatmentStage(job){
@@ -1556,7 +1557,8 @@ function buildCoatingOverviewFromJobs(jobs){
   const summary=Object.keys(summaryMap).map(key=>{
     const item=summaryMap[key];
     item.totalLitresDisplay=formatLitresValue(item.totalLitres);
-    item.totalLitresWithVacuumExtraDisplay=formatLitresValue(item.totalLitres+3);
+    item.hasPaintQty=item.totalLitres>0;
+    item.totalLitresWithVacuumExtraDisplay=item.hasPaintQty?formatLitresValue(item.totalLitres+3):"";
     item.totalShelvesDisplay=item.totalShelves?String(item.totalShelves):"";
     item.totalRacksDisplay=item.totalShelves?String(Math.ceil(item.totalShelves/12)):"";
     item.jobRackTotalDisplay=item.jobRackTotal?String(item.jobRackTotal):"";
@@ -1632,7 +1634,8 @@ function renderCoatingOverview(summary,rows){
     card.className="stockPickerCard";
     const sequenceHtml=(item.sequenceLines||[]).map(line=>'<div class="coatingSummarySequence">'+escapeHtml(line)+'</div>').join("");
     const frLine=item.frCount?'<div class="frTreatmentLine">FR TREATMENT PASSES: '+escapeHtml(String(item.frCount))+'</div>':"";
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+'</div><div class="coatingTotalsRow"><div class="stockPickerAction">'+escapeHtml(item.totalLitresDisplay||"")+'</div><div class="coatingVacuumExtra">'+escapeHtml(item.totalLitresWithVacuumExtraDisplay||"")+' inc extra for vacuum coater</div></div><div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+frLine+sequenceHtml+'</div>';
+    const qtyHtml=item.hasPaintQty?'<div class="coatingTotalsRow"><div class="stockPickerAction">'+escapeHtml(item.totalLitresDisplay||"")+'</div><div class="coatingVacuumExtra">'+escapeHtml(item.totalLitresWithVacuumExtraDisplay||"")+' inc extra for vacuum coater</div></div>':'<div class="coatingTotalsRow"><div class="coatingVacuumExtra">Treatment quantity not set yet</div></div>';
+    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+'</div>'+qtyHtml+'<div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+frLine+sequenceHtml+'</div>';
     totalsWrap.appendChild(card);
   });
 
@@ -1643,7 +1646,8 @@ function renderCoatingOverview(summary,rows){
     const title=(row.coatingStageUpper==="FR TREATMENT"?"FR Treatment":row.coatingStage?row.coatingStage:"Paint Room pass")+" — "+(row.client||"");
     const racking=row.rackRuleFound==="YES"?'Shelves: '+escapeHtml(row.shelvesRequired||"")+' | Racks: '+escapeHtml(row.racksRequired||"")+' | '+escapeHtml(row.piecesPerShelf||"")+' pcs/shelf':'No rack rule found';
     const frLine=row.isFrTreatment==="YES"?'<div class="frTreatmentLine">'+escapeHtml(row.fireTreatment||"Fire Treatment")+'</div>':"";
-    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"PAINT ROOM PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+frLine+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div><div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div><div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div><div class="coatingClickPrompt">Open Job</div></div>';
+    const qtyLine=row.paintQty?'<div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div>':'<div class="stockPickerMeta">Treatment qty: not set</div>';
+    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"PAINT ROOM PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+frLine+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div>'+qtyLine+'<div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div><div class="coatingClickPrompt">Open Job</div></div>';
     card.onclick=()=>openPaintRoomFromCoatingOverview(row);
     rowsWrap.appendChild(card);
   });
