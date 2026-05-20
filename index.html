@@ -526,10 +526,23 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
   background: #7a4b00;
 }
 
+
+.recoatBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #7a4b00;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.48)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.49)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -611,10 +624,10 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.48|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.49|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.48|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.48|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.49|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.49|";
 
 function jobKeyParts(job){
   const keys=[];
@@ -797,6 +810,8 @@ function prefetchAfterJob(job,count){
 function prefetchFirstAvailableJobDetails(){
   const dashboard=getCurrentTeamDashboardOrCache();
   const jobs=dashboard&&Array.isArray(dashboard.jobs)?dashboard.jobs:[];
+  applyCompletedStateToJobs(jobs);
+
   const firstIndex=jobs.findIndex(job=>!isJobCompleted(job));
 
   if(firstIndex===-1)return;
@@ -804,20 +819,33 @@ function prefetchFirstAvailableJobDetails(){
   const firstJob=jobs[firstIndex];
 
   if(!getJobDetailsFromLocalCache(firstJob)){
-    showPreloadPopup("Team "+currentTeam+" jobs","Preloading first job details...");
+    document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — preloading next open job details...";
+    showPreloadPopup("Team "+currentTeam+" jobs","Preloading next open job details...");
   }
 
   fetchJobDetailsForCache(firstJob,function(data){
     if(data&&data.ok){
       const dash=getCurrentTeamDashboardOrCache();
       if(dash&&Array.isArray(dash.jobs)){
+        applyCompletedStateToJobs(dash.jobs);
         renderJobQueue(dash.jobs);
-        document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — first job ready.";
-        showPreloadPopup("First job ready","The first job details are cached locally.",1600);
+        document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — next open job ready.";
       }
       prefetchQueueJobDetailsFrom(firstIndex+1,2);
+      showPreloadPopup("Next open job ready","The job details are cached locally.",1600);
     }
   },true);
+}
+
+function refreshStatusThenPrefetchFirstOpen(){
+  fetchTeamJobStatus(function(){
+    const dashboard=getCurrentTeamDashboardOrCache();
+    if(dashboard&&Array.isArray(dashboard.jobs)){
+      applyCompletedStateToJobs(dashboard.jobs);
+      renderJobQueue(dashboard.jobs);
+    }
+    prefetchFirstAvailableJobDetails();
+  });
 }
 
 function valueIsYes(value){
@@ -1079,7 +1107,7 @@ function checkSignalsForVisualiser(sourceProcess){
   },true);
 }
 
-function applyTeamDashboardData(data,fromLocal){currentTeamDashboard=data||null;applyCompletedStateToDashboard(currentTeamDashboard);currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];renderJobQueue(data.jobs||[]);const timeText=getDashboardTimeText(data);if(fromLocal){document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved schedule"+(timeText?" from "+timeText:"")+". Tap Force Refresh Schedule after schedule changes."}else{document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — refreshed"+(timeText?" "+timeText:"")}fetchTeamJobStatus();setTimeout(prefetchFirstAvailableJobDetails,0)}
+function applyTeamDashboardData(data,fromLocal){currentTeamDashboard=data||null;applyCompletedStateToDashboard(currentTeamDashboard);currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];renderJobQueue(data.jobs||[]);const timeText=getDashboardTimeText(data);if(fromLocal){document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved schedule"+(timeText?" from "+timeText:"")+". Tap Force Refresh Schedule after schedule changes."}else{document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — refreshed"+(timeText?" "+timeText:"")}setTimeout(refreshStatusThenPrefetchFirstOpen,0)}
 
 function fetchTeamDashboard(team,forceFresh){document.getElementById("queueStatus").innerText=forceFresh?"Refreshing Team "+team+" queue from workbook. Please wait...":"Loading Team "+team+" queue...";const callbackName="pwaQueueCallback_"+Date.now();window[callbackName]=function(data){delete window[callbackName];if(!data||!data.ok){document.getElementById("queueStatus").innerText="Could not load queue.";return}saveTeamDashboardToLocalCache(team,data);applyTeamDashboardData(data,false)};const script=document.createElement("script");script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+(forceFresh?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();script.onerror=function(){document.getElementById("queueStatus").innerText="Queue load failed.";delete window[callbackName]};document.body.appendChild(script)}
 
@@ -1113,7 +1141,7 @@ function checkVariantMatches(rowVariant,jobVariant){
   if(!rv)return true;
   return normalise(rv)===normalise(jv);
 }
-function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");applyCompletedStateToJobs(jobs||[]);if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";document.getElementById("stockPickerButtonWrap").classList.add("hidden");return}document.getElementById("stockPickerButtonWrap").classList.remove("hidden");wrap.innerHTML="";jobs.forEach((job,index)=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");const completed=isJobCompleted(job);if(completed)btn.classList.add("jobQueueComplete");const cached=getJobDetailsFromLocalCache(job);const variant=getJobProcessVariant(job);const badges=(variant?'<span class="queueVariantBadge">'+escapeHtml(variant.toUpperCase())+'</span>':"")+(completed?'<span class="jobCompleteBadge">COMPLETED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");const detailLine=isRecoatJob(job)?"Qty: "+escapeHtml(job.quantity||"")+" | Coating: "+escapeHtml(job.coating||"")+" | Paint qty: "+escapeHtml(job.paintQty||"")+" | "+escapeHtml(job.length||"")+"m":"Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"");btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+badges+"</strong><br>"+detailLine+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
+function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");applyCompletedStateToJobs(jobs||[]);if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";document.getElementById("stockPickerButtonWrap").classList.add("hidden");return}document.getElementById("stockPickerButtonWrap").classList.remove("hidden");wrap.innerHTML="";jobs.forEach((job,index)=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");const completed=isJobCompleted(job);if(completed)btn.classList.add("jobQueueComplete");const cached=getJobDetailsFromLocalCache(job);const variant=getJobProcessVariant(job);const recoat=isRecoatJob(job);const variantBadge=variant?(recoat?'<span class="recoatBadge">RECOAT</span>':'<span class="queueVariantBadge">'+escapeHtml(variant.toUpperCase())+'</span>'):"";const badges=variantBadge+(completed?'<span class="jobCompleteBadge">COMPLETED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");const detailLine=recoat?"Qty: "+escapeHtml(job.quantity||"")+" | Coating: "+escapeHtml(job.coating||"")+" | Paint qty: "+escapeHtml(job.paintQty||"")+" | "+escapeHtml(job.length||"")+"m":"Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"");btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+badges+"</strong><br>"+detailLine+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
 
 function parseLitresText(value){
   const m=String(value||"").match(/[-+]?\d*\.?\d+/);
@@ -1578,7 +1606,7 @@ function showPostSaveScreen(payload,totalRejects){document.getElementById("simpl
 function hidePostSaveScreen(){const panel=document.getElementById("postSavePanel");if(panel)panel.classList.add("hidden")}
 function logAnotherPack(){hidePostSaveScreen();rejectBasket={};rejectHistory=[];renderRejectBasket();document.getElementById("saveStatus").innerText="";const packSelect=document.getElementById("simplePackId");if(currentJob&&currentJob.packs&&currentJob.packs.length>1&&packSelect){const currentPack=packSelect.value,packs=currentJob.packs.map(p=>p.packId),currentIndex=packs.indexOf(currentPack);if(currentIndex>=0&&currentIndex<packs.length-1){packSelect.value=packs[currentIndex+1];jobContext.packId=packSelect.value;updateJobContextBar()}}if((ENTRY_MODES[currentEntryMode]||{}).showSetup){fillSetupPackIdField();showProcessSetupScreen(currentEntryMode)}else{restoreRejectDraft();document.getElementById("simpleLogger").classList.remove("hidden");updateUI()}}
 function backToProcessMenu(){hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentEntryMode="";currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";buildProcessMenu();updateUI()}
-function backToJobQueue(){hidePostSaveScreen();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentEntryMode="";currentJob=null;currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];jobContext={productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";updateJobContextBar();document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");if(currentTeam){const dashboard=getCurrentTeamDashboardOrCache();if(dashboard&&Array.isArray(dashboard.jobs)){renderJobQueue(dashboard.jobs);document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved queue.";fetchTeamJobStatus();setTimeout(prefetchFirstAvailableJobDetails,0)}else loadTeamQueue(currentTeam)}else{document.getElementById("queueStatus").innerText="";document.getElementById("jobQueue").innerHTML=""}}
+function backToJobQueue(){hidePostSaveScreen();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();currentEntryMode="";currentJob=null;currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];jobContext={productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";updateJobContextBar();document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");if(currentTeam){const dashboard=getCurrentTeamDashboardOrCache();if(dashboard&&Array.isArray(dashboard.jobs)){renderJobQueue(dashboard.jobs);document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved queue.";setTimeout(refreshStatusThenPrefetchFirstOpen,0)}else loadTeamQueue(currentTeam)}else{document.getElementById("queueStatus").innerText="";document.getElementById("jobQueue").innerHTML=""}}
 
 function state(){return{mode:modeSel.value,boards:+document.getElementById("boards").value||0,metres:+document.getElementById("metres").value||0,boardLength:+document.getElementById("boardLength").value||0,perRow:+perRowSel.value||0,yield:+document.getElementById("yield").value||1,topLoose:looseSel.value===""?null:parseInt(looseSel.value),rejects:+rejectsSel.value||0}}
 function basePieces(s){if(s.mode==="linear"){if(!s.metres||!s.boardLength)return 0;return Math.ceil(s.metres/s.boardLength)}return s.boards}
