@@ -610,10 +610,38 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
   }
 }
 
+
+.checkTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.checkSopLink {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eeeeee;
+  color: #222;
+  border: 1px solid rgba(0,0,0,.16);
+  font-size: clamp(14px, 1.2vw, 18px);
+  font-weight: 800;
+  line-height: 1.15;
+  text-decoration: none;
+}
+
+.checkSopLink:active {
+  background: #222;
+  color: #fff;
+}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.55)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.56)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -695,10 +723,10 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.55|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.56|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.55|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.55|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.56|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.56|";
 
 function completionKeyForParts(team,sheetJob,productionRow){
   const t=normalise(team||"");
@@ -1657,7 +1685,7 @@ function hideProcessSetupScreen(){const panel=document.getElementById("processSe
 function buildOperatorSelect(){const slots=getOperatorSlotCountForCurrentProcess();const sel=document.getElementById("operatorId");populateOperatorSelectElement(sel,slots>1?"Select operator 1":"Select operator");const extra=document.getElementById("extraOperatorSlots");if(extra)extra.innerHTML="";for(let i=2;i<=slots;i++){const block=document.createElement("div");block.className="fieldBlock";const label=document.createElement("label");label.textContent="Operator ID "+i;const select=document.createElement("select");select.className="operatorSlotSelect";select.dataset.operatorSlot=String(i);populateOperatorSelectElement(select,"Select operator "+i);select.onchange=updateOperatorGuestVisibility;block.appendChild(label);block.appendChild(select);if(extra)extra.appendChild(block)}sel.onchange=updateOperatorGuestVisibility}
 
 function fillSetupPackIdField(){populatePackSelect(document.getElementById("setupPackId"),jobContext.packId||"")}
-function configureProcessChecks(mode){const processStage=(ENTRY_MODES[mode]||{}).processStage||"";const jobVariant=getJobProcessVariant(currentJob);currentProcessCheckItems=currentBackendProcessChecks.filter(row=>normalise(row.process)===normalise(processStage)&&checkVariantMatches(row.processVariant||"",jobVariant));currentProcessCheckItems.sort((a,b)=>Number(a.displayOrder||9999)-Number(b.displayOrder||9999));const wrap=document.getElementById("processChecks");wrap.innerHTML="";if(!currentProcessCheckItems.length){const line=document.createElement("div");line.className="processReminderBox";line.innerText="No setup checks configured for "+getProcessStageTitle(processStage,currentJob)+".";wrap.appendChild(line);return}currentProcessCheckItems.forEach((item,index)=>{const label=document.createElement("label");label.className="checkLine";const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.id="processCheck_"+index;checkbox.dataset.checkKey=item.checkKey||"";checkbox.dataset.checkLabel=item.checkLabel||"";checkbox.dataset.required=String(item.required!==false);const span=document.createElement("span");span.textContent=item.checkLabel||"";label.appendChild(checkbox);label.appendChild(span);wrap.appendChild(label)})}
+function configureProcessChecks(mode){const processStage=(ENTRY_MODES[mode]||{}).processStage||"";const jobVariant=getJobProcessVariant(currentJob);currentProcessCheckItems=currentBackendProcessChecks.filter(row=>normalise(row.process)===normalise(processStage)&&checkVariantMatches(row.processVariant||"",jobVariant));currentProcessCheckItems.sort((a,b)=>Number(a.displayOrder||9999)-Number(b.displayOrder||9999));const wrap=document.getElementById("processChecks");wrap.innerHTML="";if(!currentProcessCheckItems.length){const line=document.createElement("div");line.className="processReminderBox";line.innerText="No setup checks configured for "+getProcessStageTitle(processStage,currentJob)+".";wrap.appendChild(line);return}currentProcessCheckItems.forEach((item,index)=>{const label=document.createElement("label");label.className="checkLine";const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.id="processCheck_"+index;checkbox.dataset.checkKey=item.checkKey||"";checkbox.dataset.checkLabel=item.checkLabel||"";checkbox.dataset.required=String(item.required!==false);const textWrap=document.createElement("span");textWrap.className="checkTextWrap";const span=document.createElement("span");span.textContent=item.checkLabel||"";textWrap.appendChild(span);const sopUrl=String(item.sopUrl||"").trim();if(sopUrl){const link=document.createElement("a");link.className="checkSopLink";link.href=sopUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent=item.sopLabel||"Open SOP";link.onclick=function(event){event.stopPropagation()};link.onmousedown=function(event){event.stopPropagation()};link.ontouchstart=function(event){event.stopPropagation()};textWrap.appendChild(link)}label.appendChild(checkbox);label.appendChild(textWrap);wrap.appendChild(label)})}
 
 function renderProcessJobCard(mode){const card=document.getElementById("processJobCard"),title=document.getElementById("processSetupTitle"),customInfoBox=document.getElementById("processCustomInfo"),reminderBox=document.getElementById("processReminderBox"),config=ENTRY_MODES[mode]||{};const processStage=config.processStage||"Process";const stageTitle=getProcessStageTitle(processStage,currentJob);title.innerText=stageTitle+" Setup Check";if(!currentJob){card.innerHTML="";customInfoBox.classList.add("hidden");reminderBox.classList.add("hidden");return}let jobTiles;if(processStage==="Paint Room"&&isRecoatJob(currentJob)){jobTiles=[["Job",currentJob.sheetJob||""],["Stage",getJobProcessVariant(currentJob)],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Coating",currentJob.coating||""],["Paint qty",currentJob.paintQty||""]]}else{jobTiles=[["Job",currentJob.sheetJob||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Texture",currentJob.texture||""]]}let html=processSection("Job Summary",buildTileRows(jobTiles));const allExtraFields=getProcessFieldValuesForCurrentJob(processStage).filter(field=>String(field.value||"").trim()!=="");const routeFields=allExtraFields.filter(field=>isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const infoFields=allExtraFields.filter(field=>!isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const processTiles=[];infoFields.forEach(field=>{if(String(field.value||"").trim()!==""&&!processTiles.some(tile=>normalise(tile[0])===normalise(field.fieldLabel||field.fieldKey)))processTiles.push([field.fieldLabel||field.fieldKey||"",field.value||""])});if(processTiles.length)html+=processSection("Process Info",'<div class="processExtraFieldsGrid">'+processTiles.map(tile=>processTile(tile[0],tile[1])).join("")+'</div>');if(shouldShowPackMaterialForProcess(processStage))html+=processSection("Pack / Material",buildProcessPackCards());card.innerHTML=html;const customInfo=String(currentJob.customInfo||"").trim();if(customInfo){customInfoBox.innerText=customInfo;customInfoBox.classList.remove("hidden");customInfoBox.classList.add("collapsed")}else customInfoBox.classList.add("hidden");const reminder=getReminderForEntryMode(mode);if(reminder){reminderBox.innerText="Reminder: "+reminder;reminderBox.classList.remove("hidden")}else reminderBox.classList.add("hidden")}
 
