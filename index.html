@@ -542,7 +542,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.49)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.50)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -624,17 +624,40 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.49|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.50|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.49|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.49|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.50|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.50|";
+
+function completionKeyForParts(team,sheetJob,productionRow){
+  const t=normalise(team||"");
+  const s=normalise(sheetJob||"");
+  const p=String(productionRow||"").trim();
+  if(!s||!p)return "";
+  return t+"|SHEETJOB:"+s+"|PRODROW:"+p;
+}
+
+function helperCompletionKeyForParts(team,helperSheet,productionRow){
+  const t=normalise(team||"");
+  const h=normalise(helperSheet||"");
+  const p=String(productionRow||"").trim();
+  if(!h||!p)return "";
+  return t+"|HELPER:"+h+"|PRODROW:"+p;
+}
 
 function jobKeyParts(job){
   const keys=[];
+  const productionRow=String(job&&job.productionRow||"").trim();
   const sheet=String(job&&job.sheetJob||"").trim();
   const helper=String(job&&job.helperSheetName||"").trim();
-  if(sheet)keys.push(sheet);
-  if(helper&&keys.indexOf(helper)===-1)keys.push(helper);
+
+  [
+    completionKeyForParts(currentTeam,sheet,productionRow),
+    helperCompletionKeyForParts(currentTeam,helper,productionRow)
+  ].filter(Boolean).forEach(key=>{
+    if(keys.indexOf(key)===-1)keys.push(key);
+  });
+
   return keys;
 }
 
@@ -874,6 +897,7 @@ function markJobCompleteLocally(job,payload){
   if(!job)return;
   const map=getCompletedJobsMap(currentTeam);
   const stamp=new Date().toISOString();
+
   jobKeyParts(job).forEach(key=>{
     map[key]={
       completedAt:stamp,
@@ -881,6 +905,7 @@ function markJobCompleteLocally(job,payload){
       entryMode:payload&&payload.entryMode||""
     };
   });
+
   saveCompletedJobsMap(currentTeam,map);
   job.completed=true;
   updateCurrentDashboardJob(job);
@@ -947,12 +972,18 @@ function applySharedJobStatusPayload(data){
   const stamp=data.status&&data.status.timestamp||new Date().toISOString();
   const process=data.status&&data.status.completedByProcess||"";
   const operator=data.status&&data.status.completedByOperator||"";
-  const keys=jobKeyParts(currentJob||{});
+  const keys=[];
 
-  if(data.sheetJob)keys.push(data.sheetJob);
-  if(data.helperSheetName)keys.push(data.helperSheetName);
-  if(data.jobNo)keys.push("JOBNO:"+data.jobNo);
-  if(data.productionRow)keys.push("PRODROW:"+data.productionRow);
+  if(currentJob){
+    jobKeyParts(currentJob).forEach(key=>keys.push(key));
+  }
+
+  [
+    completionKeyForParts(currentTeam,data.sheetJob||"",data.productionRow||""),
+    helperCompletionKeyForParts(currentTeam,data.helperSheetName||"",data.productionRow||"")
+  ].filter(Boolean).forEach(key=>{
+    if(keys.indexOf(key)===-1)keys.push(key);
+  });
 
   keys.filter(Boolean).forEach(key=>{
     map[key]={
@@ -1014,7 +1045,8 @@ function fetchTeamJobStatus(onDone){
     delete window[callbackName];
 
     if(data&&data.ok&&data.completedJobs){
-      const map=getCompletedJobsMap(currentTeam);
+      const map={};
+
       Object.keys(data.completedJobs).forEach(key=>{
         const item=data.completedJobs[key];
         if(item&&item.completed){
@@ -1026,6 +1058,7 @@ function fetchTeamJobStatus(onDone){
           };
         }
       });
+
       saveCompletedJobsMap(currentTeam,map);
 
       const dashboard=getCurrentTeamDashboardOrCache();
