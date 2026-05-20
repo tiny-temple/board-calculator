@@ -671,7 +671,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.61)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.62)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -753,10 +753,10 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.61|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.62|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.61|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.61|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.62|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.62|";
 
 function completionKeyForParts(team,sheetJob,productionRow){
   const t=normalise(team||"");
@@ -1609,7 +1609,7 @@ function openPaintRoomFromCoatingOverview(row){
   const cached=getJobDetailsFromLocalCache(job);
 
   if(!(job&&job.detailsLoaded)&&!(cached&&cached.job)){
-    showPreloadPopup("Opening job","Loading Paint Room job details...");
+    showPreloadPopup("Opening job","Loading Paint Room details...");
     document.getElementById("coatingOverviewStatus").innerText="Loading job details for "+(row.sheetJob||"this coating pass")+"...";
   }
 
@@ -1849,7 +1849,10 @@ function finishSelectQueueJob(job,modeAfterLoad){
 }
 function loadJobDetailsAndSelect(job,modeAfterLoad){
   const sheetJob=job.helperSheetName||job.sheetJob||"";
+  const processLabel=modeAfterLoad&&ENTRY_MODES[modeAfterLoad]?ENTRY_MODES[modeAfterLoad].processStage:"job";
+
   if(!sheetJob){
+    showPreloadPopup("Opening job","Loading "+processLabel+" details...");
     finishSelectQueueJob(job,modeAfterLoad);
     return;
   }
@@ -1863,6 +1866,7 @@ function loadJobDetailsAndSelect(job,modeAfterLoad){
     return;
   }
 
+  showPreloadPopup("Opening job","Loading "+processLabel+" details...");
   document.getElementById("queueStatus").innerText="Loading job details...";
   document.getElementById("saveStatus").innerText="Loading job details...";
 
@@ -1875,13 +1879,20 @@ function loadJobDetailsAndSelect(job,modeAfterLoad){
       return;
     }
 
+    showPreloadPopup("Opening saved job","Full job details were not loaded. Opening saved queue data.",1800);
     document.getElementById("saveStatus").innerText="Could not load full job details. Opening saved queue data.";
     finishSelectQueueJob(job,modeAfterLoad);
   },false);
 }
-
-function selectQueueJob(job,modeAfterLoad){if(job&&job.detailsLoaded){finishSelectQueueJob(job,modeAfterLoad);return}loadJobDetailsAndSelect(job,modeAfterLoad)}
-
+function selectQueueJob(job,modeAfterLoad){
+  if(job&&job.detailsLoaded){
+    const processLabel=modeAfterLoad&&ENTRY_MODES[modeAfterLoad]?ENTRY_MODES[modeAfterLoad].processStage:"job";
+    showPreloadPopup("Opening job","Preparing "+processLabel+" page...");
+    finishSelectQueueJob(job,modeAfterLoad);
+    return;
+  }
+  loadJobDetailsAndSelect(job,modeAfterLoad);
+}
 function buildPerRow(){perRowSel.innerHTML="";const ph=document.createElement("option");ph.value="";ph.textContent="How many boards per row?";ph.disabled=true;ph.selected=true;perRowSel.appendChild(ph);for(let i=1;i<=15;i++){const o=document.createElement("option");o.value=i;o.textContent=i;perRowSel.appendChild(o)}}buildPerRow();
 function buildRejects(){rejectsSel.innerHTML="";const ph=document.createElement("option");ph.value="";ph.textContent="How many downstream rejects to compensate for?";ph.disabled=true;ph.selected=true;rejectsSel.appendChild(ph);for(let i=0;i<=30;i++){const o=document.createElement("option");o.value=i;o.textContent=i;rejectsSel.appendChild(o)}rejectsSel.value=""}buildRejects();
 function updateJobContextBar(){const bar=document.getElementById("jobContextBar");if(!jobContext.productionRow&&!jobContext.jobNo&&!jobContext.sheetJob&&!jobContext.packId){bar.classList.add("hidden");bar.innerText="";return}const parts=[];if(currentTeam)parts.push("Team: "+currentTeam);if(jobContext.productionRow)parts.push("Production Row: "+jobContext.productionRow);if(jobContext.jobNo)parts.push("Job No: "+jobContext.jobNo);if(jobContext.sheetJob)parts.push("Sheet Job: "+jobContext.sheetJob);if(jobContext.packId)parts.push("Pack ID: "+jobContext.packId);bar.innerText=parts.join(" | ");bar.classList.remove("hidden")}
