@@ -539,14 +539,57 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
   letter-spacing: .04em;
 }
 
+
+.coatingPassTitle {
+  font-size: clamp(24px, 2.2vw, 36px);
+  font-weight: 900;
+  line-height: 1.15;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.coatingStageBadge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: clamp(15px, 1.3vw, 20px);
+  font-weight: 900;
+  letter-spacing: .05em;
+}
+
+.coatingStageBadge.recoat {
+  background: #7a4b00;
+}
+
+.coatingSummarySequence {
+  margin-top: 8px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: #f6f6f6;
+  border: 1px solid rgba(0,0,0,.10);
+  font-size: clamp(16px, 1.4vw, 22px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.coatingSummaryMeta {
+  font-size: clamp(17px, 1.5vw, 23px);
+  font-weight: 800;
+  color: #333;
+  margin-top: 6px;
+}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.51)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.52)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
-<div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Job breakdown</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
+<div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
 <div id="step0_entry" class="hidden"><div class="fieldBlock"><label>What do you want to do?</label><div class="modeButtons" id="processModeButtons"></div></div><div class="basketActions"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="modeBlock" class="hidden"><label>Target Total is measured in:</label><select id="mode"></select></div>
@@ -624,10 +667,10 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.51|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.52|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.51|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.51|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.52|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.52|";
 
 function completionKeyForParts(team,sheetJob,productionRow){
   const t=normalise(team||"");
@@ -1295,16 +1338,36 @@ function getCoatingRackInfo(job){
     ruleNote:rule.notes||""
   };
 }
+function getCoatingStageLabel(job){
+  const variant=getJobProcessVariant(job);
+  if(variant)return variant;
+  return "";
+}
+function getCoatingStageDisplay(job){
+  const stage=getCoatingStageLabel(job);
+  return stage||"Coating pass";
+}
+function getCoatingStageBadgeClass(stage){
+  return normalise(stage).indexOf("recoat")!==-1?"coatingStageBadge recoat":"coatingStageBadge";
+}
+function formatCoatingSequence(stages){
+  return (stages||[]).filter(Boolean).join(" → ");
+}
 function buildCoatingOverviewFromJobs(jobs){
   const rows=[];
   const summaryMap={};
+
   (jobs||[]).forEach((job,index)=>{
     const coating=String(job.coating||"").trim();
     if(!isCoatingRelevantFrontEnd(coating))return;
+
     const litres=parseLitresText(job.paintQty||"");
     const packIds=(job.packs||[]).map(p=>p.packId||"").filter(Boolean).join(", ");
-    const sameCoatingToday=(jobs||[]).some((otherJob,otherIndex)=>otherIndex!==index&&normText(otherJob.coating)===normText(coating));
     const rackInfo=getCoatingRackInfo(job);
+    const stage=getCoatingStageDisplay(job);
+    const stageRaw=getCoatingStageLabel(job);
+    const stageUpper=stage.toUpperCase();
+
     const row={
       queueIndex:index+1,
       shift:job.shift||"",
@@ -1313,6 +1376,9 @@ function buildCoatingOverviewFromJobs(jobs){
       sheetJob:job.sheetJob||"",
       client:job.client||"",
       coating,
+      coatingStage:stage,
+      coatingStageRaw:stageRaw,
+      coatingStageUpper:stageUpper,
       paintQty:job.paintQty||"",
       paintQtyLitres:litres,
       texture:job.texture||"",
@@ -1325,30 +1391,52 @@ function buildCoatingOverviewFromJobs(jobs){
       piecesPerShelf:rackInfo.piecesPerShelf,
       shelvesRequired:rackInfo.shelvesRequired,
       racksRequired:rackInfo.racksRequired,
-      rackRuleFound:rackInfo.hasRule?"YES":"NO",
-      sameCoatingNearby:sameCoatingToday?"YES":"NO",
-      batchingPrompt:sameCoatingToday?"SAME COATING TODAY":""
+      rackRuleFound:rackInfo.hasRule?"YES":"NO"
     };
+
     rows.push(row);
+
     const key=normText(coating);
-    if(!summaryMap[key])summaryMap[key]={coating,totalLitres:0,totalShelves:0,jobRackTotal:0,jobCount:0,jobs:[]};
-    summaryMap[key].totalLitres+=litres;
-    summaryMap[key].totalShelves+=Number(row.shelvesRequired||0);
-    summaryMap[key].jobRackTotal+=Number(row.racksRequired||0);
-    summaryMap[key].jobCount+=1;
-    summaryMap[key].jobs.push((job.sheetJob||"")+(job.client?" - "+job.client:""));
+    if(!summaryMap[key]){
+      summaryMap[key]={
+        coating,
+        totalLitres:0,
+        totalShelves:0,
+        jobRackTotal:0,
+        jobCount:0,
+        clientSequences:{},
+        clientOrder:[]
+      };
+    }
+
+    const summary=summaryMap[key];
+    summary.totalLitres+=litres;
+    summary.totalShelves+=Number(row.shelvesRequired||0);
+    summary.jobRackTotal+=Number(row.racksRequired||0);
+    summary.jobCount+=1;
+
+    const client=row.client||"Unassigned client";
+    if(!summary.clientSequences[client]){
+      summary.clientSequences[client]=[];
+      summary.clientOrder.push(client);
+    }
+    summary.clientSequences[client].push(row.coatingStage);
   });
+
   const summary=Object.keys(summaryMap).map(key=>{
     const item=summaryMap[key];
     item.totalLitresDisplay=formatLitresValue(item.totalLitres);
     item.totalShelvesDisplay=item.totalShelves?String(item.totalShelves):"";
     item.totalRacksDisplay=item.totalShelves?String(Math.ceil(item.totalShelves/12)):"";
     item.jobRackTotalDisplay=item.jobRackTotal?String(item.jobRackTotal):"";
-    item.jobsText=item.jobs.slice(0,5).join(" | ");
+    item.passText=item.jobCount+" coating pass"+(item.jobCount===1?"":"es");
+    item.sequenceLines=item.clientOrder.map(client=>client+": "+formatCoatingSequence(item.clientSequences[client]));
     return item;
   }).sort((a,b)=>(b.totalLitres-a.totalLitres)||(b.jobCount-a.jobCount)||a.coating.localeCompare(b.coating));
+
   return {rows,summary};
 }
+
 function loadStockPicker(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideCoatingOverviewScreen();document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerPanel").classList.remove("hidden");document.getElementById("stockPickerTitle").innerText="Team "+currentTeam+" Stock Picker";document.getElementById("stockPickerRows").innerHTML="";const dashboard=getCurrentTeamDashboardOrCache();if(!dashboard){document.getElementById("stockPickerStatus").innerText="No saved queue found. Go back and tap Team "+currentTeam+" or Force Refresh Schedule.";return}renderStockPickerRows(buildStockRowsFromJobs(dashboard.jobs||[]))}
 
 function renderStockPickerRows(rows){const wrap=document.getElementById("stockPickerRows");if(!rows.length){document.getElementById("stockPickerStatus").innerText="No packs found for Team "+currentTeam+".";wrap.innerHTML="";return}document.getElementById("stockPickerStatus").innerText=rows.length+" pack movement"+(rows.length===1?"":"s")+" found.";wrap.innerHTML="";rows.forEach(row=>{const card=document.createElement("div");card.className="stockPickerCard";const keep=row.usedAgainLaterToday==="YES";const action=keep?"KEEP NEAR MACHINE":"RETURN TO LOCATION";const actionClass=keep?"keep":"return";const location=row.packLocation||"Location not set";card.innerHTML='<div class="stockPickerMain"><div class="stockPickerHeaderGrid"><div class="stockPickerLabelValue"><div class="stockPickerLabel">Pack ID</div><div class="stockPickerValue">'+escapeHtml(row.packId||"")+'</div></div><div class="stockPickerLabelValue"><div class="stockPickerLabel">Stock location</div><div class="stockPickerValue">'+escapeHtml(location)+'</div></div></div><div class="stockPickerAction '+actionClass+'">'+escapeHtml(action)+'</div><div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | Shift: "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div><div class="stockPickerMeta">Client: '+escapeHtml(row.client||"")+'</div><div class="stockPickerMeta">Required process: '+escapeHtml(row.processRequirement||"")+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.species||"")+" | "+escapeHtml(row.length||"")+"m | "+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | Qty "+escapeHtml(row.quantity||"")+'</div></div><div class="stockPickerGrid">'+stockDestinationTile(row.packDestination||getPackDestination(row))+"</div>";wrap.appendChild(card)})}
@@ -1397,22 +1485,25 @@ function renderCoatingOverview(summary,rows){
     return;
   }
 
-  document.getElementById("coatingOverviewStatus").innerText=rows.length+" coated job"+(rows.length===1?"":"s")+" found. Tap a job card to open Paint Room.";
+  document.getElementById("coatingOverviewStatus").innerText=rows.length+" coating pass"+(rows.length===1?"":"es")+" found. Tap a pass card to open Paint Room.";
   totalsWrap.innerHTML="";
   rowsWrap.innerHTML="";
 
   summary.forEach(item=>{
     const card=document.createElement("div");
     card.className="stockPickerCard";
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+'</div><div class="stockPickerAction">'+escapeHtml(item.totalLitresDisplay||"")+'</div><div class="stockPickerMeta">Jobs: '+escapeHtml(item.jobCount||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Total racks: '+escapeHtml(item.totalRacksDisplay||"")+'</div><div class="stockPickerMeta">'+escapeHtml(item.jobsText||"")+'</div></div>';
+    const sequenceHtml=(item.sequenceLines||[]).map(line=>'<div class="coatingSummarySequence">'+escapeHtml(line)+'</div>').join("");
+    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+'</div><div class="stockPickerAction">'+escapeHtml(item.totalLitresDisplay||"")+'</div><div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+sequenceHtml+'</div>';
     totalsWrap.appendChild(card);
   });
 
   rows.forEach(row=>{
     const card=document.createElement("div");
     card.className="stockPickerCard coatingJobClickable";
-    const prompt=row.sameCoatingNearby==="YES"?"SAME COATING TODAY":"";
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+(prompt?'<div class="stockPickerAction">'+escapeHtml(prompt)+'</div>':"")+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | Shift: "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div><div class="stockPickerMeta">Client: '+escapeHtml(row.client||"")+'</div><div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div><div class="stockPickerMeta">Racking: '+(row.rackRuleFound==="YES"?'Pieces per shelf: '+escapeHtml(row.piecesPerShelf||"")+' | Shelves: '+escapeHtml(row.shelvesRequired||"")+' | Racks: '+escapeHtml(row.racksRequired||""):'No rack rule found')+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.species||"")+" | "+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+'</div><div class="stockPickerMeta">Texture: '+escapeHtml(row.texture||"")+'</div><div class="coatingClickPrompt">Open Paint Room</div></div>';
+    const badgeClass=getCoatingStageBadgeClass(row.coatingStage||"");
+    const title=(row.coatingStage?row.coatingStage+" — ":"")+(row.client||"");
+    const racking=row.rackRuleFound==="YES"?'Shelves: '+escapeHtml(row.shelvesRequired||"")+' | Racks: '+escapeHtml(row.racksRequired||"")+' | '+escapeHtml(row.piecesPerShelf||"")+' pcs/shelf':'No rack rule found';
+    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"COATING PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div><div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div><div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div><div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div><div class="coatingClickPrompt">Open Paint Room job</div></div>';
     card.onclick=()=>openPaintRoomFromCoatingOverview(row);
     rowsWrap.appendChild(card);
   });
