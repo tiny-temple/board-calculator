@@ -682,7 +682,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.66)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.67)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -764,16 +764,25 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.66|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.67|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.66|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.66|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.67|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.67|";
 
-function completionUidKeyForParts(team,productionUid){
+function completionUidSheetKeyForParts(team,productionUid,sheetJob){
   const t=normalise(team||"");
   const uid=String(productionUid||"").trim();
-  if(!uid)return "";
-  return t+"|PUID:"+uid;
+  const s=normalise(sheetJob||"");
+  if(!uid||!s)return "";
+  return t+"|PUID:"+uid+"|SHEETJOB:"+s;
+}
+
+function completionUidHelperKeyForParts(team,productionUid,helperSheet){
+  const t=normalise(team||"");
+  const uid=String(productionUid||"").trim();
+  const h=normalise(helperSheet||"");
+  if(!uid||!h)return "";
+  return t+"|PUID:"+uid+"|HELPER:"+h;
 }
 
 function completionKeyForParts(team,sheetJob,productionRow){
@@ -800,7 +809,8 @@ function jobKeyParts(job){
   const helper=String(job&&job.helperSheetName||"").trim();
 
   [
-    completionUidKeyForParts(currentTeam,productionUid),
+    completionUidSheetKeyForParts(currentTeam,productionUid,sheet),
+    completionUidHelperKeyForParts(currentTeam,productionUid,helper),
     completionKeyForParts(currentTeam,sheet,productionRow),
     helperCompletionKeyForParts(currentTeam,helper,productionRow)
   ].filter(Boolean).forEach(key=>{
@@ -1213,11 +1223,12 @@ function fetchTeamJobStatus(onDone){
 
           const keys=[key];
 
-          const uidKey=completionUidKeyForParts(currentTeam,item.productionUid||"");
+          const uidSheetKey=completionUidSheetKeyForParts(currentTeam,item.productionUid||"",item.sheetJob||"");
+          const uidHelperKey=completionUidHelperKeyForParts(currentTeam,item.productionUid||"",item.helperSheet||item.helperSheetName||"");
           const rowKey=completionKeyForParts(currentTeam,item.sheetJob||"",item.productionRow||"");
           const helperKey=helperCompletionKeyForParts(currentTeam,item.helperSheet||item.helperSheetName||"",item.productionRow||"");
 
-          [uidKey,rowKey,helperKey].filter(Boolean).forEach(k=>{
+          [uidSheetKey,uidHelperKey,rowKey,helperKey].filter(Boolean).forEach(k=>{
             if(keys.indexOf(k)===-1)keys.push(k);
           });
 
