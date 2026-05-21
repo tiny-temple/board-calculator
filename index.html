@@ -682,7 +682,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.65)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.66)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -764,10 +764,10 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.65|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.66|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.65|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.65|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.66|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.66|";
 
 function completionUidKeyForParts(team,productionUid){
   const t=normalise(team||"");
@@ -2068,7 +2068,17 @@ function getRejectDraftKey(){const packId=getCurrentDraftPackId(),jobId=jobConte
 function saveRejectDraft(){const key=getRejectDraftKey();if(!key)return;const payload={savedAt:new Date().toISOString(),team:currentTeam||"",productionUid:jobContext.productionUid||"",productionRow:jobContext.productionRow||"",jobNo:jobContext.jobNo||"",sheetJob:jobContext.sheetJob||"",entryMode:currentEntryMode||"",packId:getCurrentDraftPackId(),rejectBasket,rejectHistory,rejectNote:getRejectNote()};if(!Object.keys(rejectBasket).length){localStorage.removeItem(key);return}localStorage.setItem(key,JSON.stringify(payload))}
 function restoreRejectDraft(){const key=getRejectDraftKey();rejectBasket={};rejectHistory=[];const noteEl=document.getElementById("rejectNote");if(noteEl)noteEl.value="";if(!key){renderRejectBasket();return false}const raw=localStorage.getItem(key);if(!raw){renderRejectBasket();return false}try{const draft=JSON.parse(raw);rejectBasket=normaliseRejectBasketObject(draft.rejectBasket||{});rejectHistory=normaliseRejectHistoryObject(Array.isArray(draft.rejectHistory)?draft.rejectHistory:[]);if(noteEl)noteEl.value=draft.rejectNote||"";renderRejectBasket();document.getElementById("saveStatus").innerText="Unsaved draft restored for this job / process / pack.";return true}catch(err){localStorage.removeItem(key);renderRejectBasket();return false}}
 function clearRejectDraft(){const key=getRejectDraftKey();if(key)localStorage.removeItem(key)}
-function archiveSubmittedDraft(payload){const packId=getCurrentDraftPackId(),key=[REJECT_SUBMITTED_PREFIX,currentTeam||"",jobContext.productionRow||"",currentEntryMode||"",packId||"",Date.now()].join("|");localStorage.setItem(key,JSON.stringify({submittedAt:new Date().toISOString(),payload}))}
+function archiveSubmittedDraft(payload){
+  try{
+    const packId=getCurrentDraftPackId();
+    const jobId=jobContext.productionUid||payload.productionUid||jobContext.productionRow||payload.productionRow||"";
+    const key=[REJECT_SUBMITTED_PREFIX,currentTeam||"",jobId,currentEntryMode||"",packId||"",Date.now()].join("|");
+    localStorage.setItem(key,JSON.stringify({submittedAt:new Date().toISOString(),payload:payload}));
+    return true;
+  }catch(err){
+    return false;
+  }
+}
 function getDefectRowsForMode(entryMode){const config=ENTRY_MODES[entryMode]||{},processStage=config.processStage||"";let rows=currentDefectConfigRows.filter(row=>normalise(row.process)===normalise(processStage)||normalise(row.process)==="all");if(!rows.length){rows=(DEFAULT_DEFECTS[entryMode]||[]).map((name,index)=>({process:processStage,defectCode:name==="No Rejects"?"NO_REJECTS":name.toUpperCase().replace(/[^A-Z0-9]+/g,"_"),defectType:name,buttonLabel:name,description:"",causeGroup:"",supplierRelevant:false,requireNote:false,displayOrder:index}))}rows.sort((a,b)=>Number(a.displayOrder||9999)-Number(b.displayOrder||9999));const seen={};return rows.filter(row=>{const key=row.defectCode||row.defectType;if(seen[key])return false;seen[key]=true;return true})}
 function getDefectMetaForReject(code,type){const codeText=String(code||"").trim(),typeText=String(type||codeText).trim();const rows=getDefectRowsForMode(currentEntryMode||"");const found=rows.find(row=>normalise(row.defectCode)===normalise(codeText)||normalise(row.defectType)===normalise(typeText)||normalise(row.buttonLabel)===normalise(typeText)||normalise(row.defectType)===normalise(codeText));if(found)return{defectCode:found.defectCode||codeText||typeText,defectType:found.defectType||typeText||codeText,buttonLabel:found.buttonLabel||found.defectType||typeText||codeText,description:found.description||"",causeGroup:found.causeGroup||"",supplierRelevant:found.supplierRelevant===true,requireNote:found.requireNote===true};return{defectCode:codeText||typeText,defectType:typeText||codeText,buttonLabel:typeText||codeText,description:"",causeGroup:"",supplierRelevant:false,requireNote:false}}
 function normaliseRejectLineFromBasket(key,value){if(value&&typeof value==="object"&&!Array.isArray(value)){const meta=getDefectMetaForReject(value.defectCode||key,value.defectType||value.buttonLabel||key);const qty=Number(value.rejectQty??value.qty??value.quantity??(meta.defectType==="No Rejects"?0:0));return{defectCode:value.defectCode||meta.defectCode,defectType:value.defectType||meta.defectType,buttonLabel:value.buttonLabel||meta.buttonLabel,description:value.description||meta.description,causeGroup:value.causeGroup||meta.causeGroup,supplierRelevant:value.supplierRelevant===true||meta.supplierRelevant===true,requireNote:value.requireNote===true||meta.requireNote===true,rejectQty:isNaN(qty)?0:qty}}const meta=getDefectMetaForReject(key,key);const qty=Number(value||0);return{defectCode:meta.defectCode,defectType:meta.defectType,buttonLabel:meta.buttonLabel,description:meta.description,causeGroup:meta.causeGroup,supplierRelevant:meta.supplierRelevant,requireNote:meta.requireNote,rejectQty:isNaN(qty)?0:qty}}
@@ -2107,14 +2117,91 @@ function getBasketRejectLines(){rejectBasket=normaliseRejectBasketObject(rejectB
 function getRejectDeviceId(){let deviceId=localStorage.getItem(REJECT_DEVICE_ID_KEY);if(!deviceId){deviceId="device_"+Date.now()+"_"+Math.random().toString(36).slice(2,10);localStorage.setItem(REJECT_DEVICE_ID_KEY,deviceId)}return deviceId}
 function createRejectSubmissionId(){return["sub",getRejectDeviceId(),Date.now(),Math.random().toString(36).slice(2,10)].join("_")}
 function getRejectOutboxKey(submissionId){return REJECT_OUTBOX_PREFIX+submissionId}
-function savePayloadToOutbox(payload){if(!payload.submissionId)payload.submissionId=createRejectSubmissionId();const key=getRejectOutboxKey(payload.submissionId);const record={savedAt:new Date().toISOString(),lastAttemptAt:"",attempts:0,payload};localStorage.setItem(key,JSON.stringify(record));updateLocalOutboxStatus()}
-function markOutboxAttempt(submissionId){if(!submissionId)return;const key=getRejectOutboxKey(submissionId),raw=localStorage.getItem(key);if(!raw)return;try{const record=JSON.parse(raw);record.attempts=Number(record.attempts||0)+1;record.lastAttemptAt=new Date().toISOString();localStorage.setItem(key,JSON.stringify(record))}catch(err){}}
+function savePayloadToOutbox(payload){
+  try{
+    if(!payload.submissionId)payload.submissionId=createRejectSubmissionId();
+    const key=getRejectOutboxKey(payload.submissionId);
+    const record={savedAt:new Date().toISOString(),lastAttemptAt:"",attempts:0,payload:payload};
+    localStorage.setItem(key,JSON.stringify(record));
+    updateLocalOutboxStatus();
+    return true;
+  }catch(err){
+    try{
+      sessionStorage.setItem("ttRejectOutboxLastError",JSON.stringify({at:new Date().toISOString(),error:err.message||String(err)}));
+    }catch(e){}
+    return false;
+  }
+}
+function markOutboxAttempt(submissionId){
+  if(!submissionId)return;
+  try{
+    const key=getRejectOutboxKey(submissionId),raw=localStorage.getItem(key);
+    if(!raw)return;
+    const record=JSON.parse(raw);
+    record.attempts=Number(record.attempts||0)+1;
+    record.lastAttemptAt=new Date().toISOString();
+    localStorage.setItem(key,JSON.stringify(record));
+  }catch(err){}
+}
 function getLocalOutboxItems(){const items=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&key.indexOf(REJECT_OUTBOX_PREFIX)===0){try{const record=JSON.parse(localStorage.getItem(key));if(record&&record.payload)items.push({key,record})}catch(err){}}}return items}
 function updateLocalOutboxStatus(){const el=document.getElementById("localOutboxStatus");if(!el)return;const count=getLocalOutboxItems().length;if(count)el.innerText="Local backup submissions on this iPad: "+count+". These are retained as a safety backup and may already be logged.";else el.innerText="No local backup submissions stored on this iPad."}
 function resendLocalOutbox(){const status=document.getElementById("saveStatus"),items=getLocalOutboxItems();if(!items.length){status.innerText="No local backup submissions to resend.";updateLocalOutboxStatus();return}const ok=window.confirm("This will resend "+items.length+" local backup submission(s).\n\nOnly do this if the entries are missing from the Reject Log, otherwise duplicates may be created.");if(!ok){status.innerText="Resend cancelled.";return}items.forEach(item=>sendRejectPayloadInBackground(item.record.payload));status.innerText="Resent "+items.length+" local backup submission(s).";updateLocalOutboxStatus()}
 function clearLocalOutboxBackups(){const status=document.getElementById("saveStatus"),items=getLocalOutboxItems();if(!items.length){status.innerText="No local backup submissions to clear.";updateLocalOutboxStatus();return}const ok=window.confirm("Clear "+items.length+" local backup submission(s) from this iPad?\n\nOnly clear them after checking the Reject Log has the saved entries.");if(!ok){status.innerText="Clear cancelled.";return}items.forEach(item=>localStorage.removeItem(item.key));status.innerText="Local backup submissions cleared from this iPad.";updateLocalOutboxStatus()}
-function sendRejectPayloadInBackground(payload){if(!payload.submissionId)payload.submissionId=createRejectSubmissionId();payload.deviceId=getRejectDeviceId();savePayloadToOutbox(payload);markOutboxAttempt(payload.submissionId);const body=JSON.stringify(payload);try{fetch(REJECT_LOG_WEB_APP_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:body,keepalive:true}).catch(err=>localStorage.setItem(["ttRejectSendError",payload.team||"",payload.productionRow||"",payload.entryMode||"",payload.packId||"",Date.now()].join("|"),JSON.stringify({error:err.message,payload:payload})))}catch(err){localStorage.setItem(["ttRejectSendError",payload.team||"",payload.productionRow||"",payload.entryMode||"",payload.packId||"",Date.now()].join("|"),JSON.stringify({error:err.message,payload:payload}))}updateLocalOutboxStatus()}
-async function reviewAndSaveBasket(){const status=document.getElementById("saveStatus"),saveBtn=document.getElementById("simpleSaveBtn");if(!currentEntryMode||currentEntryMode==="pack_visualiser"){status.innerText="Choose a process first.";return}if(!jobContext.productionRow){status.innerText="No Production row found. Select a scheduled job first.";return}const config=ENTRY_MODES[currentEntryMode],packId=document.getElementById("simplePackId").value.trim(),rejectLines=getBasketRejectLines();if(!packId){status.innerText="Select the Pack ID before reviewing.";return}if(!rejectLines.length){status.innerText="Tap at least one reject type, or select No Rejects.";return}const totalRejects=rejectLines.reduce((sum,line)=>sum+Number(line.rejectQty||0),0);const rejectNote=getRejectNote();if(basketRequiresNote()&&!rejectNote){status.innerText="Add a reject note before reviewing.";showProcessWarning("Add a reject note before reviewing. This is required for Other or note-required defects.");return}const recapLines=["Review pack reject log","","Team: "+(currentTeam||""),"Job: "+(jobContext.sheetJob||""),"Production Row: "+(jobContext.productionRow||"")];if(currentJob)recapLines.push("Client: "+(currentJob.client||""),"Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""));recapLines.push("Process: "+(config.processStage||""),"Pack ID: "+packId,"","Rejects:");rejectLines.forEach(line=>recapLines.push("- "+line.defectType+": "+line.rejectQty));if(rejectNote)recapLines.push("","Reject note: "+rejectNote);recapLines.push("","Total rejects: "+totalRejects,"Logged As: "+(config.rejectColumn==="machine"?"Machine Defect":"Pre Process Reject"));if(!window.confirm(recapLines.join("\n"))){status.innerText="Save cancelled. Continue logging or edit the basket.";return}jobContext.packId=packId;if(currentProcessSetup)currentProcessSetup.packId=packId;const payload={source:"TT Process Logger",team:currentTeam,timestamp:new Date().toISOString(),productionUid:jobContext.productionUid||currentJob&&currentJob.productionUid||"",productionRow:jobContext.productionRow,jobNo:jobContext.jobNo,sheetJob:jobContext.sheetJob,helperSheetName:currentJob&&currentJob.helperSheetName||"",packId:packId,entryMode:currentEntryMode,entryModeLabel:config.label,processStage:config.processStage,rejectColumn:config.rejectColumn,processSetup:currentProcessSetup,jobData:getCurrentJobDataForPayload(),rejectNote:rejectNote,rejects:rejectLines};const willComplete=currentJob&&currentEntryMode&&currentEntryMode!=="packing_rejects"&&getMostDownstreamRequiredMode(currentJob)===currentEntryMode;payload.jobComplete=willComplete;payload.completedByProcess=willComplete?config.processStage:"";payload.completedByOperator=willComplete&&currentProcessSetup?currentProcessSetup.operatorId||"":"";saveBtn.disabled=true;status.innerText="Submitting...";archiveSubmittedDraft(payload);clearRejectDraft();rejectBasket={};rejectHistory=[];renderRejectBasket();sendRejectPayloadInBackground(payload);markJobCompleteIfFinalProcess(payload);status.innerText="";saveBtn.disabled=false;showPostSaveScreen(payload,totalRejects)}
+function sendRejectPayloadInBackground(payload){
+  if(!payload.submissionId)payload.submissionId=createRejectSubmissionId();
+  payload.deviceId=getRejectDeviceId();
+
+  const backedUp=savePayloadToOutbox(payload);
+  markOutboxAttempt(payload.submissionId);
+
+  const body=JSON.stringify(payload);
+
+  try{
+    fetch(REJECT_LOG_WEB_APP_URL,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:body,
+      keepalive:true
+    }).catch(err=>{
+      try{
+        localStorage.setItem(["ttRejectSendError",payload.team||"",payload.productionUid||payload.productionRow||"",payload.entryMode||"",payload.packId||"",Date.now()].join("|"),JSON.stringify({error:err.message,payload:payload}));
+      }catch(e){}
+    });
+  }catch(err){
+    try{
+      localStorage.setItem(["ttRejectSendError",payload.team||"",payload.productionUid||payload.productionRow||"",payload.entryMode||"",payload.packId||"",Date.now()].join("|"),JSON.stringify({error:err.message,payload:payload}));
+    }catch(e){}
+  }
+
+  updateLocalOutboxStatus();
+  return backedUp;
+}
+async function reviewAndSaveBasket(){const status=document.getElementById("saveStatus"),saveBtn=document.getElementById("simpleSaveBtn");if(!currentEntryMode||currentEntryMode==="pack_visualiser"){status.innerText="Choose a process first.";return}if(!jobContext.productionRow){status.innerText="No Production row found. Select a scheduled job first.";return}const config=ENTRY_MODES[currentEntryMode],packId=document.getElementById("simplePackId").value.trim(),rejectLines=getBasketRejectLines();if(!packId){status.innerText="Select the Pack ID before reviewing.";return}if(!rejectLines.length){status.innerText="Tap at least one reject type, or select No Rejects.";return}const totalRejects=rejectLines.reduce((sum,line)=>sum+Number(line.rejectQty||0),0);const rejectNote=getRejectNote();if(basketRequiresNote()&&!rejectNote){status.innerText="Add a reject note before reviewing.";showProcessWarning("Add a reject note before reviewing. This is required for Other or note-required defects.");return}const recapLines=["Review pack reject log","","Team: "+(currentTeam||""),"Job: "+(jobContext.sheetJob||""),"Production Row: "+(jobContext.productionRow||"")];if(currentJob)recapLines.push("Client: "+(currentJob.client||""),"Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""));recapLines.push("Process: "+(config.processStage||""),"Pack ID: "+packId,"","Rejects:");rejectLines.forEach(line=>recapLines.push("- "+line.defectType+": "+line.rejectQty));if(rejectNote)recapLines.push("","Reject note: "+rejectNote);recapLines.push("","Total rejects: "+totalRejects,"Logged As: "+(config.rejectColumn==="machine"?"Machine Defect":"Pre Process Reject"));if(!window.confirm(recapLines.join("\n"))){status.innerText="Save cancelled. Continue logging or edit the basket.";return}jobContext.packId=packId;if(currentProcessSetup)currentProcessSetup.packId=packId;const payload={source:"TT Process Logger",team:currentTeam,timestamp:new Date().toISOString(),productionUid:jobContext.productionUid||currentJob&&currentJob.productionUid||"",productionRow:jobContext.productionRow,jobNo:jobContext.jobNo,sheetJob:jobContext.sheetJob,helperSheetName:currentJob&&currentJob.helperSheetName||"",packId:packId,entryMode:currentEntryMode,entryModeLabel:config.label,processStage:config.processStage,rejectColumn:config.rejectColumn,processSetup:currentProcessSetup,jobData:getCurrentJobDataForPayload(),rejectNote:rejectNote,rejects:rejectLines};const willComplete=currentJob&&currentEntryMode&&currentEntryMode!=="packing_rejects"&&getMostDownstreamRequiredMode(currentJob)===currentEntryMode;payload.jobComplete=willComplete;payload.completedByProcess=willComplete?config.processStage:"";payload.completedByOperator=willComplete&&currentProcessSetup?currentProcessSetup.operatorId||"":"";saveBtn.disabled=true;
+status.innerText="Submitting...";
+try{
+  const archivedOk=archiveSubmittedDraft(payload);
+  try{clearRejectDraft()}catch(err){}
+  rejectBasket={};
+  rejectHistory=[];
+  renderRejectBasket();
+  const outboxOk=sendRejectPayloadInBackground(payload);
+  try{markJobCompleteIfFinalProcess(payload)}catch(err){}
+  status.innerText="";
+  showPostSaveScreen(payload,totalRejects);
+  if(!archivedOk||!outboxOk){
+    const details=document.getElementById("postSaveDetails");
+    if(details){
+      details.innerHTML+="<br><br>"+escapeHtml("Warning: this iPad may not have saved a full local backup. Check PWA Incoming Payloads / Reject Log before clearing or retesting.");
+    }
+  }
+}catch(err){
+  status.innerText="Saved locally step failed: "+(err.message||err)+". Do not press repeatedly. Check Reject Log and local backups.";
+  showProcessWarning("Save screen error: "+(err.message||err));
+}finally{
+  saveBtn.disabled=false;
+}
+}
 function getCurrentJobDataForPayload(){if(!currentJob)return{};return{productionUid:currentJob.productionUid||jobContext.productionUid||"",client:currentJob.client||"",species:currentJob.species||"",finishedSize:currentJob.finishedSize||"",profile:currentJob.profile||"",texture:currentJob.texture||"",coating:currentJob.coating||"",coatingStage:currentJob.coatingStage||"",processVariant:currentJob.processVariant||currentJob.coatingStage||"",length:currentJob.length||"",quantity:currentJob.quantity||"",linearMetres:currentJob.linearMetres||"",fireTreatment:currentJob.fireTreatment||"",deliveryType:currentJob.deliveryType||""}}
 document.getElementById("operatorId").addEventListener("change",()=>updateOperatorGuestVisibility());
 document.getElementById("simplePackId").addEventListener("change",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser"){document.getElementById("saveStatus").innerText="";jobContext.packId=this.value;updateJobContextBar();restoreRejectDraft()}});document.getElementById("rejectNote").addEventListener("input",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser")saveRejectDraft()});
