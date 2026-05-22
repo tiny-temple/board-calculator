@@ -702,6 +702,9 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 .packingQueueCardActive{cursor:pointer}
 .packingQueueCardWaiting{background:#efefef;color:#555;opacity:.72}
 .packingQueueCardPacked{background:#efefef;border-style:dashed}
+.packingQueueCardReleased{background:#fff;border-color:#0b5ed7}
+.packingQueueCardReleased .packingQueueStatusBadge{background:#0b5ed7}
+.packingQueueCardReleased .packingQueuePrompt{background:#0b5ed7}
 .packingQueueStatusBadge{display:inline-block;width:fit-content;margin:0 0 8px 0;padding:7px 12px;border-radius:999px;background:#333;color:#fff;font-size:15px;font-weight:900;letter-spacing:.03em}
 .packingQueueCardWaiting .packingQueueStatusBadge{background:#777}
 .packingQueueCardPacked .packingQueueStatusBadge{background:#333}
@@ -725,13 +728,13 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.73)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.74)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button><button onclick="loadPackingQueue()">Packing</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
 <div id="packingQueuePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="packingQueueTitle">Packing Queue</label><div id="packingQueueStatus"></div></div><div id="packingQueueRows" class="packingQueueRows"></div><div class="basketActions"><button class="primaryBtn" onclick="loadPackingQueue(true)">Refresh Packing Queue</button><button onclick="backFromPackingQueue()">Back to home</button></div></div><div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
 <div id="step0_entry" class="hidden"><div class="fieldBlock"><label>What do you want to do?</label><div class="modeButtons" id="processModeButtons"></div></div><div class="basketActions"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
-<div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Dispatch')">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Collection')">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
+<div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid" id="processSetupEntryFields"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock" id="processSetupNotesBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Dispatch')">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Collection')">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="modeBlock" class="hidden"><label>Target Total is measured in:</label><select id="mode"></select></div>
 <div id="step1_boards" class="step hidden"><div id="boardsWrap"><input id="boards" type="number" placeholder="Quantity of Boards Required" /></div><div id="linearWrap"><input id="metres" type="number" placeholder="Number of Linear Metres Required" /><select id="boardLength"></select></div></div><div id="step2_perRow" class="step hidden"><select id="perRow"></select></div><div id="step3_yield" class="step hidden"><label>Yield when bandsawing</label><select id="yield"></select></div><div id="step4_loose" class="step hidden"><select id="topLoose"></select></div><div id="step5_rejects" class="step hidden step5Bar"><select id="rejects"></select><div class="step5Buttons"><button onclick="prevStep()">Back</button><button onclick="resetAll()">Reset</button><button onclick="backToProcessMenu()">Back to process menu</button></div></div>
 <div id="simpleLogger" class="hidden simpleBox"><div class="fieldBlock"><label id="simpleLoggerTitle">Log Rejects</label></div><div class="fieldBlock"><label>Pack ID used</label><select id="simplePackId"></select></div><div class="rejectLoggerLayout"><div class="rejectLoggerLeft"><div class="fieldBlock"><label>Tap defects as they happen</label><div id="rejectButtonGrid" class="rejectButtonGrid"></div></div></div><div class="rejectLoggerRight"><div id="rejectBasketTotals" class="rejectBasketTotals">No rejects logged yet.</div><div id="rejectNoteBlock" class="fieldBlock hidden" style="margin-top:10px;"><label id="rejectNoteLabel">Reject note required</label><textarea id="rejectNote" rows="3" placeholder="Add detail for Other or note-required defects"></textarea></div><div class="basketActions"><button onclick="undoLastReject()">Undo Last</button><button onclick="clearRejectBasket()">Clear</button><button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button><button onclick="returnToMenu()">Back to menu</button></div></div></div></div>
@@ -1371,7 +1374,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.73|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.74|";
 function savePackingQueueToLocalCache(data){try{if(data&&data.ok)localStorage.setItem(PACKING_QUEUE_CACHE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:data}))}catch(err){}}
 function getPackingQueueFromLocalCache(){try{const raw=localStorage.getItem(PACKING_QUEUE_CACHE_KEY);if(!raw)return null;const item=JSON.parse(raw);return item&&item.data&&item.data.ok?item:null}catch(err){return null}}
 function clearPackingQueueLocalCache(){try{localStorage.removeItem(PACKING_QUEUE_CACHE_KEY)}catch(err){}}
@@ -1420,15 +1423,21 @@ function renderPackingQueue(jobs,fromLocal){
     return;
   }
   const openCount=jobs.filter(job=>packingValueIsTrue(job.canOpenPackingCard)).length;
-  document.getElementById("packingQueueStatus").innerText=(fromLocal?"Saved list shown — refreshing live. ":"")+jobs.length+" job"+(jobs.length===1?"":"s")+" shown | "+openCount+" actionable.";
+  document.getElementById("packingQueueStatus").innerText=(fromLocal?"Saved list shown — refreshing live. ":"")+jobs.length+" job"+(jobs.length===1?"":"s")+" shown | "+openCount+" available to open.";
   jobs.forEach(job=>{
     const canOpen=packingValueIsTrue(job.canOpenPackingCard);
     const displayState=String(job.cardDisplayState||job.packingStatus||"").trim();
-    const statusKey=normalise(displayState);
-    const packed=statusKey==="packed";
+    const productionStatus=normalise(job.packingStatus||"");
+    const packed=productionStatus==="packed";
+    const released=productionStatus==="ready for dispatch"||productionStatus==="ready for collection";
     const card=document.createElement(canOpen?"button":"div");
-    card.className="packingQueueCard "+(canOpen?"packingQueueCardActive ":"")+(packed?"packingQueueCardPacked jobQueueComplete":(!canOpen?"packingQueueCardWaiting":""));
-    const prompt=canOpen?'<div class="packingQueuePrompt">'+escapeHtml(packed?"OPEN TO RELEASE JOB":"OPEN PACKING CARD")+'</div>':"";
+    card.className="packingQueueCard "+(canOpen?"packingQueueCardActive ":"")+(packed?"packingQueueCardPacked jobQueueComplete ":(released?"packingQueueCardReleased ":(!canOpen?"packingQueueCardWaiting ":"")));
+    let prompt="";
+    if(canOpen){
+      if(packed)prompt='<div class="packingQueuePrompt">OPEN TO RELEASE JOB</div>';
+      else if(released)prompt='<div class="packingQueuePrompt">OPEN JOB INFORMATION</div>';
+      else prompt='<div class="packingQueuePrompt">OPEN PACKING CARD</div>';
+    }
     card.innerHTML='<div class="packingQueueStatusBadge">'+escapeHtml(displayState||job.packingStatus||"")+'</div><div class="packingQueueClient">'+escapeHtml(job.client||"")+'</div><div class="packingQueueMeta">Production Row: '+escapeHtml(job.productionRow||"")+' | Status: '+escapeHtml(job.packingStatus||"")+'</div><div class="packingQueueSpec">Spec: '+escapeHtml(job.species||"")+' | '+escapeHtml(job.length||"")+'m | '+escapeHtml(job.finishedSize||"")+' | '+escapeHtml(job.profile||"")+' | Qty '+escapeHtml(job.quantity||"")+'</div><div class="packingQueueMeta">Coating: '+escapeHtml(job.coating||"")+' | Delivery Type: '+escapeHtml(job.deliveryType||"Not set")+'</div>'+prompt;
     if(canOpen)card.onclick=()=>openPackingQueueJob(job);
     wrap.appendChild(card);
@@ -1453,6 +1462,9 @@ function getPackingReleaseTarget(job){
 function configureStandalonePackingUI(){
   const standalone=isStandalonePackingJob();
   const packBlock=document.getElementById("setupPackIdBlock");
+  const entryFields=document.getElementById("processSetupEntryFields");
+  const checks=document.getElementById("processChecks");
+  const notesBlock=document.getElementById("processSetupNotesBlock");
   const visualiserBtn=document.getElementById("processVisualiserBtn");
   const startRejectBtn=document.getElementById("startRejectLoggingBtn");
   const changeSetupBtn=document.getElementById("changeSetupBtn");
@@ -1465,15 +1477,43 @@ function configureStandalonePackingUI(){
   readyDispatchBtn.innerText="Mark Ready for Dispatch";
   readyCollectionBtn.innerText="Mark Ready for Collection";
   if(!standalone){
-    packBlock.classList.remove("hidden");startRejectBtn.classList.remove("hidden");changeSetupBtn.classList.remove("hidden");processMenuBtn.classList.remove("hidden");actions.classList.add("hidden");return;
+    packBlock.classList.remove("hidden");
+    entryFields.classList.remove("hidden");
+    checks.classList.remove("hidden");
+    notesBlock.classList.remove("hidden");
+    startRejectBtn.classList.remove("hidden");
+    changeSetupBtn.classList.remove("hidden");
+    processMenuBtn.classList.remove("hidden");
+    actions.classList.add("hidden");
+    return;
   }
-  packBlock.classList.add("hidden");visualiserBtn.classList.add("hidden");startRejectBtn.classList.add("hidden");changeSetupBtn.classList.add("hidden");processMenuBtn.classList.add("hidden");actions.classList.remove("hidden");
   const status=normalise(currentJob.packingStatus||"");
+  const packed=status==="packed";
+  const released=status==="ready for dispatch"||status==="ready for collection";
   const target=getPackingReleaseTarget(currentJob);
   const note=document.getElementById("packingStatusActionNote");
-  if(status==="packed"){
+  packBlock.classList.add("hidden");
+  visualiserBtn.classList.add("hidden");
+  startRejectBtn.classList.add("hidden");
+  changeSetupBtn.classList.add("hidden");
+  processMenuBtn.classList.add("hidden");
+  actions.classList.remove("hidden");
+  if(released){
+    entryFields.classList.add("hidden");
+    checks.classList.add("hidden");
+    notesBlock.classList.add("hidden");
+    note.innerText="This job is "+(currentJob.packingStatus||"ready")+" — reference information only.";
+    return;
+  }
+  if(packed){
+    entryFields.classList.add("hidden");
+    checks.classList.add("hidden");
+    notesBlock.classList.add("hidden");
     note.innerText=target?"Delivery Type: "+(currentJob.deliveryType||"")+" — release this packed job.":"Delivery Type is not set. Select the correct release status.";
   }else{
+    entryFields.classList.remove("hidden");
+    checks.classList.remove("hidden");
+    notesBlock.classList.remove("hidden");
     note.innerText=target?"Complete the packing checks, then either mark Packed or pack and release directly as "+target+".":"Complete the packing checks, then mark Packed or select the correct direct release status.";
     markPackedBtn.classList.remove("hidden");
     readyDispatchBtn.innerText="Pack & Mark Ready for Dispatch";
@@ -2487,3 +2527,4 @@ buildProcessMenu();updateLocalOutboxStatus();updateJobContextBar();fillPackIdFie
 </script>
 </body>
 </html>
+
