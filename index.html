@@ -696,7 +696,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.68)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.70)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -1458,6 +1458,7 @@ function buildStockRowsFromJobs(jobs){
         finishedSize:job.finishedSize||"",
         profile:job.profile||"",
         quantity:job.quantity||"",
+        completed:isJobCompleted(job),
         requiredForResaw:job.requiredForResaw||"",
         requiredForMoulder:job.requiredForMoulder||"",
         packDestination:packDestination,
@@ -1484,7 +1485,7 @@ function buildStockRowsFromJobs(jobs){
     if(nextUse.packDestination&&nextUse.packDestination!==row.packDestination){
       row.returnAfterUse="MOVE TO "+nextUse.packDestination;
     }else{
-      row.returnAfterUse="KEEP NEAR MACHINE";
+      row.returnAfterUse="KEEP AT "+row.packDestination;
     }
   });
 
@@ -1606,7 +1607,8 @@ function buildCoatingOverviewFromJobs(jobs){
       piecesPerShelf:rackInfo.piecesPerShelf,
       shelvesRequired:rackInfo.shelvesRequired,
       racksRequired:rackInfo.racksRequired,
-      rackRuleFound:rackInfo.hasRule?"YES":"NO"
+      rackRuleFound:rackInfo.hasRule?"YES":"NO",
+      completed:isJobCompleted(job)
     };
 
     rows.push(row);
@@ -1619,6 +1621,7 @@ function buildCoatingOverviewFromJobs(jobs){
         totalShelves:0,
         jobRackTotal:0,
         jobCount:0,
+        completedCount:0,
         frCount:0,
         clientSequences:{},
         clientOrder:[]
@@ -1630,6 +1633,7 @@ function buildCoatingOverviewFromJobs(jobs){
     summary.totalShelves+=Number(row.shelvesRequired||0);
     summary.jobRackTotal+=Number(row.racksRequired||0);
     summary.jobCount+=1;
+    if(row.completed)summary.completedCount+=1;
     if(row.isFrTreatment==="YES")summary.frCount+=1;
 
     const client=row.client||"Unassigned client";
@@ -1649,6 +1653,7 @@ function buildCoatingOverviewFromJobs(jobs){
     item.totalRacksDisplay=item.totalShelves?String(Math.ceil(item.totalShelves/12)):"";
     item.jobRackTotalDisplay=item.jobRackTotal?String(item.jobRackTotal):"";
     item.passText=item.jobCount+" paint room pass"+(item.jobCount===1?"":"es");
+    item.allCompleted=item.jobCount>0&&item.completedCount===item.jobCount;
     item.sequenceLines=item.clientOrder.map(client=>client+": "+formatCoatingSequence(item.clientSequences[client]));
     return item;
   }).sort((a,b)=>(b.totalLitres-a.totalLitres)||(b.jobCount-a.jobCount)||a.coating.localeCompare(b.coating));
@@ -1672,13 +1677,14 @@ function renderStockPickerRows(rows){
 
   rows.forEach(row=>{
     const card=document.createElement("div");
-    card.className="stockPickerCard";
+    card.className="stockPickerCard"+(row.completed?" jobQueueComplete":"");
 
     const action=row.returnAfterUse||"";
     const actionClass=action.indexOf("RETURN TO ")===0?"return":(action.indexOf("MOVE TO ")===0?"move":"keep");
     const location=row.packLocation||"Location not set";
+    const completeBadge=row.completed?'<span class="jobCompleteBadge">COMPLETED</span>':"";
 
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerHeaderGrid"><div class="stockPickerLabelValue"><div class="stockPickerLabel">Pack ID</div><div class="stockPickerValue">'+escapeHtml(row.packId||"")+'</div></div><div class="stockPickerLabelValue"><div class="stockPickerLabel">Stock location</div><div class="stockPickerValue">'+escapeHtml(location)+'</div></div></div><div class="stockPickerAction '+actionClass+'">'+escapeHtml(action)+'</div><div class="stockPickerMeta">Job No: '+escapeHtml(row.jobNo||"")+" | Shift: "+escapeHtml(row.shift||"")+" | Job: "+escapeHtml(row.sheetJob||"")+'</div><div class="stockPickerMeta">Client: '+escapeHtml(row.client||"")+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.species||"")+" | "+escapeHtml(row.length||"")+"m | "+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | Qty "+escapeHtml(row.quantity||"")+'</div></div><div class="stockPickerGrid">'+stockDestinationTile(row.packDestination||getPackDestination(row))+"</div>";
+    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerHeaderGrid"><div class="stockPickerLabelValue"><div class="stockPickerLabel">Pack ID</div><div class="stockPickerValue">'+escapeHtml(row.packId||"")+'</div></div><div class="stockPickerLabelValue"><div class="stockPickerLabel">Stock location</div><div class="stockPickerValue">'+escapeHtml(location)+'</div></div></div><div class="stockPickerAction '+actionClass+'">'+escapeHtml(action)+'</div><div class="stockPickerMeta">Job No: '+escapeHtml(row.jobNo||"")+" | Shift: "+escapeHtml(row.shift||"")+" | Job: "+escapeHtml(row.sheetJob||"")+completeBadge+'</div><div class="stockPickerMeta">Client: '+escapeHtml(row.client||"")+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.species||"")+" | "+escapeHtml(row.length||"")+"m | "+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | Qty "+escapeHtml(row.quantity||"")+'</div></div><div class="stockPickerGrid">'+stockDestinationTile(row.packDestination||getPackDestination(row))+"</div>";
 
     wrap.appendChild(card);
   });
@@ -1741,23 +1747,25 @@ function renderCoatingOverview(summary,rows){
 
   summary.forEach(item=>{
     const card=document.createElement("div");
-    card.className="stockPickerCard";
+    card.className="stockPickerCard"+(item.allCompleted?" jobQueueComplete":"");
+    const completedBadge=item.allCompleted?'<span class="jobCompleteBadge">COMPLETED</span>':"";
     const sequenceHtml=(item.sequenceLines||[]).map(line=>'<div class="coatingSummarySequence">'+escapeHtml(line)+'</div>').join("");
     const frLine=item.frCount?'<div class="frTreatmentLine">FR TREATMENT PASSES: '+escapeHtml(String(item.frCount))+'</div>':"";
     const qtyHtml=item.hasPaintQty?'<div class="coatingTotalsRow"><div class="stockPickerAction">'+escapeHtml(item.totalLitresDisplay||"")+'</div><div class="coatingVacuumExtra">'+escapeHtml(item.totalLitresWithVacuumExtraDisplay||"")+' inc extra for vacuum coater</div></div>':'<div class="coatingTotalsRow"><div class="coatingVacuumExtra">Treatment quantity not set yet</div></div>';
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+'</div>'+qtyHtml+'<div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+frLine+sequenceHtml+'</div>';
+    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+completedBadge+'</div>'+qtyHtml+'<div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+frLine+sequenceHtml+'</div>';
     totalsWrap.appendChild(card);
   });
 
   rows.forEach(row=>{
     const card=document.createElement("div");
-    card.className="stockPickerCard coatingJobClickable";
+    card.className="stockPickerCard coatingJobClickable"+(row.completed?" jobQueueComplete":"");
+    const completedBadge=row.completed?'<span class="jobCompleteBadge">COMPLETED</span>':"";
     const badgeClass=row.coatingStageUpper==="FR TREATMENT"?"coatingStageBadge fr":getCoatingStageBadgeClass(row.coatingStage||"");
     const title=(row.coatingStageUpper==="FR TREATMENT"?"FR Treatment":row.coatingStage?row.coatingStage:"Paint Room pass")+" — "+(row.client||"");
     const racking=row.rackRuleFound==="YES"?'Shelves: '+escapeHtml(row.shelvesRequired||"")+' | Racks: '+escapeHtml(row.racksRequired||"")+' | '+escapeHtml(row.piecesPerShelf||"")+' pcs/shelf':'No rack rule found';
     const frLine=row.isFrTreatment==="YES"?'<div class="frTreatmentLine">'+escapeHtml(row.fireTreatment||"Fire Treatment")+'</div>':"";
     const qtyLine=row.paintQty?'<div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div>':'<div class="stockPickerMeta">Treatment qty: not set</div>';
-    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"PAINT ROOM PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+frLine+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div>'+qtyLine+'<div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div><div class="coatingClickPrompt">Open Job</div></div>';
+    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"PAINT ROOM PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+frLine+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+completedBadge+'</div>'+qtyLine+'<div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div><div class="coatingClickPrompt">Open Job</div></div>';
     card.onclick=()=>openPaintRoomFromCoatingOverview(row);
     rowsWrap.appendChild(card);
   });
