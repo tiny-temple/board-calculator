@@ -76,6 +76,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .stockPickerTile{background:#f4f4f4;border-radius:10px;padding:10px}
 .stockPickerTileLabel{font-size:12px;color:#555;margin-bottom:4px}
 .stockPickerTileValue{font-size:16px;font-weight:600}
+.stockPickerSpec{font-size:20px;font-weight:800;line-height:1.45;color:#111;margin-top:4px}
 @media (min-width:700px){
 body{padding:16px;padding-bottom:40px;font-size:clamp(17px,1.6vw,22px)}
 #headerBar,.panel,#jobContextBar,#summary,#saveStatus,.grid{width:100%;max-width:none;margin-left:0!important;margin-right:0!important}
@@ -125,6 +126,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 .stockPickerPack{font-size:clamp(24px,2vw,34px)}
 .stockPickerAction{font-size:clamp(16px,1.4vw,22px);padding:8px 14px}
 .stockPickerMeta,.stockPickerTileValue{font-size:clamp(18px,1.6vw,24px)}
+.stockPickerSpec{font-size:clamp(24px,2.1vw,34px);line-height:1.4}
 .stockPickerTileLabel{font-size:clamp(14px,1.2vw,18px)}
 }
 @media (min-width:1100px){
@@ -150,7 +152,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 .stockPickerLabel{font-size:13px;color:#555;margin-bottom:4px}
 .stockPickerValue{font-size:22px;font-weight:700;color:#111}
 .stockPickerAction.keep{background:#1f1f1f;color:#fff}
-.stockPickerAction.return{background:#f1f1f1;color:#111;border:1px solid rgba(0,0,0,.18)}
+.stockPickerAction.return{background:#0b5ed7;color:#fff;border:1px solid #084298}
 @media (min-width:700px){.processSection{padding:clamp(14px,1.6vw,24px);margin-bottom:16px}.processSectionTitle{font-size:clamp(22px,2vw,32px);margin-bottom:14px}.processInfoText{font-size:clamp(18px,1.6vw,24px)}.processPackGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.processPackId{font-size:clamp(24px,2vw,34px)}.processPackLocation,.stockPickerValue{font-size:clamp(22px,1.9vw,30px)}.stockPickerHeaderGrid{grid-template-columns:1fr 1fr;gap:12px}.stockPickerLabel{font-size:clamp(14px,1.2vw,18px)}.processModeButtonSub{font-size:clamp(13px,1.1vw,17px)}}
 
 
@@ -402,8 +404,9 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
   align-items: center !important;
   justify-content: center !important;
   border-radius: 16px !important;
-  background: #1f1f1f !important;
-  color: #fff !important;
+  background: #fff !important;
+  color: #111 !important;
+  border: 4px solid #1f1f1f !important;
   font-size: clamp(38px, 4.5vw, 74px) !important;
   font-weight: 900 !important;
   line-height: 1 !important;
@@ -696,7 +699,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.70)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.71)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -1684,7 +1687,7 @@ function renderStockPickerRows(rows){
     const location=row.packLocation||"Location not set";
     const completeBadge=row.completed?'<span class="jobCompleteBadge">COMPLETED</span>':"";
 
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerHeaderGrid"><div class="stockPickerLabelValue"><div class="stockPickerLabel">Pack ID</div><div class="stockPickerValue">'+escapeHtml(row.packId||"")+'</div></div><div class="stockPickerLabelValue"><div class="stockPickerLabel">Stock location</div><div class="stockPickerValue">'+escapeHtml(location)+'</div></div></div><div class="stockPickerAction '+actionClass+'">'+escapeHtml(action)+'</div><div class="stockPickerMeta">Job No: '+escapeHtml(row.jobNo||"")+" | Shift: "+escapeHtml(row.shift||"")+" | Job: "+escapeHtml(row.sheetJob||"")+completeBadge+'</div><div class="stockPickerMeta">Client: '+escapeHtml(row.client||"")+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.species||"")+" | "+escapeHtml(row.length||"")+"m | "+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | Qty "+escapeHtml(row.quantity||"")+'</div></div><div class="stockPickerGrid">'+stockDestinationTile(row.packDestination||getPackDestination(row))+"</div>";
+    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerHeaderGrid"><div class="stockPickerLabelValue"><div class="stockPickerLabel">Pack ID</div><div class="stockPickerValue">'+escapeHtml(row.packId||"")+'</div></div><div class="stockPickerLabelValue"><div class="stockPickerLabel">Stock location</div><div class="stockPickerValue">'+escapeHtml(location)+'</div></div></div><div class="stockPickerAction '+actionClass+'">'+escapeHtml(action)+'</div><div class="stockPickerMeta">Job No: '+escapeHtml(row.jobNo||"")+" | Shift: "+escapeHtml(row.shift||"")+" | Job: "+escapeHtml(row.sheetJob||"")+completeBadge+'</div><div class="stockPickerMeta">Client: '+escapeHtml(row.client||"")+'</div><div class="stockPickerMeta stockPickerSpec">Spec: '+escapeHtml(row.species||"")+" | "+escapeHtml(row.length||"")+"m | "+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | Qty "+escapeHtml(row.quantity||"")+'</div></div><div class="stockPickerGrid">'+stockDestinationTile(row.packDestination||getPackDestination(row))+"</div>";
 
     wrap.appendChild(card);
   });
