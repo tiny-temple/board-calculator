@@ -725,13 +725,13 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.72)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.73)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button><button onclick="loadPackingQueue()">Packing</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
 <div id="packingQueuePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="packingQueueTitle">Packing Queue</label><div id="packingQueueStatus"></div></div><div id="packingQueueRows" class="packingQueueRows"></div><div class="basketActions"><button class="primaryBtn" onclick="loadPackingQueue(true)">Refresh Packing Queue</button><button onclick="backFromPackingQueue()">Back to home</button></div></div><div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
 <div id="step0_entry" class="hidden"><div class="fieldBlock"><label>What do you want to do?</label><div class="modeButtons" id="processModeButtons"></div></div><div class="basketActions"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
-<div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="updatePackingProductionStatus('Ready for Dispatch',false)">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="updatePackingProductionStatus('Ready for Collection',false)">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
+<div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Dispatch')">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Collection')">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="modeBlock" class="hidden"><label>Target Total is measured in:</label><select id="mode"></select></div>
 <div id="step1_boards" class="step hidden"><div id="boardsWrap"><input id="boards" type="number" placeholder="Quantity of Boards Required" /></div><div id="linearWrap"><input id="metres" type="number" placeholder="Number of Linear Metres Required" /><select id="boardLength"></select></div></div><div id="step2_perRow" class="step hidden"><select id="perRow"></select></div><div id="step3_yield" class="step hidden"><label>Yield when bandsawing</label><select id="yield"></select></div><div id="step4_loose" class="step hidden"><select id="topLoose"></select></div><div id="step5_rejects" class="step hidden step5Bar"><select id="rejects"></select><div class="step5Buttons"><button onclick="prevStep()">Back</button><button onclick="resetAll()">Reset</button><button onclick="backToProcessMenu()">Back to process menu</button></div></div>
 <div id="simpleLogger" class="hidden simpleBox"><div class="fieldBlock"><label id="simpleLoggerTitle">Log Rejects</label></div><div class="fieldBlock"><label>Pack ID used</label><select id="simplePackId"></select></div><div class="rejectLoggerLayout"><div class="rejectLoggerLeft"><div class="fieldBlock"><label>Tap defects as they happen</label><div id="rejectButtonGrid" class="rejectButtonGrid"></div></div></div><div class="rejectLoggerRight"><div id="rejectBasketTotals" class="rejectBasketTotals">No rejects logged yet.</div><div id="rejectNoteBlock" class="fieldBlock hidden" style="margin-top:10px;"><label id="rejectNoteLabel">Reject note required</label><textarea id="rejectNote" rows="3" placeholder="Add detail for Other or note-required defects"></textarea></div><div class="basketActions"><button onclick="undoLastReject()">Undo Last</button><button onclick="clearRejectBasket()">Clear</button><button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button><button onclick="returnToMenu()">Back to menu</button></div></div></div></div>
@@ -1371,31 +1371,48 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.73|";
+function savePackingQueueToLocalCache(data){try{if(data&&data.ok)localStorage.setItem(PACKING_QUEUE_CACHE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:data}))}catch(err){}}
+function getPackingQueueFromLocalCache(){try{const raw=localStorage.getItem(PACKING_QUEUE_CACHE_KEY);if(!raw)return null;const item=JSON.parse(raw);return item&&item.data&&item.data.ok?item:null}catch(err){return null}}
+function clearPackingQueueLocalCache(){try{localStorage.removeItem(PACKING_QUEUE_CACHE_KEY)}catch(err){}}
+function applyPackingQueueData(data,fromLocal){
+  currentPackingQueue=data;
+  currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
+  currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
+  currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
+  currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
+  renderPackingQueue(data.jobs||[],fromLocal===true);
+}
 function loadPackingQueue(forceFresh){
   hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();
   packingQueueActive=true;currentTeam="PACKING";currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;
   clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";
   document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");
   document.getElementById("packingQueuePanel").classList.remove("hidden");document.getElementById("packingQueueTitle").innerText="Packing Queue";
-  document.getElementById("packingQueueRows").innerHTML="";document.getElementById("packingQueueStatus").innerText=forceFresh?"Refreshing Packing Queue...":"Loading Packing Queue...";
+  const cached=!forceFresh?getPackingQueueFromLocalCache():null;
+  if(cached){
+    applyPackingQueueData(cached.data,true);
+  }else{
+    document.getElementById("packingQueueRows").innerHTML="";
+    document.getElementById("packingQueueStatus").innerText=forceFresh?"Refreshing Packing Queue...":"Loading Packing Queue...";
+  }
   updateJobContextBar();updateUI();
   const callbackName="pwaPackingQueueCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
   window[callbackName]=function(data){
     delete window[callbackName];
-    if(!data||!data.ok){document.getElementById("packingQueueStatus").innerText=data&&data.error?"Could not load Packing Queue: "+data.error:"Could not load Packing Queue.";return}
-    currentPackingQueue=data;
-    currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
-    currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
-    currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
-    currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
-    renderPackingQueue(data.jobs||[]);
+    if(!data||!data.ok){
+      document.getElementById("packingQueueStatus").innerText=cached?"Saved Packing Queue shown — live refresh failed.":(data&&data.error?"Could not load Packing Queue: "+data.error:"Could not load Packing Queue.");
+      return;
+    }
+    savePackingQueueToLocalCache(data);
+    applyPackingQueueData(data,false);
   };
   const script=document.createElement("script");
   script.src=REJECT_LOG_WEB_APP_URL+"?action=getPackingQueue"+(forceFresh?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
-  script.onerror=function(){delete window[callbackName];document.getElementById("packingQueueStatus").innerText="Packing Queue load failed.";};
+  script.onerror=function(){delete window[callbackName];document.getElementById("packingQueueStatus").innerText=cached?"Saved Packing Queue shown — live refresh failed.":"Packing Queue load failed.";};
   document.body.appendChild(script);
 }
-function renderPackingQueue(jobs){
+function renderPackingQueue(jobs,fromLocal){
   const wrap=document.getElementById("packingQueueRows");
   wrap.innerHTML="";
   if(!jobs.length){
@@ -1403,7 +1420,7 @@ function renderPackingQueue(jobs){
     return;
   }
   const openCount=jobs.filter(job=>packingValueIsTrue(job.canOpenPackingCard)).length;
-  document.getElementById("packingQueueStatus").innerText=jobs.length+" job"+(jobs.length===1?"":"s")+" shown | "+openCount+" actionable.";
+  document.getElementById("packingQueueStatus").innerText=(fromLocal?"Saved list shown — refreshing live. ":"")+jobs.length+" job"+(jobs.length===1?"":"s")+" shown | "+openCount+" actionable.";
   jobs.forEach(job=>{
     const canOpen=packingValueIsTrue(job.canOpenPackingCard);
     const displayState=String(job.cardDisplayState||job.packingStatus||"").trim();
@@ -1441,26 +1458,37 @@ function configureStandalonePackingUI(){
   const changeSetupBtn=document.getElementById("changeSetupBtn");
   const processMenuBtn=document.getElementById("backToProcessMenuBtn");
   const actions=document.getElementById("packingStatusActions");
-  [document.getElementById("packingMarkPackedBtn"),document.getElementById("packingReadyDispatchBtn"),document.getElementById("packingReadyCollectionBtn")].forEach(btn=>btn.classList.add("hidden"));
+  const markPackedBtn=document.getElementById("packingMarkPackedBtn");
+  const readyDispatchBtn=document.getElementById("packingReadyDispatchBtn");
+  const readyCollectionBtn=document.getElementById("packingReadyCollectionBtn");
+  [markPackedBtn,readyDispatchBtn,readyCollectionBtn].forEach(btn=>btn.classList.add("hidden"));
+  readyDispatchBtn.innerText="Mark Ready for Dispatch";
+  readyCollectionBtn.innerText="Mark Ready for Collection";
   if(!standalone){
     packBlock.classList.remove("hidden");startRejectBtn.classList.remove("hidden");changeSetupBtn.classList.remove("hidden");processMenuBtn.classList.remove("hidden");actions.classList.add("hidden");return;
   }
   packBlock.classList.add("hidden");visualiserBtn.classList.add("hidden");startRejectBtn.classList.add("hidden");changeSetupBtn.classList.add("hidden");processMenuBtn.classList.add("hidden");actions.classList.remove("hidden");
   const status=normalise(currentJob.packingStatus||"");
+  const target=getPackingReleaseTarget(currentJob);
   const note=document.getElementById("packingStatusActionNote");
   if(status==="packed"){
-    const target=getPackingReleaseTarget(currentJob);
     note.innerText=target?"Delivery Type: "+(currentJob.deliveryType||"")+" — release this packed job.":"Delivery Type is not set. Select the correct release status.";
-    if(target==="Ready for Collection")document.getElementById("packingReadyCollectionBtn").classList.remove("hidden");
-    else if(target==="Ready for Dispatch")document.getElementById("packingReadyDispatchBtn").classList.remove("hidden");
-    else{
-      document.getElementById("packingReadyDispatchBtn").classList.remove("hidden");
-      document.getElementById("packingReadyCollectionBtn").classList.remove("hidden");
-    }
   }else{
-    note.innerText="Complete the packing checks, then mark this job as Packed.";
-    document.getElementById("packingMarkPackedBtn").classList.remove("hidden");
+    note.innerText=target?"Complete the packing checks, then either mark Packed or pack and release directly as "+target+".":"Complete the packing checks, then mark Packed or select the correct direct release status.";
+    markPackedBtn.classList.remove("hidden");
+    readyDispatchBtn.innerText="Pack & Mark Ready for Dispatch";
+    readyCollectionBtn.innerText="Pack & Mark Ready for Collection";
   }
+  if(target==="Ready for Collection")readyCollectionBtn.classList.remove("hidden");
+  else if(target==="Ready for Dispatch")readyDispatchBtn.classList.remove("hidden");
+  else{
+    readyDispatchBtn.classList.remove("hidden");
+    readyCollectionBtn.classList.remove("hidden");
+  }
+}
+function releasePackingProductionStatus(newStatus){
+  const requireChecks=normalise(currentJob&&currentJob.packingStatus||"")!=="packed";
+  updatePackingProductionStatus(newStatus,requireChecks);
 }
 function updatePackingProductionStatus(newStatus,requireChecks){
   if(!isStandalonePackingJob()||!currentJob)return;
@@ -1479,6 +1507,7 @@ function updatePackingProductionStatus(newStatus,requireChecks){
       note.innerText=data&&data.error?"Status update failed: "+data.error:"Status update failed.";
       return;
     }
+    clearPackingQueueLocalCache();
     showPreloadPopup("Packing status updated",newStatus,1400);
     currentJob=null;currentEntryMode="";loadPackingQueue(true);
   };
@@ -2063,7 +2092,24 @@ function hideProcessSetupScreen(){const panel=document.getElementById("processSe
 function buildOperatorSelect(){const slots=getOperatorSlotCountForCurrentProcess();const sel=document.getElementById("operatorId");populateOperatorSelectElement(sel,slots>1?"Select operator 1":"Select operator");const extra=document.getElementById("extraOperatorSlots");if(extra)extra.innerHTML="";for(let i=2;i<=slots;i++){const block=document.createElement("div");block.className="fieldBlock";const label=document.createElement("label");label.textContent="Operator ID "+i;const select=document.createElement("select");select.className="operatorSlotSelect";select.dataset.operatorSlot=String(i);populateOperatorSelectElement(select,"Select operator "+i);select.onchange=updateOperatorGuestVisibility;block.appendChild(label);block.appendChild(select);if(extra)extra.appendChild(block)}sel.onchange=updateOperatorGuestVisibility}
 
 function fillSetupPackIdField(){populatePackSelect(document.getElementById("setupPackId"),jobContext.packId||"")}
-function configureProcessChecks(mode){const processStage=(ENTRY_MODES[mode]||{}).processStage||"";const jobVariant=getJobProcessVariant(currentJob);currentProcessCheckItems=currentBackendProcessChecks.filter(row=>normalise(row.process)===normalise(processStage)&&checkVariantMatches(row.processVariant||"",jobVariant)&&checkFireTreatmentMatch(row.fireTreatmentMatch||"",currentJob));currentProcessCheckItems.sort((a,b)=>Number(a.displayOrder||9999)-Number(b.displayOrder||9999));const wrap=document.getElementById("processChecks");wrap.innerHTML="";if(!currentProcessCheckItems.length){const line=document.createElement("div");line.className="processReminderBox";line.innerText="No setup checks configured for "+getProcessStageTitle(processStage,currentJob)+".";wrap.appendChild(line);return}currentProcessCheckItems.forEach((item,index)=>{const label=document.createElement("label");label.className="checkLine";const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.id="processCheck_"+index;checkbox.dataset.checkKey=item.checkKey||"";checkbox.dataset.checkLabel=item.checkLabel||"";checkbox.dataset.required=String(item.required!==false);const textWrap=document.createElement("span");textWrap.className="checkTextWrap";const span=document.createElement("span");span.textContent=item.checkLabel||"";textWrap.appendChild(span);const sopUrl=String(item.sopUrl||"").trim();if(sopUrl){const link=document.createElement("a");link.className="checkSopLink";link.href=sopUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent=item.sopLabel||"GembaDoc";link.onclick=function(event){event.stopPropagation()};link.onmousedown=function(event){event.stopPropagation()};link.ontouchstart=function(event){event.stopPropagation()};textWrap.appendChild(link)}label.appendChild(checkbox);label.appendChild(textWrap);wrap.appendChild(label)})}
+function packingJobHasIronmongery(job){
+  const value=normalise(job&&job.ironmongeryRequired||"");
+  return value==="yes"||value==="true"||value==="required"||value==="y"||value==="1";
+}
+function packingCheckMatchesJob(item,job){
+  if(!isStandalonePackingJob())return true;
+  const condition=normalise(item.jobCondition||"");
+  const coated=isCoatingRelevantFrontEnd(job&&job.coating);
+  const hasIronmongery=packingJobHasIronmongery(job);
+  if(condition==="coated only"&&!coated)return false;
+  if(condition==="uncoated only"&&coated)return false;
+  if(condition==="ironmongery only"&&!hasIronmongery)return false;
+  const key=normalise((item.checkKey||"")+" "+(item.checkLabel||"")).replace(/\s+/g,"");
+  if(key.indexOf("touchup")!==-1&&!coated)return false;
+  if(key.indexOf("ironmongery")!==-1&&!hasIronmongery)return false;
+  return true;
+}
+function configureProcessChecks(mode){const processStage=(ENTRY_MODES[mode]||{}).processStage||"";const jobVariant=getJobProcessVariant(currentJob);currentProcessCheckItems=currentBackendProcessChecks.filter(row=>normalise(row.process)===normalise(processStage)&&checkVariantMatches(row.processVariant||"",jobVariant)&&checkFireTreatmentMatch(row.fireTreatmentMatch||"",currentJob)&&packingCheckMatchesJob(row,currentJob));currentProcessCheckItems.sort((a,b)=>Number(a.displayOrder||9999)-Number(b.displayOrder||9999));const wrap=document.getElementById("processChecks");wrap.innerHTML="";if(!currentProcessCheckItems.length){const line=document.createElement("div");line.className="processReminderBox";line.innerText="No setup checks configured for "+getProcessStageTitle(processStage,currentJob)+".";wrap.appendChild(line);return}currentProcessCheckItems.forEach((item,index)=>{const label=document.createElement("label");label.className="checkLine";const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.id="processCheck_"+index;checkbox.dataset.checkKey=item.checkKey||"";checkbox.dataset.checkLabel=item.checkLabel||"";checkbox.dataset.required=String(item.required!==false);const textWrap=document.createElement("span");textWrap.className="checkTextWrap";const span=document.createElement("span");span.textContent=item.checkLabel||"";textWrap.appendChild(span);const sopUrl=String(item.sopUrl||"").trim();if(sopUrl){const link=document.createElement("a");link.className="checkSopLink";link.href=sopUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent=item.sopLabel||"GembaDoc";link.onclick=function(event){event.stopPropagation()};link.onmousedown=function(event){event.stopPropagation()};link.ontouchstart=function(event){event.stopPropagation()};textWrap.appendChild(link)}label.appendChild(checkbox);label.appendChild(textWrap);wrap.appendChild(label)})}
 
 function renderProcessJobCard(mode){const card=document.getElementById("processJobCard"),title=document.getElementById("processSetupTitle"),customInfoBox=document.getElementById("processCustomInfo"),reminderBox=document.getElementById("processReminderBox"),config=ENTRY_MODES[mode]||{};const processStage=config.processStage||"Process";const stageTitle=getProcessStageTitle(processStage,currentJob);title.innerText=stageTitle+" Setup Check";if(!currentJob){card.innerHTML="";customInfoBox.classList.add("hidden");reminderBox.classList.add("hidden");return}let jobTiles;if(isStandalonePackingJob()){jobTiles=[["Status",currentJob.packingStatus||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Delivery Type",currentJob.deliveryType||"Not set"]]}else if(processStage==="Paint Room"&&isFrTreatmentStage(currentJob)){jobTiles=[["Job",currentJob.sheetJob||""],["Stage","FR Treatment"],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Treatment",getFireTreatmentDisplay(currentJob)||"Fire Treatment"],["Treatment qty",displayNotYetSet(currentJob.paintQty)]]}else if(processStage==="Paint Room"&&isRecoatJob(currentJob)){jobTiles=[["Job",currentJob.sheetJob||""],["Stage",getJobProcessVariant(currentJob)],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Coating",currentJob.coating||""],["Paint qty",displayNotYetSet(currentJob.paintQty)]]}else{jobTiles=[["Job",currentJob.sheetJob||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Texture",currentJob.texture||""]]}let html=processSection("Job Summary",buildTileRows(jobTiles));if(isFireTreatmentActive(currentJob)){html+=processSection("Fire Treatment",'<div class="frTreatmentLine">FR TREATMENT — '+escapeHtml(getFireTreatmentDisplay(currentJob)||"Fire Treatment")+'</div>')}const allExtraFields=getProcessFieldValuesForCurrentJob(processStage).filter(field=>String(field.value||"").trim()!=="");const routeFields=allExtraFields.filter(field=>isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const infoFields=allExtraFields.filter(field=>!isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const processTiles=[];infoFields.forEach(field=>{let displayValue=field.value||"";if(normalise(field.fieldLabel||field.fieldKey)==="paint qty")displayValue=displayNotYetSet(displayValue);if(String(displayValue||"").trim()!==""&&!processTiles.some(tile=>normalise(tile[0])===normalise(field.fieldLabel||field.fieldKey)))processTiles.push([field.fieldLabel||field.fieldKey||"",displayValue])});if(processStage==="Paint Room"&&shouldShowRackingInfoForProcess(processStage)){getPaintRoomRackingTiles(currentJob).forEach(tile=>{if(!processTiles.some(existing=>normalise(existing[0])===normalise(tile[0])))processTiles.push(tile)})}if(processTiles.length)html+=processSection("Process Info",'<div class="processExtraFieldsGrid">'+processTiles.map(tile=>processTile(tile[0],tile[1])).join("")+'</div>');if(shouldShowPackMaterialForProcess(processStage))html+=processSection("Pack / Material",buildProcessPackCards());card.innerHTML=html;const customInfo=String(currentJob.customInfo||"").trim();if(customInfo){customInfoBox.innerText=customInfo;customInfoBox.classList.remove("hidden");customInfoBox.classList.add("collapsed")}else customInfoBox.classList.add("hidden");const reminder=getReminderForEntryMode(mode);if(reminder){reminderBox.innerText="Reminder: "+reminder;reminderBox.classList.remove("hidden")}else reminderBox.classList.add("hidden")}
 
