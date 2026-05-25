@@ -433,6 +433,44 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
   letter-spacing: .04em;
 }
 
+
+.processPreviouslyLogged {
+  opacity: .55 !important;
+  filter: grayscale(.65);
+  background: #efefef !important;
+  border-style: dashed !important;
+}
+
+.processLoggedBadge {
+  display: block;
+  margin-top: 7px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #444;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .03em;
+}
+
+.coatingPassPreviouslyLogged {
+  opacity: .58 !important;
+  filter: grayscale(.65);
+  background: #efefef !important;
+  border-style: dashed !important;
+}
+
+.coatingPassLogBadge {
+  display: inline-block;
+  margin: 0 0 8px 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #444;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: .03em;
+}
 .jobCachedBadge {
   display: inline-block;
   margin-left: 8px;
@@ -735,7 +773,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.76)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.77)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button><button onclick="loadPackingQueue()">Packing</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -762,7 +800,33 @@ const modeSel=document.getElementById("mode"),looseSel=document.getElementById("
 ["Boards","Linear"].forEach(v=>{const o=document.createElement("option");o.value=v.toLowerCase();o.textContent=v;modeSel.appendChild(o)});modeSel.value="boards";
 BOARD_LENGTHS.forEach(v=>{const o=document.createElement("option");o.value=v==="Select Board Length"?"":v;o.textContent=v;bl.appendChild(o)});bl.value="";
 for(let i=1;i<=6;i++){const o=document.createElement("option");o.value=i;o.textContent=i;yieldSel.appendChild(o)}yieldSel.value=1;
-function buildProcessMenu(){const wrap=document.getElementById("processModeButtons");wrap.innerHTML="";PROCESS_MENU_ORDER.forEach(mode=>{const config=ENTRY_MODES[mode];if(!config)return;const availability=getProcessAvailability(mode);const btn=document.createElement("button");btn.type="button";btn.className=mode==="pack_visualiser"?"primaryBtn":"";if(!availability.available){btn.classList.add("processModeButtonUnavailable");btn.disabled=true}btn.innerHTML=escapeHtml(config.menuLabel||config.label)+(availability.reason?'<span class="processModeButtonSub">'+escapeHtml(availability.reason)+'</span>':"");btn.onclick=()=>{if(!availability.available)return;setEntryMode(mode)};wrap.appendChild(btn)})}
+function buildProcessMenu(){
+  const wrap=document.getElementById("processModeButtons");
+  wrap.innerHTML="";
+  PROCESS_MENU_ORDER.forEach(mode=>{
+    const config=ENTRY_MODES[mode];
+    if(!config)return;
+    const availability=getProcessAvailability(mode);
+    const logged=getLoggedProcessRecordForMode(mode,currentJob);
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.className=mode==="pack_visualiser"?"primaryBtn":"";
+    if(logged)btn.classList.add("processPreviouslyLogged");
+    if(!availability.available){
+      btn.classList.add("processModeButtonUnavailable");
+      btn.disabled=true;
+    }
+    let html=escapeHtml(config.menuLabel||config.label);
+    if(logged){
+      html+='<span class="processLoggedBadge">'+escapeHtml(formatLoggedProcessLabel(logged))+'</span>';
+    }else if(availability.reason){
+      html+='<span class="processModeButtonSub">'+escapeHtml(availability.reason)+'</span>';
+    }
+    btn.innerHTML=html;
+    btn.onclick=()=>{if(!availability.available)return;setEntryMode(mode)};
+    wrap.appendChild(btn);
+  });
+}
 function getProcessAvailability(mode){
   if(!currentJob||mode==="pack_visualiser")return{available:true,reason:""};
 
@@ -1286,7 +1350,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.76|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.77|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const PROCESS_OPERATOR_MEMORY_PREFIX="ttProcessOperatorMemory|v1.76|";
 const JOB_OPERATOR_MEMORY_PREFIX="ttJobProcessOperatorMemory|v1.76|";
@@ -1618,8 +1682,88 @@ function cleanProcessVariant(value){
 function getJobProcessVariant(job){
   return cleanProcessVariant(job&&((job.processVariant||job.coatingStage)||""));
 }
+function isLaterPaintCoatVariant(value){
+  const text=normalise(value||"");
+  return text.indexOf("recoat")!==-1||text.indexOf("2nd coat")!==-1||text.indexOf("second coat")!==-1||text.indexOf("3rd coat")!==-1||text.indexOf("third coat")!==-1||text.indexOf("4th coat")!==-1||text.indexOf("fourth coat")!==-1;
+}
 function isRecoatJob(job){
-  return normalise(getJobProcessVariant(job)).indexOf("recoat")!==-1;
+  return isLaterPaintCoatVariant(getJobProcessVariant(job));
+}
+function normaliseEvidenceProcess(value){
+  return normalise(value||"");
+}
+function getLoggedProcessRecordForStage(processStage,job){
+  const records=job&&Array.isArray(job.loggedProcessRecords)?job.loggedProcessRecords:[];
+  const stage=normaliseEvidenceProcess(processStage);
+  const variant=stage==="paint room"?normalise(getJobProcessVariant(job)):"";
+  return records.find(record=>{
+    if(normaliseEvidenceProcess(record.processStage)!==stage)return false;
+    if(stage!=="paint room")return true;
+    return normalise(record.processVariant||"")===variant;
+  })||null;
+}
+function getLoggedProcessRecordForMode(mode,job){
+  const config=ENTRY_MODES[mode]||{};
+  return getLoggedProcessRecordForStage(config.processStage||"",job);
+}
+function formatLoggedProcessLabel(record){
+  const qty=Number(record&&record.totalRejectQty||0);
+  const submissions=Number(record&&record.submissionCount||0);
+  const result=qty>0?"LOGGED — "+qty+" REJECT"+(qty===1?"":"S"):"LOGGED — NO REJECTS";
+  return result+" | TAP TO ADD EXTRA"+(submissions>1?" ("+submissions+" LOGS)":"");
+}
+function sameOperationalJob(a,b){
+  const uidA=String(a&&a.productionUid||"").trim();
+  const uidB=String(b&&b.productionUid||"").trim();
+  if(uidA&&uidB)return uidA===uidB;
+  const rowA=String(a&&a.productionRow||"").trim();
+  const rowB=String(b&&b.productionRow||"").trim();
+  return !!rowA&&rowA===rowB;
+}
+function processEvidenceRecordFromPayload(payload,totalRejects){
+  const variant=normalise(payload.processStage||"")==="paint room"?String(payload.processVariant||"").trim():"";
+  return {
+    processStage:String(payload.processStage||"").trim(),
+    processVariant:variant,
+    totalRejectQty:Number(totalRejects||0),
+    hasRejects:Number(totalRejects||0)>0,
+    noRejectsLogged:Number(totalRejects||0)===0,
+    submissionCount:1,
+    latestLoggedAt:String(payload.timestamp||new Date().toISOString()),
+    latestOperator:String(payload.processSetup&&payload.processSetup.operatorId||"")
+  };
+}
+function mergeLoggedProcessRecord(job,record){
+  if(!job||!record||!record.processStage)return;
+  if(!Array.isArray(job.loggedProcessRecords))job.loggedProcessRecords=[];
+  const stage=normaliseEvidenceProcess(record.processStage);
+  const variant=stage==="paint room"?normalise(record.processVariant||""):"";
+  const existing=job.loggedProcessRecords.find(item=>normaliseEvidenceProcess(item.processStage)===stage&&(stage!=="paint room"||normalise(item.processVariant||"")===variant));
+  if(existing){
+    existing.totalRejectQty=Number(existing.totalRejectQty||0)+Number(record.totalRejectQty||0);
+    existing.hasRejects=existing.hasRejects===true||record.hasRejects===true;
+    existing.noRejectsLogged=existing.noRejectsLogged===true||record.noRejectsLogged===true;
+    existing.submissionCount=Number(existing.submissionCount||0)+1;
+    existing.latestLoggedAt=record.latestLoggedAt||existing.latestLoggedAt||"";
+    existing.latestOperator=record.latestOperator||existing.latestOperator||"";
+  }else{
+    job.loggedProcessRecords.push(record);
+  }
+}
+function markProcessEvidenceLocally(payload,totalRejects){
+  if(!payload||!payload.processStage)return;
+  const record=processEvidenceRecordFromPayload(payload,totalRejects);
+  const candidates=[];
+  if(currentJob)candidates.push(currentJob);
+  if(currentTeamDashboard&&Array.isArray(currentTeamDashboard.jobs)){
+    currentTeamDashboard.jobs.forEach(job=>candidates.push(job));
+  }
+  candidates.forEach(job=>{
+    if(!sameOperationalJob(job,currentJob))return;
+    if(normalise(payload.processStage||"")==="paint room"&&normalise(getJobProcessVariant(job))!==normalise(payload.processVariant||""))return;
+    mergeLoggedProcessRecord(job,Object.assign({},record));
+  });
+  if(currentTeamDashboard&&currentTeamDashboard.ok)saveTeamDashboardToLocalCache(currentTeam,currentTeamDashboard);
 }
 function getProcessStageTitle(processStage,job){
   const variant=getJobProcessVariant(job);
@@ -1634,7 +1778,7 @@ function checkVariantMatches(rowVariant,jobVariant){
   if(!rv)return true;
   return normalise(rv)===normalise(jv);
 }
-function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");applyCompletedStateToJobs(jobs||[]);updateCoatingOverviewButtons(jobs||[]);if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";document.getElementById("stockPickerButtonWrap").classList.add("hidden");return}document.getElementById("stockPickerButtonWrap").classList.remove("hidden");wrap.innerHTML="";jobs.forEach((job,index)=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");const completed=isJobCompleted(job);if(completed)btn.classList.add("jobQueueComplete");const cached=getJobDetailsFromLocalCache(job);const variant=getJobProcessVariant(job);const recoat=isRecoatJob(job);const frActive=isFireTreatmentActive(job);const frBadge=frActive?'<span class="frTreatmentBadge">FR TREATMENT</span>':"";const variantBadge=variant?(recoat?'<span class="recoatBadge">RECOAT</span>':(normalise(variant).indexOf("fr treatment")!==-1?'<span class="frTreatmentBadge">FR TREATMENT</span>':'<span class="queueVariantBadge">'+escapeHtml(variant.toUpperCase())+'</span>')):"";const badges=variantBadge+(frActive&&normalise(variant).indexOf("fr treatment")===-1?frBadge:"")+(completed?'<span class="jobCompleteBadge">COMPLETED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");let detailLine;if(isFrTreatmentStage(job)){detailLine="Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(getFireTreatmentDisplay(job)||"Fire Treatment")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")}else if(recoat){detailLine="Qty: "+escapeHtml(job.quantity||"")+" | Coating: "+escapeHtml(job.coating||"")+" | Paint qty: "+escapeHtml(job.paintQty||"")+" | "+escapeHtml(job.length||"")+"m"}else{detailLine="Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")}btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+badges+"</strong><br>"+detailLine+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
+function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");applyCompletedStateToJobs(jobs||[]);updateCoatingOverviewButtons(jobs||[]);if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";document.getElementById("stockPickerButtonWrap").classList.add("hidden");return}document.getElementById("stockPickerButtonWrap").classList.remove("hidden");wrap.innerHTML="";jobs.forEach((job,index)=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");const loggedPaint=getLoggedProcessRecordForStage("Paint Room",job);const completed=!!loggedPaint;if(completed)btn.classList.add("jobQueueComplete");const cached=getJobDetailsFromLocalCache(job);const variant=getJobProcessVariant(job);const recoat=isRecoatJob(job);const frActive=isFireTreatmentActive(job);const frBadge=frActive?'<span class="frTreatmentBadge">FR TREATMENT</span>':"";const variantBadge=variant?(recoat?'<span class="recoatBadge">RECOAT</span>':(normalise(variant).indexOf("fr treatment")!==-1?'<span class="frTreatmentBadge">FR TREATMENT</span>':'<span class="queueVariantBadge">'+escapeHtml(variant.toUpperCase())+'</span>')):"";const badges=variantBadge+(frActive&&normalise(variant).indexOf("fr treatment")===-1?frBadge:"")+(completed?'<span class="jobCompleteBadge">PAINT LOGGED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");let detailLine;if(isFrTreatmentStage(job)){detailLine="Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(getFireTreatmentDisplay(job)||"Fire Treatment")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")}else if(recoat){detailLine="Qty: "+escapeHtml(job.quantity||"")+" | Coating: "+escapeHtml(job.coating||"")+" | Paint qty: "+escapeHtml(job.paintQty||"")+" | "+escapeHtml(job.length||"")+"m"}else{detailLine="Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")}btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+badges+"</strong><br>"+detailLine+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
 
 function parseLitresText(value){
   const m=String(value||"").match(/[-+]?\d*\.?\d+/);
@@ -1877,7 +2021,8 @@ function buildCoatingOverviewFromJobs(jobs){
       shelvesRequired:rackInfo.shelvesRequired,
       racksRequired:rackInfo.racksRequired,
       rackRuleFound:rackInfo.hasRule?"YES":"NO",
-      completed:isJobCompleted(job)
+      loggedRecord:getLoggedProcessRecordForStage("Paint Room",job),
+      completed:!!getLoggedProcessRecordForStage("Paint Room",job)
     };
 
     rows.push(row);
@@ -2026,15 +2171,16 @@ function renderCoatingOverview(summary,rows){
 
   rows.forEach(row=>{
     const card=document.createElement("div");
-    card.className="stockPickerCard coatingJobClickable";
+    card.className="stockPickerCard coatingJobClickable"+(row.completed?" coatingPassPreviouslyLogged":"");
+    const logBadge=row.completed?'<span class="coatingPassLogBadge">'+escapeHtml(formatLoggedProcessLabel(row.loggedRecord))+'</span>':"";
     const badgeClass=row.coatingStageUpper==="FR TREATMENT"?"coatingStageBadge fr":getCoatingStageBadgeClass(row.coatingStage||"");
     const title=(row.coatingStageUpper==="FR TREATMENT"?"FR Treatment":row.coatingStage?row.coatingStage:"Paint Room pass")+" — "+(row.client||"");
     const racking=row.rackRuleFound==="YES"?'Shelves: '+escapeHtml(row.shelvesRequired||"")+' | Racks: '+escapeHtml(row.racksRequired||"")+' | '+escapeHtml(row.piecesPerShelf||"")+' pcs/shelf':'No rack rule found';
     const frLine=row.isFrTreatment==="YES"?'<div class="frTreatmentLine">'+escapeHtml(row.fireTreatment||"Fire Treatment")+'</div>':"";
     const qtyLine=row.paintQty?'<div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div>':'<div class="stockPickerMeta">Treatment qty: not set</div>';
-    const isRecoat=normalise(row.coatingStage||"").indexOf("recoat")!==-1;
+    const isRecoat=isLaterPaintCoatVariant(row.coatingStage||"");
     const quickButton=isRecoat?'<button type="button" class="quickPaintCardButton">No rejects on this coat</button>':"";
-    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"PAINT ROOM PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+frLine+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div>'+qtyLine+'<div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div>'+quickButton+'<div class="coatingClickPrompt">Open Job</div></div>';
+    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"PAINT ROOM PASS")+'</div>'+logBadge+'<div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+frLine+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div>'+qtyLine+'<div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div>'+quickButton+'<div class="coatingClickPrompt">'+(row.completed?"Open to add extra rejects":"Open Job")+'</div></div>';
     card.onclick=()=>openPaintRoomFromCoatingOverview(row);
     const quick=card.querySelector(".quickPaintCardButton");
     if(quick)quick.onclick=(event)=>quickLogNoRejectsFromCoatingOverview(row,event);
@@ -2403,6 +2549,7 @@ function submitNoRejectsForCurrentPaintPass(fromOverview){
       rejectQty:0
     }]
   };
+  markProcessEvidenceLocally(payload,0);
   const outboxOk=sendRejectPayloadInBackground(payload);
   document.getElementById("saveStatus").innerText="";
   showPostSaveScreen(payload,0);
@@ -2728,6 +2875,7 @@ try{
   rejectBasket={};
   rejectHistory=[];
   renderRejectBasket();
+  markProcessEvidenceLocally(payload,totalRejects);
   const outboxOk=sendRejectPayloadInBackground(payload);
   status.innerText="";
   showPostSaveScreen(payload,totalRejects);
