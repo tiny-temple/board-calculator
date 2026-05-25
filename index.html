@@ -773,7 +773,7 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.77)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.78)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button><button onclick="loadPackingQueue()">Packing</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
@@ -881,9 +881,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.76|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.78|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.76|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.78|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1350,7 +1350,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.77|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.78|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const PROCESS_OPERATOR_MEMORY_PREFIX="ttProcessOperatorMemory|v1.76|";
 const JOB_OPERATOR_MEMORY_PREFIX="ttJobProcessOperatorMemory|v1.76|";
@@ -2407,7 +2407,7 @@ function applyRememberedOperatorsForCurrentProcess(){
 function configurePaintRoomQuickAction(){
   const btn=document.getElementById("quickPaintNoRejectBtn");
   if(!btn)return;
-  const show=currentEntryMode==="paint_room_rejects";
+  const show=currentEntryMode==="paint_room_rejects"&&isRecoatJob(currentJob);
   btn.classList.toggle("hidden",!show);
   if(show){
     const variant=getJobProcessVariant(currentJob);
@@ -2503,7 +2503,11 @@ function quickLogNoRejectsFromCoatingOverview(row,event){
 }
 function submitNoRejectsForCurrentPaintPass(fromOverview){
   if(currentEntryMode!=="paint_room_rejects"||!currentJob){
-    showProcessWarning("Open a Paint Room coat before recording no rejects.");
+    showProcessWarning("Open a Paint Room recoat before recording no rejects.");
+    return;
+  }
+  if(!isRecoatJob(currentJob)){
+    showProcessWarning("First Coat requires the full Paint Room setup checks. Use Start logging rejects, then record No Rejects.");
     return;
   }
   const setup=getQuickPaintNoRejectSetup();
