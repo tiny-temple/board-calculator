@@ -770,13 +770,167 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 .packingSyncStatus.pending{background:#fff3cd;border:1px solid #d6a93f;color:#5c4500;font-weight:700}
 @media (min-width:700px){.packingSyncStatus{font-size:clamp(18px,1.6vw,24px);padding:12px 16px}}
 
+
+/* v1.79 Queue visual pass — presentation only */
+:root{
+  --tt-bg:#f6f8f5;
+  --tt-surface:#ffffff;
+  --tt-surface-soft:#f3f6f1;
+  --tt-border:#dfe5de;
+  --tt-border-strong:#cbd5cc;
+  --tt-ink:#111815;
+  --tt-muted:#58645b;
+  --tt-green:#25933f;
+  --tt-green-deep:#167831;
+  --tt-green-soft:#edf7ef;
+  --tt-amber:#986000;
+  --tt-amber-soft:#fff4e1;
+  --tt-blue:#0b5ed7;
+  --tt-grey-soft:#f0f2f0;
+  --tt-shadow:0 1px 2px rgba(20,33,22,.05),0 6px 18px rgba(20,33,22,.035);
+  --tt-radius:16px;
+}
+body{background:var(--tt-bg);color:var(--tt-ink)}
+.panel{max-width:900px;padding:0 14px;margin:0 auto 24px}
+.queueHome{width:100%;max-width:100%;min-width:0}
+.queueAppHeader{display:flex!important;justify-content:space-between;align-items:center!important;gap:12px;margin:0 0 22px!important;padding:22px 2px 0;min-height:0!important}
+.queueBrand{font-size:11px;font-weight:850;letter-spacing:.17em;color:var(--tt-green-deep);margin-bottom:5px}
+.queuePageTitle{margin:0;font-size:clamp(30px,4vw,40px);line-height:1.04;font-weight:800;letter-spacing:-.035em;color:var(--tt-ink)}
+.queueSyncBadge{display:flex;align-items:center;gap:9px;flex:0 1 auto;min-width:138px;max-width:190px;padding:9px 11px;border-radius:14px;border:1px solid var(--tt-border);background:var(--tt-surface);color:var(--tt-muted);box-shadow:var(--tt-shadow)}
+.queueSyncBadge.ready,.queueSyncBadge.saved{border-color:#bfdec6;background:var(--tt-green-soft);color:var(--tt-green-deep)}
+.queueSyncBadge.loading{border-color:#dddfdc;background:#fff;color:var(--tt-muted)}
+.queueSyncBadge.error{border-color:#ecd1cb;background:#fff2f0;color:#963622}
+.queueSyncIcon{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eef1ed;font-size:17px;font-weight:900;line-height:1}
+.queueSyncBadge.ready .queueSyncIcon,.queueSyncBadge.saved .queueSyncIcon{background:var(--tt-green);color:#fff}
+.queueSyncBadge.error .queueSyncIcon{background:#c94830;color:#fff}
+.queueSyncText{display:flex;flex-direction:column;min-width:0;line-height:1.08}
+.queueSyncText strong{display:block;font-size:13px;font-weight:780;white-space:nowrap}
+.queueSyncText small{display:block;margin-top:3px;font-size:11px;font-weight:600;color:inherit;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.queueHomeSection{margin:0 0 24px}
+.queueSectionTitle{font-size:19px;line-height:1.2;font-weight:760;color:#424d45;margin:0 0 12px;letter-spacing:-.01em}
+.queueAreaGrid{display:grid;grid-template-columns:1fr;gap:11px}
+.queueAreaCard{display:grid!important;grid-template-columns:54px minmax(0,1fr) 22px;align-items:center;gap:13px;width:100%!important;max-width:none!important;min-height:82px!important;margin:0!important;padding:13px 14px!important;border:1.5px solid var(--tt-border)!important;border-radius:var(--tt-radius)!important;background:var(--tt-surface)!important;color:var(--tt-ink)!important;text-align:left!important;box-shadow:var(--tt-shadow);transition:border-color .16s ease,background .16s ease,transform .05s ease}
+.queueAreaCard.active{border-color:var(--tt-green)!important;background:var(--tt-green-soft)!important}
+.queueAreaCard:active,.queueToolCard:active,.queueJobCard:active{transform:scale(.992)}
+.queueAreaIcon{display:flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:13px;background:#edf1ed;color:#47524b;font-size:22px;font-weight:820}
+.queueAreaCard.active .queueAreaIcon{background:var(--tt-green);color:#fff}
+.queueAreaIcon.package{font-size:29px;font-weight:700}
+.queueAreaText{display:flex;flex-direction:column;min-width:0;gap:4px}
+.queueAreaText strong{font-size:22px;line-height:1.15;font-weight:760;letter-spacing:-.02em}
+.queueAreaText small{font-size:14px;line-height:1.15;color:var(--tt-muted);font-weight:550}
+.queueAreaCard.active .queueAreaText small{color:var(--tt-green-deep)}
+.queueChevron{font-size:35px;line-height:1;color:#4c5650;font-weight:350;text-align:center}
+.queueAreaCard.active .queueChevron{color:var(--tt-green)}
+.queueStatusBar{margin-top:12px;padding:11px 13px;border-radius:13px;border:1px solid #dbe7dc;background:#f4f8f3;color:#4a574e;font-size:14px!important;line-height:1.35!important;font-weight:590}
+.queueStatusBar:empty{display:none}
+.queueToolGrid{display:grid!important;grid-template-columns:1fr;gap:10px}
+.queueToolCard{display:grid!important;grid-template-columns:49px minmax(0,1fr) 18px;align-items:center;gap:11px;width:100%!important;max-width:none!important;min-height:74px!important;padding:11px 12px!important;margin:0!important;background:var(--tt-surface)!important;border:1px solid var(--tt-border)!important;border-radius:15px!important;color:var(--tt-ink)!important;text-align:left!important;box-shadow:var(--tt-shadow)}
+.queueToolIcon{display:flex;align-items:center;justify-content:center;width:49px;height:49px;border-radius:12px;background:#363c38;color:#fff;font-size:23px;font-weight:750}
+.queueToolIcon.refresh{font-size:27px}
+.queueToolCard strong{display:block;font-size:17px;font-weight:740;line-height:1.14}
+.queueToolCard small{display:block;margin-top:4px;color:var(--tt-muted);font-size:13px;font-weight:540;line-height:1.14}
+.queueListHeader{display:flex;align-items:center;justify-content:flex-start;gap:9px;border-top:1px solid var(--tt-border);padding-top:21px;margin-bottom:12px}
+.queueListTitle{font-size:22px;color:var(--tt-ink);font-weight:790;margin:0}
+.queueCountBadge{min-width:27px;height:27px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;background:var(--tt-green);color:#fff;font-weight:800;font-size:15px}
+.queueJobList{display:grid;grid-template-columns:1fr;gap:11px}
+#jobQueue .queueJobCard{display:block;width:100%!important;max-width:none!important;min-height:0!important;margin:0!important;padding:13px 14px 13px 12px!important;border:1px solid var(--tt-border)!important;border-left:4px solid var(--tt-green)!important;border-radius:var(--tt-radius)!important;background:var(--tt-surface)!important;box-shadow:var(--tt-shadow);text-align:left!important;color:var(--tt-ink)!important}
+#jobQueue .queueJobCard.queueJobLogged{border-left-color:#9ca79f!important;background:#f7f8f7!important}
+.queueCardHeader{display:grid;grid-template-columns:46px minmax(0,1fr) 20px;align-items:start;gap:11px}
+.queueJobNumber{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:12px;background:var(--tt-green);color:#fff;font-size:22px;font-weight:800;line-height:1}
+.queueJobLogged .queueJobNumber{background:#a0aaa3}
+.queueCardMain{min-width:0}
+.queueClient{font-size:18px;font-weight:760;line-height:1.18;letter-spacing:-.018em;color:var(--tt-ink);overflow-wrap:anywhere}
+.queueBadgeRow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}
+#jobQueue .queueBadgeRow .queueVariantBadge,
+#jobQueue .queueBadgeRow .recoatBadge,
+#jobQueue .queueBadgeRow .frTreatmentBadge,
+#jobQueue .queueBadgeRow .jobCompleteBadge,
+#jobQueue .queueBadgeRow .jobCachedBadge{margin:0;font-size:11px;padding:4px 8px;line-height:1.1}
+#jobQueue .queueBadgeRow .queueVariantBadge{background:var(--tt-amber)}
+#jobQueue .queueBadgeRow .recoatBadge{background:var(--tt-amber)}
+#jobQueue .queueBadgeRow .jobCompleteBadge{background:#646e67}
+#jobQueue .queueBadgeRow .jobCachedBadge{background:#eff2ef;color:#555f57;border-color:#d3dad4}
+.queueOpenChevron{font-size:34px;line-height:1;color:var(--tt-green);font-weight:420;text-align:right;padding-top:5px}
+.queueJobLogged .queueOpenChevron{color:#89948c}
+.queueMetaRows{display:flex;flex-direction:column;gap:7px;margin:12px 0 0 57px}
+.queueMetaRow{display:flex;flex-wrap:wrap;gap:6px 15px;color:#374138}
+.queueMetaItem{display:flex;gap:5px;align-items:baseline;min-width:0;font-size:14px;line-height:1.28;font-weight:560}
+.queueMetaItem b{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#758077;font-weight:800}
+.queueMetaItem.wide{flex:1 1 100%}
+.queueMetaItem.wide span{overflow-wrap:anywhere}
+.queueEmpty{padding:22px 16px;border:1px dashed var(--tt-border-strong);border-radius:var(--tt-radius);color:var(--tt-muted);font-size:15px;font-weight:570;text-align:center;background:var(--tt-surface)}
+@media (min-width:700px){
+  .panel{max-width:1080px;padding:0 22px}
+  .queueAppHeader{padding-top:26px}
+  .queueAreaGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .queueAreaCard{grid-template-columns:50px minmax(0,1fr) 18px;min-height:96px!important}
+  .queueAreaIcon{width:50px;height:50px}
+  .queueAreaText strong{font-size:clamp(20px,2vw,25px)}
+  .queueToolGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .queueToolCard{min-height:88px!important}
+  .queueJobList{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:420px){
+  .queueAppHeader{gap:8px}
+  .queueSyncBadge{min-width:125px;padding:8px 9px}
+  .queueSyncText strong{font-size:12px}
+  .queuePageTitle{font-size:29px}
+  .queueMetaRows{margin-left:0;margin-top:12px}
+}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.78)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
-<div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button><button onclick="loadPackingQueue()">Packing</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
+<div id="teamQueueBlock" class="queueHome">
+  <div id="headerBar" class="queueAppHeader">
+    <div class="queueHeaderIdentity">
+      <div class="queueBrand">TINY TEMPLE</div>
+      <h1 class="queuePageTitle">Job Queue</h1>
+    </div>
+    <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
+      <span class="queueSyncIcon">✓</span>
+      <span class="queueSyncText"><strong id="queueSyncTitle">Offline support</strong><small id="queueSyncMeta">Select an area</small></span>
+    </div>
+  </div>
+  <section class="queueHomeSection queueSelectSection">
+    <h2 class="queueSectionTitle">Select Area</h2>
+    <div class="queueAreaGrid">
+      <button id="areaTeamA" type="button" class="queueAreaCard" onclick="loadTeamQueue('A')">
+        <span class="queueAreaIcon">A</span>
+        <span class="queueAreaText"><strong>Team A</strong><small>Production queue</small></span>
+        <span class="queueChevron">›</span>
+      </button>
+      <button id="areaTeamB" type="button" class="queueAreaCard" onclick="loadTeamQueue('B')">
+        <span class="queueAreaIcon">B</span>
+        <span class="queueAreaText"><strong>Team B</strong><small>Production queue</small></span>
+        <span class="queueChevron">›</span>
+      </button>
+      <button id="areaPacking" type="button" class="queueAreaCard" onclick="loadPackingQueue()">
+        <span class="queueAreaIcon package">□</span>
+        <span class="queueAreaText"><strong>Packing</strong><small>Packing and readiness</small></span>
+        <span class="queueChevron">›</span>
+      </button>
+    </div>
+    <div id="queueStatus" class="queueStatusBar" aria-live="polite">Select an area to view current jobs.</div>
+  </section>
+  <section id="queueToolsSection" class="queueHomeSection hidden">
+    <h2 class="queueSectionTitle">Other Tools</h2>
+    <div id="stockPickerButtonWrap" class="hidden queueToolGrid">
+      <button type="button" class="queueToolCard" onclick="loadStockPicker()"><span class="queueToolIcon">▥</span><span><strong>Stock Picker</strong><small>Scan stock / items</small></span><span class="queueChevron">›</span></button>
+      <button type="button" class="queueToolCard coatingOverviewButton" onclick="loadCoatingOverview()"><span class="queueToolIcon">▣</span><span><strong>Coating Overview</strong><small>View coating status</small></span><span class="queueChevron">›</span></button>
+      <button type="button" class="queueToolCard" onclick="refreshCurrentTeamDashboard()"><span class="queueToolIcon refresh">↻</span><span><strong>Force Refresh Schedule</strong><small>Update job data</small></span><span class="queueChevron">›</span></button>
+    </div>
+  </section>
+  <section id="queueListSection" class="queueHomeSection hidden">
+    <div class="queueListHeader">
+      <h2 id="jobQueueTitle" class="queueSectionTitle queueListTitle">Job Queue</h2>
+      <span id="jobQueueCount" class="queueCountBadge">0</span>
+    </div>
+    <div id="jobQueue" class="queueJobList"></div>
+  </section>
+</div>
 <div id="packingQueuePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="packingQueueTitle">Packing Queue</label><div id="packingQueueStatus"></div><div id="packingSyncStatus" class="hidden packingSyncStatus"></div></div><div id="packingQueueRows" class="packingQueueRows"></div><div class="basketActions"><button id="packingRetryStatusBtn" class="hidden" onclick="retryPackingStatusOutbox(false)">Retry pending status updates</button><button class="primaryBtn" onclick="loadPackingQueue(true)">Refresh Packing Queue</button><button onclick="backFromPackingQueue()">Back to home</button></div></div><div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
 <div id="step0_entry" class="hidden"><div class="fieldBlock"><label>What do you want to do?</label><div class="modeButtons" id="processModeButtons"></div></div><div class="basketActions"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid" id="processSetupEntryFields"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock" id="processSetupNotesBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Dispatch')">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Collection')">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="quickPaintNoRejectBtn" class="hidden quickPaintNoRejectBtn" onclick="submitNoRejectsForCurrentPaintPass(false)">No rejects on this coat</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
@@ -881,9 +1035,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.78|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.79|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.78|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.79|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1339,9 +1493,48 @@ function checkSignalsForVisualiser(sourceProcess){
   },true);
 }
 
-function applyTeamDashboardData(data,fromLocal){currentTeamDashboard=data||null;applyCompletedStateToDashboard(currentTeamDashboard);currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];renderJobQueue(data.jobs||[]);const timeText=getDashboardTimeText(data);if(fromLocal){document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved schedule"+(timeText?" from "+timeText:"")+". Tap Force Refresh Schedule after schedule changes."}else{document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — refreshed"+(timeText?" "+timeText:"")}setTimeout(refreshStatusThenPrefetchFirstOpen,0)}
+function applyTeamDashboardData(data,fromLocal){
+  currentTeamDashboard=data||null;
+  applyCompletedStateToDashboard(currentTeamDashboard);
+  currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
+  currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
+  currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
+  currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
+  renderJobQueue(data.jobs||[]);
+  const timeText=getDashboardTimeText(data);
+  if(fromLocal){
+    document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — saved schedule shown"+(timeText?" from "+timeText:"")+". Force refresh after schedule changes.";
+    setQueueSyncIndicator("saved","Offline: Ready","Saved queue shown");
+  }else{
+    document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — refreshed"+(timeText?" "+timeText:"")+".";
+    setQueueSyncIndicator("ready","Offline: Ready","Live queue cached");
+  }
+  setTimeout(refreshStatusThenPrefetchFirstOpen,0);
+}
 
-function fetchTeamDashboard(team,forceFresh){document.getElementById("queueStatus").innerText=forceFresh?"Refreshing Team "+team+" queue from workbook. Please wait...":"Loading Team "+team+" queue...";const callbackName="pwaQueueCallback_"+Date.now();window[callbackName]=function(data){delete window[callbackName];if(!data||!data.ok){document.getElementById("queueStatus").innerText="Could not load queue.";return}saveTeamDashboardToLocalCache(team,data);applyTeamDashboardData(data,false)};const script=document.createElement("script");script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+(forceFresh?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();script.onerror=function(){document.getElementById("queueStatus").innerText="Queue load failed.";delete window[callbackName]};document.body.appendChild(script)}
+function fetchTeamDashboard(team,forceFresh){
+  document.getElementById("queueStatus").innerText=forceFresh?"Refreshing Team "+team+" queue from workbook. Please wait...":"Loading Team "+team+" queue...";
+  setQueueSyncIndicator("loading",forceFresh?"Refreshing":"Loading","Team "+team+" queue");
+  const callbackName="pwaQueueCallback_"+Date.now();
+  window[callbackName]=function(data){
+    delete window[callbackName];
+    if(!data||!data.ok){
+      document.getElementById("queueStatus").innerText="Could not load queue.";
+      setQueueSyncIndicator("error","Load failed","Try refresh");
+      return;
+    }
+    saveTeamDashboardToLocalCache(team,data);
+    applyTeamDashboardData(data,false);
+  };
+  const script=document.createElement("script");
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+(forceFresh?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.onerror=function(){
+    document.getElementById("queueStatus").innerText="Queue load failed.";
+    setQueueSyncIndicator("error","Load failed","Try refresh");
+    delete window[callbackName];
+  };
+  document.body.appendChild(script);
+}
 
 function refreshCurrentTeamDashboard(){hidePreloadPopup();hideJobSignalsBox();if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;try{localStorage.removeItem(getTeamDashboardCacheKey(currentTeam));clearJobDetailCacheForTeam(currentTeam)}catch(err){}clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerButtonWrap").classList.add("hidden");document.getElementById("jobQueue").innerHTML="";document.getElementById("queueStatus").innerText="Cleared saved Team "+currentTeam+" queue. Refreshing from workbook...";updateJobContextBar();fetchTeamDashboard(currentTeam,true)}
 function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDashboard.ok){applyCompletedStateToDashboard(currentTeamDashboard);return currentTeamDashboard}const cached=getTeamDashboardFromLocalCache(currentTeam);if(cached&&cached.data){currentTeamDashboard=cached.data;applyCompletedStateToDashboard(currentTeamDashboard);return cached.data}return null}
@@ -1350,7 +1543,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.78|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.79|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const PROCESS_OPERATOR_MEMORY_PREFIX="ttProcessOperatorMemory|v1.76|";
 const JOB_OPERATOR_MEMORY_PREFIX="ttJobProcessOperatorMemory|v1.76|";
@@ -1501,7 +1694,7 @@ function applyPackingQueueData(data,fromLocal){
 }
 function loadPackingQueue(forceFresh){
   hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();
-  packingQueueActive=true;currentTeam="PACKING";currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;
+  packingQueueActive=true;currentTeam="PACKING";currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;setQueueAreaSelection("PACKING");
   clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";
   document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");
   document.getElementById("packingQueuePanel").classList.remove("hidden");document.getElementById("packingQueueTitle").innerText="Packing Queue";
@@ -1562,7 +1755,7 @@ function openPackingQueueJob(job){
 }
 function backFromPackingQueue(){
   packingQueueActive=false;currentPackingQueue=null;currentTeam="";currentJob=null;currentEntryMode="";currentProcessSetup={};
-  hidePackingQueueScreen();hideProcessSetupScreen();hidePostSaveScreen();document.getElementById("teamQueueBlock").classList.remove("hidden");
+  hidePackingQueueScreen();hideProcessSetupScreen();hidePostSaveScreen();document.getElementById("teamQueueBlock").classList.remove("hidden");setQueueAreaSelection("");showQueueTools(false);const listSection=document.getElementById("queueListSection");if(listSection)listSection.classList.add("hidden");setQueueSyncIndicator("idle","Offline support","Select an area");
   document.getElementById("step0_entry").classList.add("hidden");document.getElementById("jobQueue").innerHTML="";document.getElementById("queueStatus").innerText="";
   updateJobContextBar();updateUI();
 }
@@ -1671,7 +1864,49 @@ function updatePackingProductionStatus(newStatus,requireChecks){
   sendPackingStatusOutboxRecord(record,false);
 }
 
-function loadTeamQueue(team,forceFresh){packingQueueActive=false;currentPackingQueue=null;hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentTeam=team;currentJob=null;currentEntryMode="";currentProcessSetup={};step=0;clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerButtonWrap").classList.remove("hidden");updateJobContextBar();document.getElementById("jobQueue").innerHTML="";const cached=getTeamDashboardFromLocalCache(team);if(cached&&!forceFresh){applyTeamDashboardData(cached.data,true);return}fetchTeamDashboard(team,forceFresh===true)}
+function setQueueAreaSelection(area){
+  ["A","B","PACKING"].forEach(value=>{
+    const id=value==="A"?"areaTeamA":(value==="B"?"areaTeamB":"areaPacking");
+    const btn=document.getElementById(id);
+    if(btn)btn.classList.toggle("active",value===area);
+  });
+}
+function setQueueSyncIndicator(state,title,meta){
+  const badge=document.getElementById("queueSyncBadge");
+  const titleEl=document.getElementById("queueSyncTitle");
+  const metaEl=document.getElementById("queueSyncMeta");
+  if(!badge)return;
+  badge.className="queueSyncBadge "+(state||"idle");
+  if(titleEl)titleEl.innerText=title||"Offline support";
+  if(metaEl)metaEl.innerText=meta||"";
+}
+function showQueueListHeading(count){
+  const section=document.getElementById("queueListSection");
+  const title=document.getElementById("jobQueueTitle");
+  const badge=document.getElementById("jobQueueCount");
+  if(section)section.classList.remove("hidden");
+  if(title)title.innerText=(currentTeam?"Team "+currentTeam+" — ":"")+"Job Queue";
+  if(badge)badge.innerText=String(Number(count||0));
+}
+function showQueueTools(show){
+  const tools=document.getElementById("queueToolsSection");
+  if(tools)tools.classList.toggle("hidden",!show);
+}
+
+function loadTeamQueue(team,forceFresh){
+  packingQueueActive=false;currentPackingQueue=null;hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();
+  currentTeam=team;currentJob=null;currentEntryMode="";currentProcessSetup={};step=0;
+  clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";
+  document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");
+  setQueueAreaSelection(team);
+  showQueueTools(true);
+  document.getElementById("stockPickerButtonWrap").classList.remove("hidden");
+  updateJobContextBar();
+  document.getElementById("jobQueue").innerHTML="";
+  const cached=getTeamDashboardFromLocalCache(team);
+  if(cached&&!forceFresh){applyTeamDashboardData(cached.data,true);return}
+  fetchTeamDashboard(team,forceFresh===true);
+}
 
 function cleanProcessVariant(value){
   const text=String(value||"").trim();
@@ -1778,7 +2013,55 @@ function checkVariantMatches(rowVariant,jobVariant){
   if(!rv)return true;
   return normalise(rv)===normalise(jv);
 }
-function renderJobQueue(jobs){const wrap=document.getElementById("jobQueue");applyCompletedStateToJobs(jobs||[]);updateCoatingOverviewButtons(jobs||[]);if(!jobs.length){document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";wrap.innerHTML="";document.getElementById("stockPickerButtonWrap").classList.add("hidden");return}document.getElementById("stockPickerButtonWrap").classList.remove("hidden");wrap.innerHTML="";jobs.forEach((job,index)=>{const btn=document.createElement("button");const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");const loggedPaint=getLoggedProcessRecordForStage("Paint Room",job);const completed=!!loggedPaint;if(completed)btn.classList.add("jobQueueComplete");const cached=getJobDetailsFromLocalCache(job);const variant=getJobProcessVariant(job);const recoat=isRecoatJob(job);const frActive=isFireTreatmentActive(job);const frBadge=frActive?'<span class="frTreatmentBadge">FR TREATMENT</span>':"";const variantBadge=variant?(recoat?'<span class="recoatBadge">RECOAT</span>':(normalise(variant).indexOf("fr treatment")!==-1?'<span class="frTreatmentBadge">FR TREATMENT</span>':'<span class="queueVariantBadge">'+escapeHtml(variant.toUpperCase())+'</span>')):"";const badges=variantBadge+(frActive&&normalise(variant).indexOf("fr treatment")===-1?frBadge:"")+(completed?'<span class="jobCompleteBadge">PAINT LOGGED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");let detailLine;if(isFrTreatmentStage(job)){detailLine="Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(getFireTreatmentDisplay(job)||"Fire Treatment")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")}else if(recoat){detailLine="Qty: "+escapeHtml(job.quantity||"")+" | Coating: "+escapeHtml(job.coating||"")+" | Paint qty: "+escapeHtml(job.paintQty||"")+" | "+escapeHtml(job.length||"")+"m"}else{detailLine="Qty: "+escapeHtml(job.quantity||"")+" | "+escapeHtml(job.length||"")+"m | "+escapeHtml(job.species||"")+" | "+escapeHtml(job.finishedSize||"")+" | "+escapeHtml(job.profile||"")}btn.innerHTML="<strong>"+escapeHtml(job.sheetJob||"")+" — "+escapeHtml(job.client||"")+badges+"</strong><br>"+detailLine+"<br>Packs: "+escapeHtml(packText);btn.onclick=()=>selectQueueJob(job);wrap.appendChild(btn)})}
+function renderJobQueue(jobs){
+  const wrap=document.getElementById("jobQueue");
+  applyCompletedStateToJobs(jobs||[]);
+  updateCoatingOverviewButtons(jobs||[]);
+  showQueueListHeading((jobs||[]).length);
+  if(!jobs.length){
+    document.getElementById("queueStatus").innerText="No jobs found for Team "+currentTeam+".";
+    wrap.innerHTML='<div class="queueEmpty">No jobs are currently in this queue.</div>';
+    document.getElementById("stockPickerButtonWrap").classList.add("hidden");
+    showQueueTools(false);
+    return;
+  }
+  showQueueTools(true);
+  document.getElementById("stockPickerButtonWrap").classList.remove("hidden");
+  wrap.innerHTML="";
+  jobs.forEach((job,index)=>{
+    const btn=document.createElement("button");
+    btn.type="button";
+    const packText=(job.packs||[]).map(p=>p.packId+(p.location?" "+p.location:"")).join(", ");
+    const loggedPaint=getLoggedProcessRecordForStage("Paint Room",job);
+    const completed=!!loggedPaint;
+    btn.className="queueJobCard"+(completed?" queueJobLogged":"");
+    const cached=getJobDetailsFromLocalCache(job);
+    const variant=getJobProcessVariant(job);
+    const recoat=isRecoatJob(job);
+    const frActive=isFireTreatmentActive(job);
+    const frBadge=frActive?'<span class="frTreatmentBadge">FR TREATMENT</span>':"";
+    const variantBadge=variant?(recoat?'<span class="recoatBadge">RECOAT</span>':(normalise(variant).indexOf("fr treatment")!==-1?'<span class="frTreatmentBadge">FR TREATMENT</span>':'<span class="queueVariantBadge">'+escapeHtml(variant.toUpperCase())+'</span>')):"";
+    const badges=variantBadge+(frActive&&normalise(variant).indexOf("fr treatment")===-1?frBadge:"")+(completed?'<span class="jobCompleteBadge">PAINT LOGGED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");
+    const numberText=escapeHtml(job.jobNo||String(index+1));
+    let metaRows="";
+    if(isFrTreatmentStage(job)){
+      metaRows='<div class="queueMetaRow"><span class="queueMetaItem"><b>Qty</b><span>'+escapeHtml(job.quantity||"")+'</span></span><span class="queueMetaItem"><b>Length</b><span>'+escapeHtml(job.length||"")+'m</span></span><span class="queueMetaItem"><b>Stage</b><span>'+escapeHtml(getFireTreatmentDisplay(job)||"Fire Treatment")+'</span></span></div>'+
+        '<div class="queueMetaRow"><span class="queueMetaItem"><b>Size</b><span>'+escapeHtml(job.finishedSize||"")+'</span></span><span class="queueMetaItem"><b>Profile</b><span>'+escapeHtml(job.profile||"")+'</span></span></div>';
+    }else if(recoat){
+      metaRows='<div class="queueMetaRow"><span class="queueMetaItem"><b>Qty</b><span>'+escapeHtml(job.quantity||"")+'</span></span><span class="queueMetaItem"><b>Paint</b><span>'+escapeHtml(job.paintQty||"")+'</span></span><span class="queueMetaItem"><b>Length</b><span>'+escapeHtml(job.length||"")+'m</span></span></div>'+
+        '<div class="queueMetaRow"><span class="queueMetaItem"><b>Coating</b><span>'+escapeHtml(job.coating||"")+'</span></span></div>';
+    }else{
+      metaRows='<div class="queueMetaRow"><span class="queueMetaItem"><b>Qty</b><span>'+escapeHtml(job.quantity||"")+'</span></span><span class="queueMetaItem"><b>Length</b><span>'+escapeHtml(job.length||"")+'m</span></span><span class="queueMetaItem"><b>Species</b><span>'+escapeHtml(job.species||"")+'</span></span><span class="queueMetaItem"><b>Size</b><span>'+escapeHtml(job.finishedSize||"")+'</span></span></div>'+
+        '<div class="queueMetaRow"><span class="queueMetaItem"><b>Profile</b><span>'+escapeHtml(job.profile||"")+'</span></span></div>';
+    }
+    if(packText){
+      metaRows+='<div class="queueMetaRow"><span class="queueMetaItem wide"><b>Packs</b><span>'+escapeHtml(packText)+'</span></span></div>';
+    }
+    btn.innerHTML='<div class="queueCardHeader"><span class="queueJobNumber">'+numberText+'</span><div class="queueCardMain"><div class="queueClient">'+escapeHtml(job.sheetJob||"")+' — '+escapeHtml(job.client||"")+'</div><div class="queueBadgeRow">'+badges+'</div></div><span class="queueOpenChevron">›</span></div><div class="queueMetaRows">'+metaRows+'</div>';
+    btn.onclick=()=>selectQueueJob(job);
+    wrap.appendChild(btn);
+  });
+}
 
 function parseLitresText(value){
   const m=String(value||"").match(/[-+]?\d*\.?\d+/);
