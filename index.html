@@ -725,16 +725,23 @@ textarea{font-size:clamp(19px,1.7vw,26px);padding:clamp(12px,1.5vw,20px)}
 .packingQueuePrompt{font-size:clamp(18px,1.6vw,24px);padding:12px 16px}
 }
 
+
+.quickPaintNoRejectBtn{background:#0b5ed7!important;color:#fff!important;border-color:#084298!important;font-weight:800!important}
+.quickPaintCardButton{width:100%!important;max-width:none!important;margin-top:10px!important;background:#0b5ed7!important;color:#fff!important;border-color:#084298!important;font-weight:850!important}
+.packingSyncStatus{font-size:15px;line-height:1.35;border-radius:10px;padding:10px 12px;margin:8px 0;background:#f5f5f5;color:#333}
+.packingSyncStatus.pending{background:#fff3cd;border:1px solid #d6a93f;color:#5c4500;font-weight:700}
+@media (min-width:700px){.packingSyncStatus{font-size:clamp(18px,1.6vw,24px);padding:12px 16px}}
+
 </style>
 </head>
 <body>
-<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.74)</h3></div></div>
+<div id="headerBar" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;"><div style="display:flex;flex-direction:column;gap:6px;"><h3 style="margin:0;line-height:1.2;">MrLoggerLogger (v1.76)</h3></div></div>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock"><div class="fieldBlock"><label>Select team</label><div class="modeButtons"><button class="primaryBtn" onclick="loadTeamQueue('A')">Team A</button><button onclick="loadTeamQueue('B')">Team B</button><button onclick="loadPackingQueue()">Packing</button></div></div><div id="queueStatus" style="font-size:13px;color:#333;margin-bottom:8px;"></div><div id="stockPickerButtonWrap" class="hidden"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button></div><div id="jobQueue"></div></div>
-<div id="packingQueuePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="packingQueueTitle">Packing Queue</label><div id="packingQueueStatus"></div></div><div id="packingQueueRows" class="packingQueueRows"></div><div class="basketActions"><button class="primaryBtn" onclick="loadPackingQueue(true)">Refresh Packing Queue</button><button onclick="backFromPackingQueue()">Back to home</button></div></div><div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
+<div id="packingQueuePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="packingQueueTitle">Packing Queue</label><div id="packingQueueStatus"></div><div id="packingSyncStatus" class="hidden packingSyncStatus"></div></div><div id="packingQueueRows" class="packingQueueRows"></div><div class="basketActions"><button id="packingRetryStatusBtn" class="hidden" onclick="retryPackingStatusOutbox(false)">Retry pending status updates</button><button class="primaryBtn" onclick="loadPackingQueue(true)">Refresh Packing Queue</button><button onclick="backFromPackingQueue()">Back to home</button></div></div><div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
 <div id="step0_entry" class="hidden"><div class="fieldBlock"><label>What do you want to do?</label><div class="modeButtons" id="processModeButtons"></div></div><div class="basketActions"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
-<div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid" id="processSetupEntryFields"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock" id="processSetupNotesBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Dispatch')">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Collection')">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
+<div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid" id="processSetupEntryFields"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock" id="processSetupNotesBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Dispatch')">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Collection')">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="quickPaintNoRejectBtn" class="hidden quickPaintNoRejectBtn" onclick="submitNoRejectsForCurrentPaintPass(false)">No rejects on this coat</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="modeBlock" class="hidden"><label>Target Total is measured in:</label><select id="mode"></select></div>
 <div id="step1_boards" class="step hidden"><div id="boardsWrap"><input id="boards" type="number" placeholder="Quantity of Boards Required" /></div><div id="linearWrap"><input id="metres" type="number" placeholder="Number of Linear Metres Required" /><select id="boardLength"></select></div></div><div id="step2_perRow" class="step hidden"><select id="perRow"></select></div><div id="step3_yield" class="step hidden"><label>Yield when bandsawing</label><select id="yield"></select></div><div id="step4_loose" class="step hidden"><select id="topLoose"></select></div><div id="step5_rejects" class="step hidden step5Bar"><select id="rejects"></select><div class="step5Buttons"><button onclick="prevStep()">Back</button><button onclick="resetAll()">Reset</button><button onclick="backToProcessMenu()">Back to process menu</button></div></div>
 <div id="simpleLogger" class="hidden simpleBox"><div class="fieldBlock"><label id="simpleLoggerTitle">Log Rejects</label></div><div class="fieldBlock"><label>Pack ID used</label><select id="simplePackId"></select></div><div class="rejectLoggerLayout"><div class="rejectLoggerLeft"><div class="fieldBlock"><label>Tap defects as they happen</label><div id="rejectButtonGrid" class="rejectButtonGrid"></div></div></div><div class="rejectLoggerRight"><div id="rejectBasketTotals" class="rejectBasketTotals">No rejects logged yet.</div><div id="rejectNoteBlock" class="fieldBlock hidden" style="margin-top:10px;"><label id="rejectNoteLabel">Reject note required</label><textarea id="rejectNote" rows="3" placeholder="Add detail for Other or note-required defects"></textarea></div><div class="basketActions"><button onclick="undoLastReject()">Undo Last</button><button onclick="clearRejectBasket()">Clear</button><button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button><button onclick="returnToMenu()">Back to menu</button></div></div></div></div>
@@ -810,10 +817,10 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.67|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.76|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.67|";
-const JOB_COMPLETION_PREFIX="ttJobComplete|v1.67|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.76|";
+const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
   const t=normalise(team||"");
@@ -926,9 +933,7 @@ function saveCompletedJobsMap(team,map){
 }
 
 function isJobCompleted(job){
-  if(job&&(job.completed===true||String(job.completed||"").toUpperCase()==="TRUE"))return true;
-  const map=getCompletedJobsMap(currentTeam);
-  return jobKeyParts(job).some(key=>map[key]);
+  return false;
 }
 
 function applyCompletedStateToJobs(jobs){
@@ -1124,13 +1129,6 @@ function markJobCompleteLocally(job,payload){
 }
 
 function markJobCompleteIfFinalProcess(payload){
-  if(!currentJob||!currentEntryMode||currentEntryMode==="packing_rejects")return false;
-  const finalMode=getMostDownstreamRequiredMode(currentJob);
-  if(finalMode&&currentEntryMode===finalMode){
-    markJobCompleteLocally(currentJob,payload);
-    prefetchAfterJob(currentJob,2);
-    return true;
-  }
   return false;
 }
 
@@ -1173,43 +1171,7 @@ function getJobSignalParams(sourceProcess){
 }
 
 function applySharedJobStatusPayload(data){
-  if(!data||!data.completed)return;
-
-  const map=getCompletedJobsMap(currentTeam);
-  const stamp=data.status&&data.status.timestamp||new Date().toISOString();
-  const process=data.status&&data.status.completedByProcess||"";
-  const operator=data.status&&data.status.completedByOperator||"";
-  const keys=[];
-
-  if(currentJob){
-    jobKeyParts(currentJob).forEach(key=>keys.push(key));
-  }
-
-  (data.productionUid
-    ? [completionUidKeyForParts(currentTeam,data.productionUid||"")]
-    : [
-        completionKeyForParts(currentTeam,data.sheetJob||"",data.productionRow||""),
-        helperCompletionKeyForParts(currentTeam,data.helperSheetName||"",data.productionRow||"")
-      ]
-  ).filter(Boolean).forEach(key=>{
-    if(keys.indexOf(key)===-1)keys.push(key);
-  });
-
-  keys.filter(Boolean).forEach(key=>{
-    map[key]={
-      completedAt:stamp,
-      processStage:process,
-      entryMode:"",
-      operator:operator
-    };
-  });
-
-  saveCompletedJobsMap(currentTeam,map);
-
-  if(currentJob){
-    currentJob.completed=true;
-    updateCurrentDashboardJob(currentJob);
-  }
+  return;
 }
 
 function fetchJobSignals(sourceProcess,onDone,silent){
@@ -1245,62 +1207,12 @@ function fetchJobSignals(sourceProcess,onDone,silent){
 }
 
 function fetchTeamJobStatus(onDone){
-  if(!currentTeam){
-    if(onDone)onDone(null);
-    return;
+  const dashboard=getCurrentTeamDashboardOrCache();
+  if(dashboard&&Array.isArray(dashboard.jobs)){
+    applyCompletedStateToJobs(dashboard.jobs);
+    renderJobQueue(dashboard.jobs);
   }
-
-  const callbackName="pwaJobStatusCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
-  window[callbackName]=function(data){
-    delete window[callbackName];
-
-    if(data&&data.ok&&data.completedJobs){
-      const map={};
-
-      Object.keys(data.completedJobs).forEach(key=>{
-        const item=data.completedJobs[key];
-        if(item&&item.completed){
-          const value={
-            completedAt:item.timestamp||new Date().toISOString(),
-            processStage:item.completedByProcess||"",
-            entryMode:"",
-            operator:item.completedByOperator||""
-          };
-
-          const keys=[key];
-
-          const uidSheetKey=completionUidSheetKeyForParts(currentTeam,item.productionUid||"",item.sheetJob||"");
-          const uidHelperKey=completionUidHelperKeyForParts(currentTeam,item.productionUid||"",item.helperSheet||item.helperSheetName||"");
-          const rowKey=completionKeyForParts(currentTeam,item.sheetJob||"",item.productionRow||"");
-          const helperKey=helperCompletionKeyForParts(currentTeam,item.helperSheet||item.helperSheetName||"",item.productionRow||"");
-
-          [uidSheetKey,uidHelperKey,rowKey,helperKey].filter(Boolean).forEach(k=>{
-            if(keys.indexOf(k)===-1)keys.push(k);
-          });
-
-          keys.forEach(k=>{map[k]=value});
-        }
-      });
-
-      saveCompletedJobsMap(currentTeam,map);
-
-      const dashboard=getCurrentTeamDashboardOrCache();
-      if(dashboard&&Array.isArray(dashboard.jobs)){
-        applyCompletedStateToJobs(dashboard.jobs);
-        renderJobQueue(dashboard.jobs);
-      }
-    }
-
-    if(onDone)onDone(data||null);
-  };
-
-  const script=document.createElement("script");
-  script.src=REJECT_LOG_WEB_APP_URL+"?action=getJobStatus&team="+encodeURIComponent(currentTeam)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
-  script.onerror=function(){
-    delete window[callbackName];
-    if(onDone)onDone(null);
-  };
-  document.body.appendChild(script);
+  if(onDone)onDone({ok:true,completedJobs:{},rejectLoggingOpen:true});
 }
 
 function hideJobSignalsBox(){
@@ -1374,17 +1286,154 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.74|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.76|";
+const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
+const PROCESS_OPERATOR_MEMORY_PREFIX="ttProcessOperatorMemory|v1.76|";
+const JOB_OPERATOR_MEMORY_PREFIX="ttJobProcessOperatorMemory|v1.76|";
+let packingStatusRequests={};
+let pendingQuickPaintNoReject=false;
 function savePackingQueueToLocalCache(data){try{if(data&&data.ok)localStorage.setItem(PACKING_QUEUE_CACHE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:data}))}catch(err){}}
 function getPackingQueueFromLocalCache(){try{const raw=localStorage.getItem(PACKING_QUEUE_CACHE_KEY);if(!raw)return null;const item=JSON.parse(raw);return item&&item.data&&item.data.ok?item:null}catch(err){return null}}
 function clearPackingQueueLocalCache(){try{localStorage.removeItem(PACKING_QUEUE_CACHE_KEY)}catch(err){}}
+
+function getPackingJobLocalId(job){return String(job&&job.productionUid||job&&job.productionRow||"").trim()}
+function getPackingStatusOutboxKey(job){const id=typeof job==="string"?job:getPackingJobLocalId(job);return id?PACKING_STATUS_OUTBOX_PREFIX+encodeURIComponent(id):""}
+function getPackingStatusOutboxItems(){
+  const items=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(key&&key.indexOf(PACKING_STATUS_OUTBOX_PREFIX)===0){
+        try{
+          const record=JSON.parse(localStorage.getItem(key));
+          if(record&&record.status&&(record.productionUid||record.productionRow))items.push({key:key,record:record});
+        }catch(err){}
+      }
+    }
+  }catch(err){}
+  return items.sort((a,b)=>String(a.record.savedAt||"").localeCompare(String(b.record.savedAt||"")));
+}
+function savePackingStatusToOutbox(job,newStatus){
+  try{
+    const key=getPackingStatusOutboxKey(job);
+    if(!key)return null;
+    const record={
+      requestId:"packstatus_"+getRejectDeviceId()+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
+      savedAt:new Date().toISOString(),
+      lastAttemptAt:"",
+      attempts:0,
+      productionRow:String(job.productionRow||""),
+      productionUid:String(job.productionUid||""),
+      previousStatus:String(job.packingStatus||""),
+      status:String(newStatus||"")
+    };
+    localStorage.setItem(key,JSON.stringify(record));
+    updatePackingStatusOutboxUi();
+    return record;
+  }catch(err){return null}
+}
+function removePackingStatusOutboxRecord(record){
+  try{
+    const key=getPackingStatusOutboxKey(record);
+    const raw=key?localStorage.getItem(key):"";
+    if(!raw)return;
+    const current=JSON.parse(raw);
+    if(current&&current.requestId===record.requestId)localStorage.removeItem(key);
+  }catch(err){}
+}
+function markPackingStatusOutboxAttempt(record){
+  try{
+    const key=getPackingStatusOutboxKey(record);
+    const raw=key?localStorage.getItem(key):"";
+    if(!raw)return;
+    const current=JSON.parse(raw);
+    if(!current||current.requestId!==record.requestId)return;
+    current.attempts=Number(current.attempts||0)+1;
+    current.lastAttemptAt=new Date().toISOString();
+    localStorage.setItem(key,JSON.stringify(current));
+  }catch(err){}
+}
+function applyPendingPackingStatusUpdates(jobs){
+  const pendingMap={};
+  getPackingStatusOutboxItems().forEach(item=>{pendingMap[getPackingJobLocalId(item.record)]=item.record});
+  return (jobs||[]).map(job=>{
+    const pending=pendingMap[getPackingJobLocalId(job)];
+    if(!pending)return job;
+    return Object.assign({},job,{
+      packingStatus:pending.status,
+      cardDisplayState:pending.status+" — pending sync",
+      canOpenPackingCard:true,
+      pendingSync:true,
+      pendingStatusRecord:pending
+    });
+  });
+}
+function updatePackingStatusOutboxUi(){
+  const el=document.getElementById("packingSyncStatus");
+  const retryBtn=document.getElementById("packingRetryStatusBtn");
+  if(!el||!retryBtn)return;
+  const count=getPackingStatusOutboxItems().length;
+  if(count){
+    el.classList.remove("hidden");
+    el.classList.add("pending");
+    el.innerText=count+" packing status update"+(count===1?" is":"s are")+" saved on this device and waiting to sync.";
+    retryBtn.classList.remove("hidden");
+  }else{
+    el.classList.add("hidden");
+    el.classList.remove("pending");
+    el.innerText="";
+    retryBtn.classList.add("hidden");
+  }
+}
+function sendPackingStatusOutboxRecord(record,silent){
+  if(!record||!record.requestId||packingStatusRequests[record.requestId])return;
+  packingStatusRequests[record.requestId]=true;
+  markPackingStatusOutboxAttempt(record);
+  const callbackName="pwaPackingOutboxCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+  window[callbackName]=function(data){
+    delete packingStatusRequests[record.requestId];
+    delete window[callbackName];
+    if(data&&data.ok){
+      removePackingStatusOutboxRecord(record);
+      clearPackingQueueLocalCache();
+      updatePackingStatusOutboxUi();
+      if(packingQueueActive){
+        showPreloadPopup("Packing status synced",record.status,1200);
+        loadPackingQueue(true);
+      }
+    }else{
+      updatePackingStatusOutboxUi();
+      if(!silent&&packingQueueActive)document.getElementById("packingQueueStatus").innerText="Status update remains saved locally and could not sync yet.";
+    }
+  };
+  const script=document.createElement("script");
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=updatePackingStatus&productionRow="+encodeURIComponent(record.productionRow||"")+"&productionUid="+encodeURIComponent(record.productionUid||"")+"&status="+encodeURIComponent(record.status||"")+"&requestId="+encodeURIComponent(record.requestId)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.onerror=function(){
+    delete packingStatusRequests[record.requestId];
+    delete window[callbackName];
+    updatePackingStatusOutboxUi();
+    if(!silent&&packingQueueActive)document.getElementById("packingQueueStatus").innerText="Status update remains saved locally and could not sync yet.";
+  };
+  document.body.appendChild(script);
+}
+function retryPackingStatusOutbox(silent){
+  const items=getPackingStatusOutboxItems();
+  updatePackingStatusOutboxUi();
+  if(!items.length){
+    if(!silent&&packingQueueActive)document.getElementById("packingQueueStatus").innerText="No pending packing status updates.";
+    return;
+  }
+  items.forEach(item=>sendPackingStatusOutboxRecord(item.record,silent===true));
+}
+
 function applyPackingQueueData(data,fromLocal){
   currentPackingQueue=data;
   currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
   currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
   currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
   currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
-  renderPackingQueue(data.jobs||[],fromLocal===true);
+  updatePackingStatusOutboxUi();
+  renderPackingQueue(applyPendingPackingStatusUpdates(data.jobs||[]),fromLocal===true);
 }
 function loadPackingQueue(forceFresh){
   hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();
@@ -1399,7 +1448,7 @@ function loadPackingQueue(forceFresh){
     document.getElementById("packingQueueRows").innerHTML="";
     document.getElementById("packingQueueStatus").innerText=forceFresh?"Refreshing Packing Queue...":"Loading Packing Queue...";
   }
-  updateJobContextBar();updateUI();
+  updateJobContextBar();updateUI();updatePackingStatusOutboxUi();retryPackingStatusOutbox(true);
   const callbackName="pwaPackingQueueCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
   window[callbackName]=function(data){
     delete window[callbackName];
@@ -1535,26 +1584,27 @@ function updatePackingProductionStatus(newStatus,requireChecks){
   if(requireChecks){
     if(!validateProcessSetup())return;
     currentProcessSetup=getProcessSetupData();
+    storeOperatorMemoryForCurrentProcess(currentProcessSetup);
   }
   const ok=window.confirm("Change this Production job status to "+newStatus+"?");
   if(!ok)return;
   const note=document.getElementById("packingStatusActionNote");
-  note.innerText="Updating Production status...";
-  const callbackName="pwaPackingStatusCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
-  window[callbackName]=function(data){
-    delete window[callbackName];
-    if(!data||!data.ok){
-      note.innerText=data&&data.error?"Status update failed: "+data.error:"Status update failed.";
-      return;
-    }
-    clearPackingQueueLocalCache();
-    showPreloadPopup("Packing status updated",newStatus,1400);
-    currentJob=null;currentEntryMode="";loadPackingQueue(true);
-  };
-  const script=document.createElement("script");
-  script.src=REJECT_LOG_WEB_APP_URL+"?action=updatePackingStatus&productionRow="+encodeURIComponent(currentJob.productionRow||"")+"&productionUid="+encodeURIComponent(currentJob.productionUid||"")+"&status="+encodeURIComponent(newStatus)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
-  script.onerror=function(){delete window[callbackName];note.innerText="Status update failed.";};
-  document.body.appendChild(script);
+  const record=savePackingStatusToOutbox(currentJob,newStatus);
+  if(!record){
+    note.innerText="Could not save the status update locally. Do not continue until this device storage issue is resolved.";
+    return;
+  }
+  note.innerText="Status update saved on this device and sending...";
+  currentJob.packingStatus=newStatus;
+  currentJob.cardDisplayState=newStatus+" — pending sync";
+  currentJob.pendingSync=true;
+  clearPackingQueueLocalCache();
+  updatePackingStatusOutboxUi();
+  showPreloadPopup("Packing status saved locally",newStatus+" — sending",1400);
+  currentJob=null;
+  currentEntryMode="";
+  loadPackingQueue(false);
+  sendPackingStatusOutboxRecord(record,false);
 }
 
 function loadTeamQueue(team,forceFresh){packingQueueActive=false;currentPackingQueue=null;hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentTeam=team;currentJob=null;currentEntryMode="";currentProcessSetup={};step=0;clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerButtonWrap").classList.remove("hidden");updateJobContextBar();document.getElementById("jobQueue").innerHTML="";const cached=getTeamDashboardFromLocalCache(team);if(cached&&!forceFresh){applyTeamDashboardData(cached.data,true);return}fetchTeamDashboard(team,forceFresh===true)}
@@ -1967,25 +2017,27 @@ function renderCoatingOverview(summary,rows){
   summary.forEach(item=>{
     const card=document.createElement("div");
     card.className="stockPickerCard"+(item.allCompleted?" jobQueueComplete":"");
-    const completedBadge=item.allCompleted?'<span class="jobCompleteBadge">COMPLETED</span>':"";
     const sequenceHtml=(item.sequenceLines||[]).map(line=>'<div class="coatingSummarySequence">'+escapeHtml(line)+'</div>').join("");
     const frLine=item.frCount?'<div class="frTreatmentLine">FR TREATMENT PASSES: '+escapeHtml(String(item.frCount))+'</div>':"";
     const qtyHtml=item.hasPaintQty?'<div class="coatingTotalsRow"><div class="stockPickerAction">'+escapeHtml(item.totalLitresDisplay||"")+'</div><div class="coatingVacuumExtra">'+escapeHtml(item.totalLitresWithVacuumExtraDisplay||"")+' inc extra for vacuum coater</div></div>':'<div class="coatingTotalsRow"><div class="coatingVacuumExtra">Treatment quantity not set yet</div></div>';
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+completedBadge+'</div>'+qtyHtml+'<div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+frLine+sequenceHtml+'</div>';
+    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+'</div>'+qtyHtml+'<div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+frLine+sequenceHtml+'</div>';
     totalsWrap.appendChild(card);
   });
 
   rows.forEach(row=>{
     const card=document.createElement("div");
-    card.className="stockPickerCard coatingJobClickable"+(row.completed?" jobQueueComplete":"");
-    const completedBadge=row.completed?'<span class="jobCompleteBadge">COMPLETED</span>':"";
+    card.className="stockPickerCard coatingJobClickable";
     const badgeClass=row.coatingStageUpper==="FR TREATMENT"?"coatingStageBadge fr":getCoatingStageBadgeClass(row.coatingStage||"");
     const title=(row.coatingStageUpper==="FR TREATMENT"?"FR Treatment":row.coatingStage?row.coatingStage:"Paint Room pass")+" — "+(row.client||"");
     const racking=row.rackRuleFound==="YES"?'Shelves: '+escapeHtml(row.shelvesRequired||"")+' | Racks: '+escapeHtml(row.racksRequired||"")+' | '+escapeHtml(row.piecesPerShelf||"")+' pcs/shelf':'No rack rule found';
     const frLine=row.isFrTreatment==="YES"?'<div class="frTreatmentLine">'+escapeHtml(row.fireTreatment||"Fire Treatment")+'</div>':"";
     const qtyLine=row.paintQty?'<div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div>':'<div class="stockPickerMeta">Treatment qty: not set</div>';
-    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"PAINT ROOM PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+frLine+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+completedBadge+'</div>'+qtyLine+'<div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div><div class="coatingClickPrompt">Open Job</div></div>';
+    const isRecoat=normalise(row.coatingStage||"").indexOf("recoat")!==-1;
+    const quickButton=isRecoat?'<button type="button" class="quickPaintCardButton">No rejects on this coat</button>':"";
+    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"PAINT ROOM PASS")+'</div><div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+frLine+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div>'+qtyLine+'<div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div>'+quickButton+'<div class="coatingClickPrompt">Open Job</div></div>';
     card.onclick=()=>openPaintRoomFromCoatingOverview(row);
+    const quick=card.querySelector(".quickPaintCardButton");
+    if(quick)quick.onclick=(event)=>quickLogNoRejectsFromCoatingOverview(row,event);
     rowsWrap.appendChild(card);
   });
 }
@@ -2127,8 +2179,96 @@ function openPreloadedVisualiserFromProcess(){
   render();
   checkSignalsForVisualiser(sourceProcess);
 }
-function showProcessSetupScreen(mode){hidePostSaveScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.getElementById("processSetupPanel").classList.remove("hidden");document.querySelector(".btnRow").classList.add("hidden");currentProcessSetup={};buildOperatorSelect();fillSetupPackIdField();configureProcessChecks(mode);renderProcessJobCard(mode);resetProcessChecks();updateOperatorGuestVisibility();updateProcessVisualiserButton(mode);configureStandalonePackingUI()}
+function showProcessSetupScreen(mode){
+  hidePostSaveScreen();
+  hideStockPickerScreen();
+  hideCoatingOverviewScreen();
+  hidePackingQueueScreen();
+  document.getElementById("step0_entry").classList.add("hidden");
+  document.getElementById("simpleLogger").classList.add("hidden");
+  document.getElementById("processSetupPanel").classList.remove("hidden");
+  document.querySelector(".btnRow").classList.add("hidden");
+  currentProcessSetup={};
+  buildOperatorSelect();
+  fillSetupPackIdField();
+  configureProcessChecks(mode);
+  renderProcessJobCard(mode);
+  resetProcessChecks();
+  applyRememberedOperatorsForCurrentProcess();
+  updateOperatorGuestVisibility();
+  updateProcessVisualiserButton(mode);
+  configureStandalonePackingUI();
+  configurePaintRoomQuickAction();
+  if(pendingQuickPaintNoReject&&mode==="paint_room_rejects"){
+    pendingQuickPaintNoReject=false;
+    setTimeout(function(){submitNoRejectsForCurrentPaintPass(true)},0);
+  }
+}
 function hideProcessSetupScreen(){const panel=document.getElementById("processSetupPanel");if(panel)panel.classList.add("hidden")}
+
+function getCurrentProcessStage(){
+  return String((ENTRY_MODES[currentEntryMode]||{}).processStage||"").trim();
+}
+function getProcessOperatorMemoryKey(processStage){
+  const process=normalise(processStage||"");
+  return process?PROCESS_OPERATOR_MEMORY_PREFIX+encodeURIComponent(process):"";
+}
+function getJobOperatorMemoryKey(job,processStage){
+  const id=String(job&&job.productionUid||job&&job.productionRow||"").trim();
+  const process=normalise(processStage||"");
+  return id&&process?JOB_OPERATOR_MEMORY_PREFIX+encodeURIComponent(id+"|"+process):"";
+}
+function readOperatorMemoryForCurrentProcess(){
+  const process=getCurrentProcessStage();
+  const keys=[getJobOperatorMemoryKey(currentJob,process),getProcessOperatorMemoryKey(process)].filter(Boolean);
+  for(let i=0;i<keys.length;i++){
+    try{
+      const raw=localStorage.getItem(keys[i]);
+      if(raw){
+        const data=JSON.parse(raw);
+        if(data&&Array.isArray(data.operatorIds)&&data.operatorIds.length)return data;
+      }
+    }catch(err){}
+  }
+  return null;
+}
+function storeOperatorMemoryForCurrentProcess(setup){
+  const process=getCurrentProcessStage();
+  if(!process||!setup||!Array.isArray(setup.operatorIds)||!setup.operatorIds.length)return;
+  const record={
+    savedAt:new Date().toISOString(),
+    processStage:process,
+    operatorId:String(setup.operatorId||""),
+    operatorIds:setup.operatorIds.slice(),
+    guestOperatorName:String(setup.guestOperatorName||"")
+  };
+  [getProcessOperatorMemoryKey(process),getJobOperatorMemoryKey(currentJob,process)].filter(Boolean).forEach(key=>{
+    try{localStorage.setItem(key,JSON.stringify(record))}catch(err){}
+  });
+}
+function applyRememberedOperatorsForCurrentProcess(){
+  const remembered=readOperatorMemoryForCurrentProcess();
+  if(!remembered)return false;
+  const selects=[document.getElementById("operatorId")].concat(Array.from(document.querySelectorAll(".operatorSlotSelect")));
+  selects.forEach((select,index)=>{
+    const value=String(remembered.operatorIds[index]||"").trim();
+    if(value&&Array.from(select.options).some(option=>option.value===value))select.value=value;
+  });
+  if(remembered.guestOperatorName)document.getElementById("guestOperatorName").value=remembered.guestOperatorName;
+  updateOperatorGuestVisibility();
+  return true;
+}
+function configurePaintRoomQuickAction(){
+  const btn=document.getElementById("quickPaintNoRejectBtn");
+  if(!btn)return;
+  const show=currentEntryMode==="paint_room_rejects";
+  btn.classList.toggle("hidden",!show);
+  if(show){
+    const variant=getJobProcessVariant(currentJob);
+    btn.innerText=variant?"No rejects on this coat — "+variant:"No rejects on this coat";
+  }
+}
+
 function buildOperatorSelect(){const slots=getOperatorSlotCountForCurrentProcess();const sel=document.getElementById("operatorId");populateOperatorSelectElement(sel,slots>1?"Select operator 1":"Select operator");const extra=document.getElementById("extraOperatorSlots");if(extra)extra.innerHTML="";for(let i=2;i<=slots;i++){const block=document.createElement("div");block.className="fieldBlock";const label=document.createElement("label");label.textContent="Operator ID "+i;const select=document.createElement("select");select.className="operatorSlotSelect";select.dataset.operatorSlot=String(i);populateOperatorSelectElement(select,"Select operator "+i);select.onchange=updateOperatorGuestVisibility;block.appendChild(label);block.appendChild(select);if(extra)extra.appendChild(block)}sel.onchange=updateOperatorGuestVisibility}
 
 function fillSetupPackIdField(){populatePackSelect(document.getElementById("setupPackId"),jobContext.packId||"")}
@@ -2187,7 +2327,92 @@ function showProcessWarning(message){document.getElementById("saveStatus").inner
 function closeProcessWarning(){const overlay=document.getElementById("processWarningOverlay");if(overlay)overlay.classList.add("hidden")}
 function validateProcessSetup(){const data=getProcessSetupData();const slots=getOperatorSlotCountForCurrentProcess();if(isOperatorRequiredForCurrentProcess()){if(!data.operatorIds.length){showProcessWarning("Select an operator before continuing.");return false}if(data.operatorIds.length<slots){showProcessWarning("Select "+slots+" operator"+(slots===1?"":"s")+" before continuing.");return false}}if(data.operatorIds.indexOf("Guest")!==-1&&!data.guestOperatorName){showProcessWarning("Enter the guest operator name before continuing.");return false}if(!data.packId&&!isStandalonePackingJob()){showProcessWarning("Select the Pack ID before continuing.");return false}for(let i=0;i<data.checks.length;i++){if(data.checks[i].required&& !data.checks[i].checked){showProcessWarning("Confirm: "+data.checks[i].label);return false}}document.getElementById("saveStatus").innerText="";return true}
 
-function startRejectLoggingFromSetup(){if(!validateProcessSetup())return;currentProcessSetup=getProcessSetupData();const setupPackId=currentProcessSetup.packId,simplePackSelect=document.getElementById("simplePackId");if(simplePackSelect&&setupPackId){simplePackSelect.value=setupPackId;jobContext.packId=setupPackId;updateJobContextBar()}hideProcessSetupScreen();document.getElementById("simpleLogger").classList.remove("hidden");restoreRejectDraft();updateUI()}
+
+function getQuickPaintNoRejectSetup(){
+  const remembered=readOperatorMemoryForCurrentProcess();
+  if(!remembered||!Array.isArray(remembered.operatorIds)||!remembered.operatorIds.length)return null;
+  const packId=String(document.getElementById("setupPackId").value||jobContext.packId||"").trim();
+  return {
+    processStage:"Paint Room",
+    operatorId:String(remembered.operatorId||remembered.operatorIds.join(", ")),
+    operatorIds:remembered.operatorIds.slice(),
+    guestOperatorName:String(remembered.guestOperatorName||""),
+    packId:packId,
+    checks:[],
+    notes:"Quick no-reject coat confirmation"
+  };
+}
+function quickLogNoRejectsFromCoatingOverview(row,event){
+  if(event){
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  const job=findJobFromOverviewRow(row);
+  if(!job){
+    showProcessWarning("Could not find this job in the saved queue. Tap Force Refresh Schedule and try again.");
+    return;
+  }
+  pendingQuickPaintNoReject=true;
+  selectQueueJob(job,"paint_room_rejects");
+}
+function submitNoRejectsForCurrentPaintPass(fromOverview){
+  if(currentEntryMode!=="paint_room_rejects"||!currentJob){
+    showProcessWarning("Open a Paint Room coat before recording no rejects.");
+    return;
+  }
+  const setup=getQuickPaintNoRejectSetup();
+  if(!setup){
+    if(fromOverview)showProcessWarning("Select the Paint Room operator once for this job, then tap No rejects on this coat.");
+    else showProcessWarning("Select the operator for this coat before recording no rejects.");
+    return;
+  }
+  const config=ENTRY_MODES[currentEntryMode];
+  const variant=getJobProcessVariant(currentJob);
+  const label=variant?"Paint Room — "+variant:"Paint Room";
+  if(!window.confirm("Record no rejects for "+label+"?"))return;
+  currentProcessSetup=setup;
+  storeOperatorMemoryForCurrentProcess(setup);
+  const payload={
+    source:"TT Process Logger",
+    team:currentTeam,
+    timestamp:new Date().toISOString(),
+    productionUid:jobContext.productionUid||currentJob.productionUid||"",
+    productionRow:jobContext.productionRow,
+    jobNo:jobContext.jobNo,
+    sheetJob:jobContext.sheetJob,
+    helperSheetName:currentJob.helperSheetName||"",
+    packId:setup.packId||"",
+    entryMode:currentEntryMode,
+    entryModeLabel:config.label,
+    processStage:config.processStage,
+    processVariant:variant,
+    rejectColumn:config.rejectColumn,
+    processSetup:setup,
+    jobData:getCurrentJobDataForPayload(),
+    rejectNote:"",
+    quickNoRejects:true,
+    jobComplete:false,
+    rejects:[{
+      defectCode:"",
+      defectType:"No Rejects",
+      buttonLabel:"No rejects on this coat",
+      description:"",
+      causeGroup:"",
+      supplierRelevant:false,
+      requireNote:false,
+      rejectQty:0
+    }]
+  };
+  const outboxOk=sendRejectPayloadInBackground(payload);
+  document.getElementById("saveStatus").innerText="";
+  showPostSaveScreen(payload,0);
+  if(!outboxOk){
+    const details=document.getElementById("postSaveDetails");
+    if(details)details.innerHTML+="<br><br>"+escapeHtml("Warning: this device may not have saved a full local backup. Check the Reject Log before repeating this action.");
+  }
+}
+
+function startRejectLoggingFromSetup(){if(!validateProcessSetup())return;currentProcessSetup=getProcessSetupData();storeOperatorMemoryForCurrentProcess(currentProcessSetup);const setupPackId=currentProcessSetup.packId,simplePackSelect=document.getElementById("simplePackId");if(simplePackSelect&&setupPackId){simplePackSelect.value=setupPackId;jobContext.packId=setupPackId;updateJobContextBar()}hideProcessSetupScreen();document.getElementById("simpleLogger").classList.remove("hidden");restoreRejectDraft();updateUI()}
 function mergeJobDetails(baseJob,detailsJob){
   const merged=Object.assign({},baseJob||{});
   Object.keys(detailsJob||{}).forEach(key=>{merged[key]=detailsJob[key]});
@@ -2270,7 +2495,7 @@ function populatePackSelect(selectEl,selectedPackId){const packs=getPackOptions(
 function fillPackIdFields(){populatePackSelect(document.getElementById("simplePackId"),jobContext.packId||"");populatePackSelect(document.getElementById("setupPackId"),jobContext.packId||"")}
 function setEntryMode(mode){currentEntryMode=mode;currentProcessSetup={};if(mode!=="pack_visualiser")visualiserSourceProcess="";hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();document.getElementById("saveStatus").innerText="";if(mode==="pack_visualiser"){visualiserSourceProcess="";step=1}else{step=0;document.getElementById("simpleLoggerTitle").innerText=ENTRY_MODES[mode].label;buildBasketRejectButtons(mode);if((ENTRY_MODES[mode]||{}).showSetup)showProcessSetupScreen(mode);else restoreRejectDraft()}fillPackIdFields();updateUI();render()}
 function returnToMenu(){hidePostSaveScreen();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentProcessSetup={};step=0;clearRejectBasket(true);document.getElementById("saveStatus").innerText="";clearGrid();document.getElementById("summary").innerText="";updateUI()}
-function showPostSaveScreen(payload,totalRejects){document.getElementById("simpleLogger").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");const panel=document.getElementById("postSavePanel"),title=document.getElementById("postSaveTitle"),details=document.getElementById("postSaveDetails");title.innerText="Saved";const lines=[];lines.push("Job: "+(jobContext.sheetJob||""));lines.push("Process: "+((ENTRY_MODES[currentEntryMode]||{}).processStage||""));lines.push("Pack ID: "+(payload.packId||""));lines.push("Total rejects: "+totalRejects);if(currentJob){lines.push("Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""))}if(payload.processSetup){const setup=payload.processSetup;lines.push("");lines.push("Setup checks:");lines.push("Operator: "+(setup.operatorId||"")+(setup.guestOperatorName?" - "+setup.guestOperatorName:""));if(Array.isArray(setup.checks))setup.checks.forEach(check=>lines.push(check.label+": "+(check.checked?"Yes":"No")));if(setup.notes)lines.push("Notes: "+setup.notes)}lines.push("");lines.push("Reject details:");if(Array.isArray(payload.rejects)&&payload.rejects.length){payload.rejects.forEach(line=>lines.push("• "+(line.defectType||"")+": "+Number(line.rejectQty||0)))}else lines.push("• No reject details found");if(payload.rejectNote){lines.push("");lines.push("Reject note: "+payload.rejectNote)}details.innerHTML=lines.map(escapeHtml).join("<br>");panel.classList.remove("hidden");updateLocalOutboxStatus()}
+function showPostSaveScreen(payload,totalRejects){document.getElementById("simpleLogger").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");const panel=document.getElementById("postSavePanel"),title=document.getElementById("postSaveTitle"),details=document.getElementById("postSaveDetails");title.innerText="Saved";const lines=[];lines.push("Job: "+(jobContext.sheetJob||""));lines.push("Process: "+getProcessStageTitle(((ENTRY_MODES[currentEntryMode]||{}).processStage||""),currentJob));if(payload.quickNoRejects)lines.push("Outcome: No rejects on this coat");lines.push("Pack ID: "+(payload.packId||""));lines.push("Total rejects: "+totalRejects);if(currentJob){lines.push("Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""))}if(payload.processSetup){const setup=payload.processSetup;lines.push("");lines.push("Setup checks:");lines.push("Operator: "+(setup.operatorId||"")+(setup.guestOperatorName?" - "+setup.guestOperatorName:""));if(Array.isArray(setup.checks))setup.checks.forEach(check=>lines.push(check.label+": "+(check.checked?"Yes":"No")));if(setup.notes)lines.push("Notes: "+setup.notes)}lines.push("");lines.push("Reject details:");if(Array.isArray(payload.rejects)&&payload.rejects.length){payload.rejects.forEach(line=>lines.push("• "+(line.defectType||"")+": "+Number(line.rejectQty||0)))}else lines.push("• No reject details found");if(payload.rejectNote){lines.push("");lines.push("Reject note: "+payload.rejectNote)}details.innerHTML=lines.map(escapeHtml).join("<br>");panel.classList.remove("hidden");updateLocalOutboxStatus()}
 function hidePostSaveScreen(){const panel=document.getElementById("postSavePanel");if(panel)panel.classList.add("hidden")}
 function logAnotherPack(){
   hidePostSaveScreen();
@@ -2495,7 +2720,7 @@ function sendRejectPayloadInBackground(payload){
   updateLocalOutboxStatus();
   return backedUp;
 }
-async function reviewAndSaveBasket(){const status=document.getElementById("saveStatus"),saveBtn=document.getElementById("simpleSaveBtn");if(!currentEntryMode||currentEntryMode==="pack_visualiser"){status.innerText="Choose a process first.";return}if(!jobContext.productionRow){status.innerText="No Production row found. Select a scheduled job first.";return}const config=ENTRY_MODES[currentEntryMode],packId=document.getElementById("simplePackId").value.trim(),rejectLines=getBasketRejectLines();if(!packId){status.innerText="Select the Pack ID before reviewing.";return}if(!rejectLines.length){status.innerText="Tap at least one reject type, or select No Rejects.";return}const totalRejects=rejectLines.reduce((sum,line)=>sum+Number(line.rejectQty||0),0);const rejectNote=getRejectNote();if(basketRequiresNote()&&!rejectNote){status.innerText="Add a reject note before reviewing.";showProcessWarning("Add a reject note before reviewing. This is required for Other or note-required defects.");return}const recapLines=["Review pack reject log","","Team: "+(currentTeam||""),"Job: "+(jobContext.sheetJob||""),"Production Row: "+(jobContext.productionRow||"")];if(currentJob)recapLines.push("Client: "+(currentJob.client||""),"Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""));recapLines.push("Process: "+(config.processStage||""),"Pack ID: "+packId,"","Rejects:");rejectLines.forEach(line=>recapLines.push("- "+line.defectType+": "+line.rejectQty));if(rejectNote)recapLines.push("","Reject note: "+rejectNote);recapLines.push("","Total rejects: "+totalRejects,"Logged As: "+(config.rejectColumn==="machine"?"Machine Defect":"Pre Process Reject"));if(!window.confirm(recapLines.join("\n"))){status.innerText="Save cancelled. Continue logging or edit the basket.";return}jobContext.packId=packId;if(currentProcessSetup)currentProcessSetup.packId=packId;const payload={source:"TT Process Logger",team:currentTeam,timestamp:new Date().toISOString(),productionUid:jobContext.productionUid||currentJob&&currentJob.productionUid||"",productionRow:jobContext.productionRow,jobNo:jobContext.jobNo,sheetJob:jobContext.sheetJob,helperSheetName:currentJob&&currentJob.helperSheetName||"",packId:packId,entryMode:currentEntryMode,entryModeLabel:config.label,processStage:config.processStage,rejectColumn:config.rejectColumn,processSetup:currentProcessSetup,jobData:getCurrentJobDataForPayload(),rejectNote:rejectNote,rejects:rejectLines};const willComplete=currentJob&&currentEntryMode&&currentEntryMode!=="packing_rejects"&&getMostDownstreamRequiredMode(currentJob)===currentEntryMode;payload.jobComplete=willComplete;payload.completedByProcess=willComplete?config.processStage:"";payload.completedByOperator=willComplete&&currentProcessSetup?currentProcessSetup.operatorId||"":"";saveBtn.disabled=true;
+async function reviewAndSaveBasket(){const status=document.getElementById("saveStatus"),saveBtn=document.getElementById("simpleSaveBtn");if(!currentEntryMode||currentEntryMode==="pack_visualiser"){status.innerText="Choose a process first.";return}if(!jobContext.productionRow){status.innerText="No Production row found. Select a scheduled job first.";return}const config=ENTRY_MODES[currentEntryMode],packId=document.getElementById("simplePackId").value.trim(),rejectLines=getBasketRejectLines();if(!packId){status.innerText="Select the Pack ID before reviewing.";return}if(!rejectLines.length){status.innerText="Tap at least one reject type, or select No Rejects.";return}const totalRejects=rejectLines.reduce((sum,line)=>sum+Number(line.rejectQty||0),0);const rejectNote=getRejectNote();if(basketRequiresNote()&&!rejectNote){status.innerText="Add a reject note before reviewing.";showProcessWarning("Add a reject note before reviewing. This is required for Other or note-required defects.");return}const recapLines=["Review pack reject log","","Team: "+(currentTeam||""),"Job: "+(jobContext.sheetJob||""),"Production Row: "+(jobContext.productionRow||"")];if(currentJob)recapLines.push("Client: "+(currentJob.client||""),"Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""));recapLines.push("Process: "+(config.processStage||""),"Pack ID: "+packId,"","Rejects:");rejectLines.forEach(line=>recapLines.push("- "+line.defectType+": "+line.rejectQty));if(rejectNote)recapLines.push("","Reject note: "+rejectNote);recapLines.push("","Total rejects: "+totalRejects,"Logged As: "+(config.rejectColumn==="machine"?"Machine Defect":"Pre Process Reject"));if(!window.confirm(recapLines.join("\n"))){status.innerText="Save cancelled. Continue logging or edit the basket.";return}jobContext.packId=packId;if(currentProcessSetup)currentProcessSetup.packId=packId;const payload={source:"TT Process Logger",team:currentTeam,timestamp:new Date().toISOString(),productionUid:jobContext.productionUid||currentJob&&currentJob.productionUid||"",productionRow:jobContext.productionRow,jobNo:jobContext.jobNo,sheetJob:jobContext.sheetJob,helperSheetName:currentJob&&currentJob.helperSheetName||"",packId:packId,entryMode:currentEntryMode,entryModeLabel:config.label,processStage:config.processStage,processVariant:getJobProcessVariant(currentJob),rejectColumn:config.rejectColumn,quickNoRejects:false,processSetup:currentProcessSetup,jobData:getCurrentJobDataForPayload(),rejectNote:rejectNote,rejects:rejectLines};payload.jobComplete=false;payload.completedByProcess="";payload.completedByOperator="";storeOperatorMemoryForCurrentProcess(currentProcessSetup);saveBtn.disabled=true;
 status.innerText="Submitting...";
 try{
   const archivedOk=archiveSubmittedDraft(payload);
@@ -2504,7 +2729,6 @@ try{
   rejectHistory=[];
   renderRejectBasket();
   const outboxOk=sendRejectPayloadInBackground(payload);
-  try{markJobCompleteIfFinalProcess(payload)}catch(err){}
   status.innerText="";
   showPostSaveScreen(payload,totalRejects);
   if(!archivedOk||!outboxOk){
