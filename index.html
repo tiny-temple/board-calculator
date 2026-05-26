@@ -913,19 +913,40 @@ button.packingLineCard:active{transform:scale(.994)}
 .packingLineCard.blocked .packingLineStatus{background:#f4d8d3;color:#9b3020}
 .packingLineChevron{font-size:23px;line-height:1;font-weight:650;color:var(--tt-green-deep);text-align:right}
 div.packingLineCard .packingLineChevron{color:#c7ceca}
-.packingAccessoriesCard{margin-top:11px;border-radius:12px;background:#f4f6f3;border:1px solid #e3e7e2;padding:10px 11px}
-.packingAccessoriesHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 7px;font-size:11px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:#59645c}
-.packingAccessoryItem{display:flex;align-items:flex-start;gap:7px;font-size:13px;line-height:1.3;color:#28322b;font-weight:560;margin-top:5px}
-.packingAccessoryDot{width:6px;height:6px;flex:none;border-radius:50%;background:var(--tt-green);margin-top:5px}
-.packingAccessoryType{font-weight:760;margin-right:4px}
+.packingAccessoriesCard{width:100%!important;max-width:none!important;display:flex!important;align-items:center;justify-content:space-between;gap:10px;margin:11px 0 0!important;border-radius:12px!important;background:#f4f6f3!important;border:1px solid #e3e7e2!important;padding:11px 12px!important;text-align:left!important;color:var(--tt-ink)!important;box-shadow:none!important;cursor:pointer}
+.packingAccessoriesCard:active{transform:scale(.994)}
+.packingAccessoriesSummary{display:flex;align-items:center;gap:10px;min-width:0}
+.packingAccessoriesIcon{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:#e4efe7;color:var(--tt-green-deep);font-size:17px;font-weight:800;flex:none}
+.packingAccessoriesHeader{display:flex;flex-direction:column;gap:3px;min-width:0}
+.packingAccessoriesHeader strong{font-size:13px;line-height:1.15;font-weight:850;letter-spacing:.07em;text-transform:uppercase;color:#59645c}
+.packingAccessoriesHeader small{font-size:13px;line-height:1.25;color:#28322b;font-weight:600;white-space:normal}
+.packingAccessoriesOpen{display:flex;align-items:center;gap:6px;color:var(--tt-green-deep);font-size:12px;font-weight:800;white-space:nowrap;flex:none}
+.packingAccessoriesOpen b{font-size:23px;line-height:1}
 .packingAccessoryPending{font-size:13px;line-height:1.35;color:#755100;background:#fff5e7;border:1px solid #edd7ae;padding:8px 9px;border-radius:9px}
+.packingAccessoriesDetailOverlay{position:fixed;inset:0;z-index:9500;background:var(--tt-bg);overflow-y:auto}
+.packingAccessoriesDetailShell{width:min(720px,100%);min-height:100%;margin:0 auto;padding:0 16px 34px}
+.packingAccessoriesDetailTop{position:sticky;top:0;z-index:2;background:var(--tt-bg);padding:16px 0 13px;border-bottom:1px solid var(--tt-border);margin-bottom:18px}
+.packingAccessoriesBack{display:inline-flex!important;width:auto!important;align-items:center;gap:6px;min-height:42px!important;margin:0 0 15px!important;padding:0 13px!important;border:1px solid var(--tt-border)!important;border-radius:12px!important;background:var(--tt-surface)!important;color:var(--tt-ink)!important;font-size:14px!important;font-weight:700!important;box-shadow:none!important}
+.packingAccessoriesDetailEyebrow{font-size:12px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--tt-muted);margin-bottom:5px}
+.packingAccessoriesDetailTitle{font-size:clamp(27px,4vw,35px);font-weight:800;line-height:1.12;letter-spacing:-.035em;color:var(--tt-ink);margin:0 0 7px}
+.packingAccessoriesDetailMeta{font-size:14px;line-height:1.35;color:var(--tt-muted);font-weight:560}
+.packingAccessoriesDetailRows{display:flex;flex-direction:column;gap:12px}
+.packingAccessoryDetailCard{background:var(--tt-surface);border:1px solid var(--tt-border);border-left:5px solid var(--tt-green);border-radius:var(--tt-radius);padding:15px 14px;box-shadow:var(--tt-shadow)}
+.packingAccessoryDetailRowHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:9px}
+.packingAccessoryDetailType{font-size:12px;font-weight:850;letter-spacing:.075em;text-transform:uppercase;color:var(--tt-muted)}
+.packingAccessoryQty{display:inline-flex;align-items:center;padding:7px 10px;border-radius:999px;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:13px;font-weight:850;white-space:nowrap}
+.packingAccessoryDescription{font-size:16px;line-height:1.4;color:var(--tt-ink);font-weight:610;white-space:normal;overflow-wrap:anywhere}
+.packingAccessoryDetailEmpty{padding:15px 14px;border-radius:var(--tt-radius);background:var(--tt-amber-soft);border:1px solid #edd7ae;color:#755100;font-size:15px;line-height:1.4;font-weight:570}
+body.packingAccessoriesOpen{overflow:hidden}
 @media (min-width:700px){
   .packingProjectCard{padding:20px 20px 18px}
   .packingProjectClient{font-size:clamp(23px,2vw,30px)}
   .packingProjectMeta{font-size:clamp(14px,1.25vw,17px)}
   .packingLineCard{padding:14px 14px!important}
   .packingLineTitle{font-size:clamp(16px,1.35vw,20px)}
-  .packingLineMeta,.packingAccessoryItem,.packingAccessoryPending{font-size:clamp(14px,1.2vw,17px)}
+  .packingLineMeta,.packingAccessoryPending{font-size:clamp(14px,1.2vw,17px)}
+  .packingAccessoriesHeader small{font-size:clamp(14px,1.2vw,17px)}
+  .packingAccessoryDescription{font-size:18px}
   .packingLineStatus{font-size:12px;padding:6px 10px;max-width:190px}
 }
 
@@ -982,7 +1003,7 @@ div.packingLineCard .packingLineChevron{color:#c7ceca}
     <div id="jobQueue" class="queueJobList"></div>
   </section>
 </div>
-<div id="packingQueuePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="packingQueueTitle">Packing Queue</label><div id="packingQueueStatus"></div><div id="packingSyncStatus" class="hidden packingSyncStatus"></div></div><div id="packingQueueRows" class="packingQueueRows"></div><div class="basketActions"><button id="packingRetryStatusBtn" class="hidden" onclick="retryPackingStatusOutbox(false)">Retry pending status updates</button><button class="primaryBtn" onclick="loadPackingQueue(true)">Refresh Packing Queue</button><button onclick="backFromPackingQueue()">Back to home</button></div></div><div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
+<div id="packingQueuePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="packingQueueTitle">Packing Queue</label><div id="packingQueueStatus"></div><div id="packingSyncStatus" class="hidden packingSyncStatus"></div></div><div id="packingQueueRows" class="packingQueueRows"></div><div class="basketActions"><button id="packingRetryStatusBtn" class="hidden" onclick="retryPackingStatusOutbox(false)">Retry pending status updates</button><button class="primaryBtn" onclick="loadPackingQueue(true)">Refresh Packing Queue</button><button onclick="backFromPackingQueue()">Back to home</button></div></div><div id="packingAccessoriesDetailPanel" class="hidden packingAccessoriesDetailOverlay" role="dialog" aria-modal="true" aria-label="Accessories detail"><div class="packingAccessoriesDetailShell"><div class="packingAccessoriesDetailTop"><button type="button" class="packingAccessoriesBack" onclick="closePackingAccessoriesDetail()">‹ Back to project pack</button><div id="packingAccessoriesDetailEyebrow" class="packingAccessoriesDetailEyebrow">Accessories</div><h2 id="packingAccessoriesDetailTitle" class="packingAccessoriesDetailTitle">Accessories</h2><div id="packingAccessoriesDetailMeta" class="packingAccessoriesDetailMeta"></div></div><div id="packingAccessoriesDetailRows" class="packingAccessoriesDetailRows"></div></div></div><div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
 <div id="step0_entry" class="hidden"><div class="fieldBlock"><label>What do you want to do?</label><div class="modeButtons" id="processModeButtons"></div></div><div class="basketActions"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid" id="processSetupEntryFields"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock" id="processSetupNotesBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Dispatch')">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Collection')">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="quickPaintNoRejectBtn" class="hidden quickPaintNoRejectBtn" onclick="submitNoRejectsForCurrentPaintPass(false)">No rejects on this coat</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="modeBlock" class="hidden"><label>Target Total is measured in:</label><select id="mode"></select></div>
@@ -1086,9 +1107,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.80|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.81|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.80|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.81|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1594,7 +1615,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.80|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.81|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const PROCESS_OPERATOR_MEMORY_PREFIX="ttProcessOperatorMemory|v1.76|";
 const JOB_OPERATOR_MEMORY_PREFIX="ttJobProcessOperatorMemory|v1.76|";
@@ -1744,6 +1765,7 @@ function applyPackingQueueData(data,fromLocal){
   renderPackingQueue(applyPendingPackingStatusUpdates(data.jobs||[]),fromLocal===true);
 }
 function loadPackingQueue(forceFresh){
+  closePackingAccessoriesDetail();
   hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();
   packingQueueActive=true;currentTeam="PACKING";currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;setQueueAreaSelection("PACKING");
   clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";
@@ -1816,19 +1838,50 @@ function buildPackingProjectGroups(jobs){
     return Number((a.jobs[0]||{}).productionRow||0)-Number((b.jobs[0]||{}).productionRow||0);
   });
 }
+function packingAccessoryQty(item){
+  const value=Number(item&&item.quantity);
+  return Number.isFinite(value)&&value>0?value:0;
+}
+function packingAccessoryTotalQty(items){
+  return (items||[]).reduce((sum,item)=>sum+packingAccessoryQty(item),0);
+}
 function renderPackingAccessories(group){
   const staged=group.accessories||[];
   const indicated=group.jobs.some(job=>normalise(job.ironmongeryRequired||"")==="yes");
   if(!staged.length&&!indicated)return"";
-  let html='<div class="packingAccessoriesCard"><div class="packingAccessoriesHeader"><span>Accessories</span><span>'+escapeHtml(String(staged.length||""))+'</span></div>';
+  const totalQty=packingAccessoryTotalQty(staged);
+  const summary=staged.length?(staged.length+" item"+(staged.length===1?"":"s")+(totalQty?" · Qty "+totalQty:"")):"Details unavailable for pre-staging import";
+  return '<button type="button" class="packingAccessoriesCard" data-open-accessories="1"><span class="packingAccessoriesSummary"><span class="packingAccessoriesIcon">⌁</span><span class="packingAccessoriesHeader"><strong>Accessories</strong><small>'+escapeHtml(summary)+'</small></span></span><span class="packingAccessoriesOpen">View <b>›</b></span></button>';
+}
+function openPackingAccessoriesDetail(group){
+  const panel=document.getElementById("packingAccessoriesDetailPanel");
+  const rows=document.getElementById("packingAccessoriesDetailRows");
+  const staged=(group&&group.accessories)||[];
+  const indicated=(group&&group.jobs||[]).some(job=>normalise(job.ironmongeryRequired||"")==="yes");
+  const invoiceLabel=group&&group.invoiceNo?"INV-"+group.invoiceNo:"Project pack";
+  const client=String(group&&group.client||"No client reference").trim();
+  const totalQty=packingAccessoryTotalQty(staged);
+  document.getElementById("packingAccessoriesDetailEyebrow").innerText=invoiceLabel;
+  document.getElementById("packingAccessoriesDetailTitle").innerText="Accessories";
+  document.getElementById("packingAccessoriesDetailMeta").innerText=client+(staged.length?" · "+staged.length+" item"+(staged.length===1?"":"s")+(totalQty?" · Total qty "+totalQty:""):"");
+  rows.innerHTML="";
   if(staged.length){
     staged.forEach(item=>{
-      html+='<div class="packingAccessoryItem"><span class="packingAccessoryDot"></span><span><span class="packingAccessoryType">'+escapeHtml(item.accessoryType||"Accessory")+'</span>'+escapeHtml(item.description||"")+'</span></div>';
+      const card=document.createElement("div");
+      card.className="packingAccessoryDetailCard";
+      const qty=packingAccessoryQty(item);
+      card.innerHTML='<div class="packingAccessoryDetailRowHead"><span class="packingAccessoryDetailType">'+escapeHtml(item.accessoryType||"Accessory")+'</span>'+(qty?'<span class="packingAccessoryQty">Qty '+escapeHtml(String(qty))+'</span>':'')+'</div><div class="packingAccessoryDescription">'+escapeHtml(item.description||"No accessory description supplied")+'</div>';
+      rows.appendChild(card);
     });
-  }else{
-    html+='<div class="packingAccessoryPending">Accessories are marked on this invoice, but line details were imported before accessory staging was enabled.</div>';
+  }else if(indicated){
+    rows.innerHTML='<div class="packingAccessoryDetailEmpty">Accessories are marked on this invoice, but line details were imported before accessory staging was enabled.</div>';
   }
-  return html+'</div>';
+  panel.classList.remove("hidden");
+  document.body.classList.add("packingAccessoriesOpen");
+}
+function closePackingAccessoriesDetail(){
+  document.getElementById("packingAccessoriesDetailPanel").classList.add("hidden");
+  document.body.classList.remove("packingAccessoriesOpen");
 }
 function renderPackingQueue(jobs,fromLocal){
   const wrap=document.getElementById("packingQueueRows");
@@ -1849,6 +1902,8 @@ function renderPackingQueue(jobs,fromLocal){
     const stateText=group.pending?"Pending sync":(group.blocked?"Attention":(group.ready?"Ready":group.outstanding+" outstanding"));
     const summary=fulfilment+" · "+group.jobs.length+" product line"+(group.jobs.length===1?"":"s")+(group.ready?" · all ready":(" · "+group.outstanding+" outstanding"));
     outer.innerHTML='<div class="packingProjectHeader"><div class="packingProjectTitle"><span class="packingProjectInvoice">'+escapeHtml(invoiceLabel)+'</span><span class="packingProjectClient">'+escapeHtml(group.client||"No client reference")+'</span><span class="packingProjectMeta">'+escapeHtml(summary)+'</span></div><span class="packingProjectState">'+escapeHtml(stateText)+'</span></div><div class="packingLineList"></div>'+renderPackingAccessories(group);
+    const accessoryButton=outer.querySelector("[data-open-accessories]");
+    if(accessoryButton)accessoryButton.onclick=()=>openPackingAccessoriesDetail(group);
     const list=outer.querySelector(".packingLineList");
     group.jobs.forEach(job=>{
       const canOpen=packingValueIsTrue(job.canOpenPackingCard);
@@ -1873,6 +1928,7 @@ function openPackingQueueJob(job){
   finishSelectQueueJob(job,"packing_rejects");
 }
 function backFromPackingQueue(){
+  closePackingAccessoriesDetail();
   packingQueueActive=false;currentPackingQueue=null;currentTeam="";currentJob=null;currentEntryMode="";currentProcessSetup={};
   hidePackingQueueScreen();hideProcessSetupScreen();hidePostSaveScreen();document.getElementById("teamQueueBlock").classList.remove("hidden");setQueueAreaSelection("");showQueueTools(false);const listSection=document.getElementById("queueListSection");if(listSection)listSection.classList.add("hidden");setQueueSyncIndicator("idle","Offline support","Select an area");
   document.getElementById("step0_entry").classList.add("hidden");document.getElementById("jobQueue").innerHTML="";document.getElementById("queueStatus").innerText="";
@@ -3305,4 +3361,5 @@ buildProcessMenu();updateLocalOutboxStatus();updateJobContextBar();fillPackIdFie
 </script>
 </body>
 </html>
+
 
