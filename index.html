@@ -977,7 +977,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.91 stock picker packing-style refinement and refresh stale-list indicator */
+/* v1.92 coating overview packing-style refinement and refresh stale-list indicator */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1193,6 +1193,61 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   .ttStockMetaRow{font-size:13px}
 }
 
+
+/* v1.92 Coating Overview — presentation aligned with Packing Queue */
+.ttCoatingPage{background:transparent!important;padding:0!important}
+.ttCoatingPageHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 13px}
+.ttCoatingPageHeader #coatingOverviewTitle{font-size:22px!important;line-height:1.1!important;font-weight:760!important;letter-spacing:-.01em;color:var(--tt-ink)!important;margin:0!important}
+.ttCoatingOrigin{font-size:12px;line-height:1.25;font-weight:650;color:var(--tt-green-deep);margin-top:3px}
+.ttCoatingStatus{font-size:11px!important;line-height:1.35!important;font-weight:650!important;color:var(--tt-muted)!important;text-align:right;max-width:48%}
+.ttCoatingSectionTitle{font-size:17px;line-height:1.2;font-weight:760;color:var(--tt-ink);margin:0 0 9px}
+.ttCoatingPassHeading{margin-top:17px}
+.ttCoatingTotals,.ttCoatingRows{display:flex;flex-direction:column;gap:10px;width:100%}
+.ttCoatingBatchCard{position:relative;background:var(--tt-surface);border:1px solid var(--tt-border);border-left:5px solid var(--tt-green);border-radius:var(--tt-radius);padding:13px 12px 12px;box-shadow:var(--tt-shadow)}
+.ttCoatingBatchCard.complete{border-left-color:#99a39c;background:#f7f8f6}
+.ttCoatingBatchHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.ttCoatingBatchName{font-size:19px;line-height:1.15;font-weight:760;letter-spacing:-.02em;color:var(--tt-ink);overflow-wrap:anywhere}
+.ttCoatingPill{display:inline-flex;align-items:center;padding:6px 8px;border-radius:999px;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:10px;line-height:1.1;font-weight:850;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.ttCoatingBatchCard.complete .ttCoatingPill{background:#e5e9e6;color:#5a645c}
+.ttCoatingQuantityRow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:9px}
+.ttCoatingMetric{background:#fafbf9;border:1px solid #e5e9e4;border-radius:10px;padding:9px 9px 8px;min-width:0}
+.ttCoatingMetric.highlight{background:var(--tt-green-soft);border-color:#d4e9d9}
+.ttCoatingMetric small{display:block;color:var(--tt-muted);font-size:10px;line-height:1.2;font-weight:800;letter-spacing:.045em;text-transform:uppercase;margin-bottom:4px}
+.ttCoatingMetric strong{display:block;color:var(--tt-ink);font-size:16px;line-height:1.15;font-weight:760;overflow-wrap:anywhere}
+.ttCoatingMetric.highlight strong{color:var(--tt-green-deep)}
+.ttCoatingBatchMeta{font-size:12px;line-height:1.35;color:var(--tt-muted);font-weight:580;margin-bottom:8px}
+.ttCoatingBatchMeta b{font-weight:720;color:var(--tt-ink)}
+.ttCoatingFrNotice{display:inline-flex;align-items:center;padding:5px 8px;margin:0 0 8px;border-radius:999px;background:#fff3df;color:#805100;font-size:10px;font-weight:850;letter-spacing:.045em;text-transform:uppercase}
+.ttCoatingSequenceList{display:flex;flex-direction:column;gap:6px}
+.ttCoatingSequenceItem{border:1px solid #e5e9e4;border-radius:10px;background:#f5f7f4;padding:7px 8px;font-size:12px;line-height:1.35;font-weight:590;color:var(--tt-ink)}
+.ttCoatingSequenceItem b{display:block;font-size:10px;line-height:1.15;margin-bottom:3px;color:var(--tt-muted);text-transform:uppercase;letter-spacing:.045em;font-weight:800}
+.ttCoatingPassCard{background:var(--tt-surface);border:1px solid var(--tt-border);border-left:5px solid var(--tt-green);border-radius:var(--tt-radius);padding:12px;box-shadow:var(--tt-shadow);cursor:pointer}
+.ttCoatingPassCard.recoat{border-left-color:#d58c14}
+.ttCoatingPassCard.fr{border-left-color:#d58c14}
+.ttCoatingPassCard.logged{border-left-color:#96a19a;background:#f7f8f6}
+.ttCoatingPassHead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.ttCoatingPassTags{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.ttCoatingStageTag,.ttCoatingLoggedTag{display:inline-flex;align-items:center;padding:5px 7px;border-radius:999px;font-size:10px;line-height:1.15;font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.ttCoatingStageTag{background:var(--tt-green-soft);color:var(--tt-green-deep)}
+.ttCoatingPassCard.recoat .ttCoatingStageTag,.ttCoatingPassCard.fr .ttCoatingStageTag{background:var(--tt-amber-soft);color:#805100}
+.ttCoatingLoggedTag{background:#e5e9e6;color:#576159}
+.ttCoatingJobNo{font-size:11px;line-height:1.3;color:var(--tt-muted);font-weight:700;text-align:right;white-space:nowrap}
+.ttCoatingClient{font-size:18px;line-height:1.15;font-weight:760;letter-spacing:-.02em;color:var(--tt-ink);margin:0 0 4px;overflow-wrap:anywhere}
+.ttCoatingTreatment{font-size:13px;line-height:1.3;font-weight:680;color:var(--tt-green-deep);margin:0 0 9px}
+.ttCoatingPassData{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:9px}
+.ttCoatingPassDatum{background:#fafbf9;border:1px solid #e5e9e4;border-radius:9px;padding:7px 8px;min-width:0}
+.ttCoatingPassDatum small{display:block;font-size:9px;font-weight:820;line-height:1.15;color:var(--tt-muted);letter-spacing:.045em;text-transform:uppercase;margin-bottom:3px}
+.ttCoatingPassDatum span{display:block;font-size:12px;line-height:1.3;font-weight:640;color:var(--tt-ink);overflow-wrap:anywhere}
+.ttCoatingQuickBtn{display:flex!important;align-items:center;justify-content:center;width:100%!important;max-width:none!important;min-height:44px!important;margin:0 0 7px!important;padding:10px 12px!important;border:1px solid var(--tt-green)!important;border-radius:11px!important;background:var(--tt-green)!important;color:#fff!important;font-size:14px!important;font-weight:780!important;box-shadow:none!important}
+.ttCoatingOpenAction{display:flex;align-items:center;justify-content:center;width:100%;min-height:39px;padding:8px 11px;border:1px solid #d4e9d9;border-radius:10px;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:13px;line-height:1.2;font-weight:760;text-align:center}
+.ttCoatingPassCard.logged .ttCoatingOpenAction{background:#f0f3f0;border-color:#e0e4e1;color:#49534c}
+.ttCoatingPassCard:active{transform:scale(.995)}
+@media (min-width:700px){
+  .ttCoatingPageHeader #coatingOverviewTitle{font-size:24px!important}
+  .ttCoatingTotals,.ttCoatingRows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+  .ttCoatingClient{font-size:20px}
+}
+
 </style>
 </head>
 <body>
@@ -1200,7 +1255,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.91</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.92</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1229,7 +1284,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.91</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.92</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1285,7 +1340,20 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="ttStockPickerListTitle">Current Move List</div>
   <div id="stockPickerRows" class="stockPickerRows"></div>
   <div class="basketActions"><button onclick="backFromStockPicker()">Back</button></div>
-</div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
+</div><div id="coatingOverviewPanel" class="hidden simpleBox ttCoatingPage">
+  <div class="ttCoatingPageHeader">
+    <div>
+      <label id="coatingOverviewTitle">Coating Overview</label>
+      <div id="coatingOverviewOrigin" class="ttCoatingOrigin"></div>
+    </div>
+    <div id="coatingOverviewStatus" class="ttCoatingStatus"></div>
+  </div>
+  <div class="ttCoatingSectionTitle">Coating Requirements</div>
+  <div id="coatingOverviewTotals" class="ttCoatingTotals"></div>
+  <div class="ttCoatingSectionTitle ttCoatingPassHeading">Pass Queue</div>
+  <div id="coatingOverviewRows" class="ttCoatingRows"></div>
+  <div class="basketActions"><button onclick="backFromCoatingOverview()">Back</button></div>
+</div>
 <div id="step0_entry" class="hidden"><div class="fieldBlock"><label>What do you want to do?</label><div class="modeButtons" id="processModeButtons"></div></div><div class="basketActions"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid" id="processSetupEntryFields"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock" id="processSetupNotesBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Dispatch')">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Collection')">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="quickPaintNoRejectBtn" class="hidden quickPaintNoRejectBtn" onclick="submitNoRejectsForCurrentPaintPass(false)">No rejects on this coat</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="modeBlock" class="hidden"><label>Target Total is measured in:</label><select id="mode"></select></div>
@@ -1390,9 +1458,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.91|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.92|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.91|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.92|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1904,7 +1972,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.91|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.92|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -3374,7 +3442,7 @@ function backFromStockPicker(){
   updateUI();
 }
 function hideStockPickerScreen(){const panel=document.getElementById("stockPickerPanel");if(panel)panel.classList.add("hidden")}
-function loadCoatingOverview(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}const dashboard=getCurrentTeamDashboardOrCache();if(!dashboard){showProcessWarning("No saved queue found. Tap Team "+currentTeam+" or Force Refresh Schedule.");return}const overview=buildCoatingOverviewFromJobs(dashboard.jobs||[]);updateCoatingOverviewButtons(dashboard.jobs||[]);if(!overview.rows.length){showProcessWarning("No Paint Room / coating jobs scheduled for Team "+currentTeam+".");return}hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("coatingOverviewPanel").classList.remove("hidden");document.getElementById("coatingOverviewTitle").innerText="Team "+currentTeam+" Coating Overview";document.getElementById("coatingOverviewTotals").innerHTML="";document.getElementById("coatingOverviewRows").innerHTML="";renderCoatingOverview(overview.summary,overview.rows)}
+function loadCoatingOverview(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}const dashboard=getCurrentTeamDashboardOrCache();if(!dashboard){showProcessWarning("No saved queue found. Tap Team "+currentTeam+" or Force Refresh Schedule.");return}const overview=buildCoatingOverviewFromJobs(dashboard.jobs||[]);updateCoatingOverviewButtons(dashboard.jobs||[]);if(!overview.rows.length){showProcessWarning("No Paint Room / coating jobs scheduled for Team "+currentTeam+".");return}hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("coatingOverviewPanel").classList.remove("hidden");document.getElementById("coatingOverviewTitle").innerText="Coating Overview";const origin=document.getElementById("coatingOverviewOrigin");if(origin)origin.innerText="Team "+currentTeam+" · Paint Room pass list";document.getElementById("coatingOverviewTotals").innerHTML="";document.getElementById("coatingOverviewRows").innerHTML="";renderCoatingOverview(overview.summary,overview.rows)}
 
 function findJobFromOverviewRow(row){
   const dashboard=getCurrentTeamDashboardOrCache();
@@ -3418,45 +3486,76 @@ function renderCoatingOverview(summary,rows){
   const totalsWrap=document.getElementById("coatingOverviewTotals"),rowsWrap=document.getElementById("coatingOverviewRows");
 
   if(!rows.length){
-    document.getElementById("coatingOverviewStatus").innerText="No Paint Room jobs found for Team "+currentTeam+".";
+    document.getElementById("coatingOverviewStatus").innerText="No Paint Room passes found for Team "+currentTeam+".";
     totalsWrap.innerHTML="";
     rowsWrap.innerHTML="";
     return;
   }
 
-  document.getElementById("coatingOverviewStatus").innerText=rows.length+" Paint Room pass"+(rows.length===1?"":"es")+" found. Tap a pass card to open job.";
+  const openPasses=rows.filter(function(row){return !row.completed}).length;
+  document.getElementById("coatingOverviewStatus").innerText=rows.length+" pass"+(rows.length===1?"":"es")+" · "+openPasses+" to action";
   totalsWrap.innerHTML="";
   rowsWrap.innerHTML="";
 
-  summary.forEach(item=>{
+  summary.forEach(function(item){
     const card=document.createElement("div");
-    card.className="stockPickerCard"+(item.allCompleted?" jobQueueComplete":"");
-    const sequenceHtml=(item.sequenceLines||[]).map(line=>'<div class="coatingSummarySequence">'+escapeHtml(line)+'</div>').join("");
-    const frLine=item.frCount?'<div class="frTreatmentLine">FR TREATMENT PASSES: '+escapeHtml(String(item.frCount))+'</div>':"";
-    const qtyHtml=item.hasPaintQty?'<div class="coatingTotalsRow"><div class="stockPickerAction">'+escapeHtml(item.totalLitresDisplay||"")+'</div><div class="coatingVacuumExtra">'+escapeHtml(item.totalLitresWithVacuumExtraDisplay||"")+' inc extra for vacuum coater</div></div>':'<div class="coatingTotalsRow"><div class="coatingVacuumExtra">Treatment quantity not set yet</div></div>';
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerPack">'+escapeHtml(item.coating||"")+'</div>'+qtyHtml+'<div class="coatingSummaryMeta">'+escapeHtml(item.passText||"")+'</div><div class="stockPickerMeta">Total shelves: '+escapeHtml(item.totalShelvesDisplay||"")+' | Rack spaces required: '+escapeHtml(item.totalRacksDisplay||"")+'</div>'+frLine+sequenceHtml+'</div>';
+    card.className="ttCoatingBatchCard"+(item.allCompleted?" complete":"");
+    const pill=item.passText||"";
+    const frLine=item.frCount?'<div class="ttCoatingFrNotice">FR treatment · '+escapeHtml(String(item.frCount))+' pass'+(item.frCount===1?"":"es")+'</div>':"";
+    const qtyMain=item.hasPaintQty?escapeHtml(item.totalLitresDisplay||""):"Not set";
+    const qtyExtra=item.hasPaintQty?escapeHtml(item.totalLitresWithVacuumExtraDisplay||""):"Not set";
+    const sequences=(item.sequenceLines||[]).map(function(line){
+      const parts=String(line||"").split(": ");
+      const label=parts.shift()||"Jobs";
+      const stages=parts.join(": ");
+      return '<div class="ttCoatingSequenceItem"><b>'+escapeHtml(label)+'</b>'+escapeHtml(stages)+'</div>';
+    }).join("");
+
+    card.innerHTML='<div class="ttCoatingBatchHeader"><div class="ttCoatingBatchName">'+escapeHtml(item.coating||"Treatment")+'</div><span class="ttCoatingPill">'+escapeHtml(pill)+'</span></div>'+
+      '<div class="ttCoatingQuantityRow">'+
+        '<div class="ttCoatingMetric highlight"><small>Required</small><strong>'+qtyMain+'</strong></div>'+
+        '<div class="ttCoatingMetric"><small>Inc. vacuum extra</small><strong>'+qtyExtra+'</strong></div>'+
+      '</div>'+
+      '<div class="ttCoatingBatchMeta"><b>Shelves:</b> '+escapeHtml(item.totalShelvesDisplay||"—")+' &nbsp; <b>Rack spaces:</b> '+escapeHtml(item.totalRacksDisplay||"—")+'</div>'+
+      frLine+
+      (sequences?'<div class="ttCoatingSequenceList">'+sequences+'</div>':"");
     totalsWrap.appendChild(card);
   });
 
-  rows.forEach(row=>{
+  rows.forEach(function(row){
     const card=document.createElement("div");
-    card.className="stockPickerCard coatingJobClickable"+(row.completed?" coatingPassPreviouslyLogged":"");
-    const logBadge=row.completed?'<span class="coatingPassLogBadge">'+escapeHtml(formatLoggedProcessLabel(row.loggedRecord))+'</span>':"";
-    const badgeClass=row.coatingStageUpper==="FR TREATMENT"?"coatingStageBadge fr":getCoatingStageBadgeClass(row.coatingStage||"");
-    const title=(row.coatingStageUpper==="FR TREATMENT"?"FR Treatment":row.coatingStage?row.coatingStage:"Paint Room pass")+" — "+(row.client||"");
-    const racking=row.rackRuleFound==="YES"?'Shelves: '+escapeHtml(row.shelvesRequired||"")+' | Racks: '+escapeHtml(row.racksRequired||"")+' | '+escapeHtml(row.piecesPerShelf||"")+' pcs/shelf':'No rack rule found';
-    const frLine=row.isFrTreatment==="YES"?'<div class="frTreatmentLine">'+escapeHtml(row.fireTreatment||"Fire Treatment")+'</div>':"";
-    const qtyLine=row.paintQty?'<div class="stockPickerMeta">Paint qty: '+escapeHtml(row.paintQty||"")+'</div>':'<div class="stockPickerMeta">Treatment qty: not set</div>';
     const isRecoat=isLaterPaintCoatVariant(row.coatingStage||"");
-    const quickButton=isRecoat?'<button type="button" class="quickPaintCardButton">No rejects on this coat</button>':"";
-    card.innerHTML='<div class="stockPickerMain"><div class="'+badgeClass+'">'+escapeHtml(row.coatingStageUpper||"PAINT ROOM PASS")+'</div>'+logBadge+'<div class="coatingPassTitle">'+escapeHtml(title||row.coating||"")+'</div><div class="stockPickerPack">'+escapeHtml(row.coating||"")+'</div>'+frLine+'<div class="stockPickerMeta">Job: '+escapeHtml(row.sheetJob||"")+" | "+escapeHtml(row.shift||"")+" | Job No: "+escapeHtml(row.jobNo||"")+'</div>'+qtyLine+'<div class="stockPickerMeta">Racking: '+racking+'</div><div class="stockPickerMeta">Spec: '+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | "+escapeHtml(row.texture||"")+'</div>'+quickButton+'<div class="coatingClickPrompt">'+(row.completed?"Open to add extra rejects":"Open Job")+'</div></div>';
-    card.onclick=()=>openPaintRoomFromCoatingOverview(row);
+    const isFr=row.coatingStageUpper==="FR TREATMENT";
+    card.className="ttCoatingPassCard"+(isRecoat?" recoat":"")+(isFr?" fr":"")+(row.completed?" logged":"");
+
+    const stageLabel=isFr?"FR Treatment":(row.coatingStage||"Paint Room pass");
+    const loggedTag=row.completed?'<span class="ttCoatingLoggedTag">'+escapeHtml(formatLoggedProcessLabel(row.loggedRecord))+'</span>':"";
+    const racking=row.rackRuleFound==="YES"
+      ? (escapeHtml(row.shelvesRequired||"—")+' shelves · '+escapeHtml(row.racksRequired||"—")+' racks · '+escapeHtml(row.piecesPerShelf||"—")+' pcs/shelf')
+      : "No rack rule found";
+    const quantity=row.paintQty?escapeHtml(row.paintQty):"Not set";
+    const spec=[row.finishedSize,row.profile,row.texture].filter(Boolean).join(" · ");
+    const quickButton=isRecoat&&!row.completed?'<button type="button" class="ttCoatingQuickBtn quickPaintCardButton">No rejects on this coat</button>':"";
+    const openText=row.completed?"Open to log extra rejects":"Open Paint Room";
+
+    card.innerHTML='<div class="ttCoatingPassHead"><div class="ttCoatingPassTags"><span class="ttCoatingStageTag">'+escapeHtml(stageLabel)+'</span>'+loggedTag+'</div><div class="ttCoatingJobNo">Job No. '+escapeHtml(row.jobNo||row.sheetJob||"—")+'</div></div>'+
+      '<div class="ttCoatingClient">'+escapeHtml(row.client||"Unassigned client")+'</div>'+
+      '<div class="ttCoatingTreatment">'+escapeHtml(row.coating||"Treatment not set")+'</div>'+
+      '<div class="ttCoatingPassData">'+
+        '<div class="ttCoatingPassDatum"><small>Treatment Qty</small><span>'+quantity+'</span></div>'+
+        '<div class="ttCoatingPassDatum"><small>Racking</small><span>'+racking+'</span></div>'+
+        '<div class="ttCoatingPassDatum"><small>Spec</small><span>'+escapeHtml(spec||"—")+'</span></div>'+
+        '<div class="ttCoatingPassDatum"><small>Shift</small><span>'+escapeHtml(row.shift||"—")+'</span></div>'+
+      '</div>'+
+      quickButton+
+      '<div class="ttCoatingOpenAction">'+openText+'</div>';
+
+    card.onclick=function(){openPaintRoomFromCoatingOverview(row)};
     const quick=card.querySelector(".quickPaintCardButton");
-    if(quick)quick.onclick=(event)=>quickLogNoRejectsFromCoatingOverview(row,event);
+    if(quick)quick.onclick=function(event){quickLogNoRejectsFromCoatingOverview(row,event)};
     rowsWrap.appendChild(card);
   });
 }
-
 function backFromCoatingOverview(){hideCoatingOverviewScreen();hidePackingQueueScreen();if(currentJob){document.getElementById("step0_entry").classList.remove("hidden");document.getElementById("teamQueueBlock").classList.add("hidden")}else{document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden")}updateUI()}
 function hideCoatingOverviewScreen(){const panel=document.getElementById("coatingOverviewPanel");if(panel)panel.classList.add("hidden")}
 function getPaintRoomOverviewCountFromJobs(jobs){
