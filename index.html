@@ -977,7 +977,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.89 grouped stock picker journeys with raw-key defensive display */
+/* v1.90 persistent refresh stale-list indicator */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1076,6 +1076,21 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
 .ttStockFinalMove b{font-weight:800;color:var(--tt-ink)}
 .ttStockGroupCount{display:inline-flex;align-items:center;margin-left:6px;padding:3px 8px;border-radius:999px;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:11px;font-weight:820;text-transform:uppercase;letter-spacing:.03em}
 
+
+/* v1.90 Refresh state — visible stale list remains for orientation but cannot be acted on */
+.ttRefreshAwaitingData{
+  opacity:.42!important;
+  filter:grayscale(.45);
+  pointer-events:none!important;
+  transition:opacity .16s ease,filter .16s ease;
+}
+.ttRefreshFailedStale{
+  opacity:.55!important;
+  filter:grayscale(.25);
+  pointer-events:none!important;
+  transition:opacity .16s ease,filter .16s ease;
+}
+
 </style>
 </head>
 <body>
@@ -1083,7 +1098,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.89</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.90</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1112,7 +1127,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.89</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.90</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1273,9 +1288,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.89|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.90|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.89|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.90|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1751,24 +1766,29 @@ function applyTeamDashboardData(data,fromLocal){
   restorePersistentViewAfterRefresh();
 }
 
-function fetchTeamDashboard(team,forceFresh){
-  document.getElementById("queueStatus").innerText=forceFresh?"Refreshing Team "+team+" queue from workbook. Please wait...":"Loading Team "+team+" queue...";
+function fetchTeamDashboard(team,forceFresh,preserveVisibleList){
+  const retainShown=preserveVisibleList===true&&ttHasRenderedList("queue");
+  if(retainShown)ttSetListRefreshState("queue","refreshing");
+  document.getElementById("queueStatus").innerText=retainShown?"Refreshing Team "+team+" queue — current jobs are not confirmed current.":(forceFresh?"Refreshing Team "+team+" queue from workbook. Please wait...":"Loading Team "+team+" queue...");
   setQueueSyncIndicator("loading",forceFresh?"Refreshing":"Loading","Team "+team+" queue");
   const callbackName="pwaQueueCallback_"+Date.now();
   window[callbackName]=function(data){
     delete window[callbackName];
     if(!data||!data.ok){
-      document.getElementById("queueStatus").innerText="Could not load queue.";
+      if(retainShown)ttSetListRefreshState("queue","failed");
+      document.getElementById("queueStatus").innerText=retainShown?"Refresh failed — shown jobs are stale. Tap refresh to retry.":"Could not load queue.";
       setQueueSyncIndicator("error","Load failed","Try refresh");
       return;
     }
+    ttSetListRefreshState("queue","ready");
     saveTeamDashboardToLocalCache(team,data);
     applyTeamDashboardData(data,false);
   };
   const script=document.createElement("script");
   script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+(forceFresh?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
   script.onerror=function(){
-    document.getElementById("queueStatus").innerText="Queue load failed.";
+    if(retainShown)ttSetListRefreshState("queue","failed");
+    document.getElementById("queueStatus").innerText=retainShown?"Refresh failed — shown jobs are stale. Tap refresh to retry.":"Queue load failed.";
     setQueueSyncIndicator("error","Load failed","Try refresh");
     delete window[callbackName];
   };
@@ -1782,7 +1802,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.89|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.90|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -2171,6 +2191,35 @@ function markPackingProjectComplete(group){
   sendPackingProjectCompleteOutboxRecord(record,false);
 }
 
+function ttRefreshTargets(view){
+  if(view==="stock")return["stockPickerSummary","stockPickerRows"];
+  if(view==="packing")return["packingQueueRows"];
+  if(view==="coating")return["coatingOverviewTotals","coatingOverviewRows"];
+  if(view==="queue")return["queueListSection"];
+  return[];
+}
+function ttSetListRefreshState(view,state){
+  ttRefreshTargets(view).forEach(function(id){
+    const element=document.getElementById(id);
+    if(!element)return;
+    element.classList.remove("ttRefreshAwaitingData","ttRefreshFailedStale");
+    element.removeAttribute("aria-busy");
+    if(state==="refreshing"){
+      element.classList.add("ttRefreshAwaitingData");
+      element.setAttribute("aria-busy","true");
+    }else if(state==="failed"){
+      element.classList.add("ttRefreshFailedStale");
+    }
+  });
+}
+function ttHasRenderedList(view){
+  const ids=ttRefreshTargets(view);
+  return ids.some(function(id){
+    const element=document.getElementById(id);
+    return !!(element&&element.children&&element.children.length);
+  });
+}
+
 function applyPackingQueueData(data,fromLocal){
   currentPackingQueue=data;
   currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
@@ -2180,17 +2229,22 @@ function applyPackingQueueData(data,fromLocal){
   updatePackingStatusOutboxUi();
   renderPackingQueue(applyPendingPackingStatusUpdates(data.jobs||[]),fromLocal===true);
 }
-function loadPackingQueue(forceFresh){
+function loadPackingQueue(forceFresh,preserveVisibleList){
   closePackingAccessoriesDetail();
   hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();
   packingQueueActive=true;currentTeam="PACKING";currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;setQueueAreaSelection("PACKING");
   clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";
   document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");
   document.getElementById("packingQueuePanel").classList.remove("hidden");document.getElementById("packingQueueTitle").innerText="Packing Queue";
+  const retainShown=preserveVisibleList===true&&ttHasRenderedList("packing");
+  if(retainShown){
+    ttSetListRefreshState("packing","refreshing");
+    document.getElementById("packingQueueStatus").innerText="Refreshing Packing Queue — current project packs are not confirmed current.";
+  }
   const cached=!forceFresh?getPackingQueueFromLocalCache():null;
   if(cached){
     applyPackingQueueData(cached.data,true);
-  }else{
+  }else if(!retainShown){
     document.getElementById("packingQueueRows").innerHTML="";
     document.getElementById("packingQueueStatus").innerText=forceFresh?"Refreshing Packing Queue...":"Loading Packing Queue...";
   }
@@ -2199,15 +2253,17 @@ function loadPackingQueue(forceFresh){
   window[callbackName]=function(data){
     delete window[callbackName];
     if(!data||!data.ok){
-      document.getElementById("packingQueueStatus").innerText=cached?"Saved Packing Queue shown — live refresh failed.":(data&&data.error?"Could not load Packing Queue: "+data.error:"Could not load Packing Queue.");
+      if(retainShown)ttSetListRefreshState("packing","failed");
+      document.getElementById("packingQueueStatus").innerText=retainShown?"Refresh failed — shown project packs are stale. Tap refresh to retry.":(cached?"Saved Packing Queue shown — live refresh failed.":(data&&data.error?"Could not load Packing Queue: "+data.error:"Could not load Packing Queue."));
       return;
     }
+    ttSetListRefreshState("packing","ready");
     savePackingQueueToLocalCache(data);
     applyPackingQueueData(data,false);
   };
   const script=document.createElement("script");
   script.src=REJECT_LOG_WEB_APP_URL+"?action=getPackingQueue&fresh=1&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
-  script.onerror=function(){delete window[callbackName];document.getElementById("packingQueueStatus").innerText=cached?"Saved Packing Queue shown — live refresh failed.":"Packing Queue load failed.";};
+  script.onerror=function(){delete window[callbackName];if(retainShown)ttSetListRefreshState("packing","failed");document.getElementById("packingQueueStatus").innerText=retainShown?"Refresh failed — shown project packs are stale. Tap refresh to retry.":(cached?"Saved Packing Queue shown — live refresh failed.":"Packing Queue load failed.");};
   document.body.appendChild(script);
 }
 function packingStatusIsSatisfied(status){
@@ -3110,19 +3166,23 @@ function loadStockPicker(originLabel){
   }
   renderStockPickerRows(buildStockRowsFromJobs(dashboard.jobs||[]));
 }
-function fetchStockPickerDashboardDirect(team,forceFresh){
+function fetchStockPickerDashboardDirect(team,forceFresh,preserveVisibleList){
   if(stockPickerDirectRefreshInFlight)return;
   stockPickerDirectRefreshInFlight=true;
+  const retainShown=preserveVisibleList===true&&ttHasRenderedList("stock");
+  if(retainShown)ttSetListRefreshState("stock","refreshing");
   const status=document.getElementById("stockPickerStatus");
-  if(status)status.innerText=forceFresh?"Refreshing movement list...":"Loading movement list...";
+  if(status)status.innerText=retainShown?"Refreshing movement list — shown packs are not confirmed current.":(forceFresh?"Refreshing movement list...":"Loading movement list...");
   const callbackName="pwaStockPickerDashboardCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
   window[callbackName]=function(data){
     stockPickerDirectRefreshInFlight=false;
     delete window[callbackName];
     if(!data||!data.ok){
-      if(status)status.innerText="Could not refresh movement list.";
+      if(retainShown)ttSetListRefreshState("stock","failed");
+      if(status)status.innerText=retainShown?"Refresh failed — shown pack movements are stale. Tap refresh to retry.":"Could not refresh movement list.";
       return;
     }
+    ttSetListRefreshState("stock","ready");
     saveTeamDashboardToLocalCache(team,data);
     currentTeamDashboard=data;
     if(isElementVisible("stockPickerPanel")&&currentTeam===team){
@@ -3134,7 +3194,8 @@ function fetchStockPickerDashboardDirect(team,forceFresh){
   script.onerror=function(){
     stockPickerDirectRefreshInFlight=false;
     delete window[callbackName];
-    if(status)status.innerText="Movement list refresh failed.";
+    if(retainShown)ttSetListRefreshState("stock","failed");
+    if(status)status.innerText=retainShown?"Refresh failed — shown pack movements are stale. Tap refresh to retry.":"Movement list refresh failed.";
   };
   document.body.appendChild(script);
 }
@@ -4044,20 +4105,56 @@ function persistentGoStockPicker(){
   loadStockPicker(cameFromPacking?"Packing Queue":("Team "+team+" Queue"));
   fetchStockPickerDashboardDirect(team,true);
 }
+function refreshVisibleCoatingOverview(){
+  if(!currentTeam)return;
+  const retainShown=ttHasRenderedList("coating");
+  if(retainShown)ttSetListRefreshState("coating","refreshing");
+  const status=document.getElementById("coatingOverviewStatus");
+  if(status)status.innerText="Refreshing Coating Overview — shown passes are not confirmed current.";
+  const callbackName="pwaCoatingRefreshCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+  window[callbackName]=function(data){
+    delete window[callbackName];
+    if(!data||!data.ok){
+      if(retainShown)ttSetListRefreshState("coating","failed");
+      if(status)status.innerText="Refresh failed — shown coating passes are stale. Tap refresh to retry.";
+      return;
+    }
+    ttSetListRefreshState("coating","ready");
+    saveTeamDashboardToLocalCache(currentTeam,data);
+    currentTeamDashboard=data;
+    applyCompletedStateToDashboard(currentTeamDashboard);
+    currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
+    currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
+    currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
+    currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
+    const overview=buildCoatingOverviewFromJobs(data.jobs||[]);
+    updateCoatingOverviewButtons(data.jobs||[]);
+    renderCoatingOverview(overview.summary,overview.rows);
+  };
+  const script=document.createElement("script");
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(currentTeam)+"&fresh=1&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.onerror=function(){
+    delete window[callbackName];
+    if(retainShown)ttSetListRefreshState("coating","failed");
+    if(status)status.innerText="Refresh failed — shown coating passes are stale. Tap refresh to retry.";
+  };
+  document.body.appendChild(script);
+}
+
 function persistentRefreshCurrentView(){
   closePersistentNavMenu();
   const button=document.getElementById("persistentRefreshButton");if(button)button.classList.add("rotating");
   setTimeout(function(){if(button)button.classList.remove("rotating")},1200);
-  if(isElementVisible("packingAccessoriesDetailPanel")||isElementVisible("packingQueuePanel")||currentTeam==="PACKING"){loadPackingQueue(true);return}
+  if(isElementVisible("packingAccessoriesDetailPanel")||isElementVisible("packingQueuePanel")||currentTeam==="PACKING"){loadPackingQueue(true,true);return}
   if(!isProductionTeamContext()){
     if(lastProductionTeam)loadTeamQueue(lastProductionTeam,true);else showProcessWarning("Select Team A or Team B to refresh its schedule.");
     return;
   }
   if(!confirmLeaveProcessIfNeeded())return;
-  if(isElementVisible("coatingOverviewPanel")){persistentRefreshRestore={view:"coating"};refreshCurrentTeamDashboard();return}
-  if(isElementVisible("stockPickerPanel")){fetchStockPickerDashboardDirect(currentTeam,true);return}
+  if(isElementVisible("coatingOverviewPanel")){refreshVisibleCoatingOverview();return}
+  if(isElementVisible("stockPickerPanel")){fetchStockPickerDashboardDirect(currentTeam,true,true);return}
   if(currentJob){persistentRefreshRestore={view:"job",job:currentJob,mode:currentEntryMode,origin:persistentNavigationOrigin};refreshCurrentTeamDashboard();return}
-  refreshCurrentTeamDashboard();
+  fetchTeamDashboard(currentTeam,true,true);
 }
 function restorePersistentViewAfterRefresh(){
   const restore=persistentRefreshRestore;if(!restore)return;
