@@ -896,6 +896,13 @@ body{background:var(--tt-bg);color:var(--tt-ink)}
 .packingProjectState{flex:none;display:inline-flex;align-items:center;padding:7px 9px;border-radius:999px;background:var(--tt-amber-soft);color:#8d5900;font-size:11px;font-weight:850;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
 .packingProjectCard.ready .packingProjectState{background:var(--tt-green-soft);color:var(--tt-green-deep)}
 .packingProjectCard.blocked .packingProjectState{background:#fff1ee;color:#a63722}
+
+.packingProjectCard.completing{border-left-color:#d58c14}
+.packingProjectCompleteWrap{margin-top:13px;padding-top:12px;border-top:1px solid #e7ece7}
+.packingProjectCompleteBtn{display:flex!important;justify-content:center;align-items:center;width:100%!important;max-width:none!important;min-height:50px!important;margin:0!important;padding:12px 16px!important;border:1px solid var(--tt-green)!important;border-radius:12px!important;background:var(--tt-green)!important;color:#fff!important;font-size:15px!important;font-weight:800!important;letter-spacing:-.01em!important;box-shadow:none!important}
+.packingProjectCompleteBtn:active{transform:scale(.994)}
+.packingProjectCompletePending{display:flex;justify-content:center;align-items:center;min-height:48px;border:1px solid #edd7ae;border-radius:12px;background:var(--tt-amber-soft);color:#805100;font-size:14px;font-weight:760;text-align:center;padding:10px 12px}
+
 .packingLineList{display:flex;flex-direction:column;gap:8px;padding:0;margin:0}
 .packingLineCard{width:100%!important;max-width:none!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto 16px;gap:8px;align-items:center;text-align:left!important;margin:0!important;padding:11px 10px!important;border:1px solid #e5e9e4!important;border-radius:12px!important;background:#fafbf9!important;color:var(--tt-ink)!important;box-shadow:none!important}
 div.packingLineCard{cursor:default}
@@ -970,16 +977,126 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
+/* v1.87 persistent navigation, process stepping and stock picker redesign */
+:root{--tt-nav-height:62px;--tt-nav-step-height:49px}
+body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
+body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
+.persistentNav{position:fixed;top:0;left:0;right:0;z-index:9800;background:rgba(255,255,253,.98);border-bottom:1px solid var(--tt-border);box-shadow:0 3px 14px rgba(29,39,31,.08);backdrop-filter:blur(12px)}
+.persistentNavTop{height:var(--tt-nav-height);max-width:1200px;margin:0 auto;padding:8px 12px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:9px}
+.persistentNavIcon{display:flex!important;align-items:center!important;justify-content:center!important;width:44px!important;height:44px!important;min-height:44px!important;margin:0!important;padding:0!important;border:1px solid var(--tt-border)!important;border-radius:12px!important;background:var(--tt-surface)!important;color:var(--tt-ink)!important;box-shadow:none!important;font-size:24px!important;font-weight:700!important;line-height:1!important}
+.persistentNavIdentity{display:flex;flex-direction:column;min-width:0;gap:1px}
+.persistentNavEyebrow{display:flex;align-items:center;gap:7px;font-size:10px;line-height:1.1;letter-spacing:.08em;text-transform:uppercase;font-weight:850;color:var(--tt-muted)}
+.persistentNavBuild{font-size:10px;line-height:1;padding:3px 5px;border-radius:999px;background:var(--tt-green-soft);color:var(--tt-green-deep);letter-spacing:.045em;text-transform:lowercase}
+.persistentNavTitle{font-size:17px;line-height:1.2;font-weight:780;color:var(--tt-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.persistentNavActions{display:flex;gap:6px;align-items:center}
+.persistentNavActions .persistentNavIcon{width:41px!important;height:41px!important;min-height:41px!important;font-size:21px!important}
+.persistentNavRefresh.rotating{animation:ttSpin .85s linear infinite}
+@keyframes ttSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.persistentNavStepper{height:var(--tt-nav-step-height);max-width:1200px;margin:0 auto;padding:0 12px 8px;display:flex;align-items:center;gap:8px}
+.persistentNavStepper.hidden{display:none!important}
+.persistentStepButton{display:flex!important;align-items:center!important;justify-content:center!important;gap:4px;flex:1 1 0;width:auto!important;min-height:41px!important;margin:0!important;padding:0 10px!important;border:1px solid var(--tt-border)!important;border-radius:12px!important;background:var(--tt-surface)!important;color:var(--tt-ink)!important;box-shadow:none!important;font-size:14px!important;font-weight:780!important}
+.persistentStepButton:disabled{opacity:.42}
+.persistentStepPosition{display:flex;align-items:center;justify-content:center;min-width:76px;height:41px;padding:0 8px;border-radius:11px;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:12px;font-weight:850;letter-spacing:.03em;white-space:nowrap}
+.persistentNavMenu{position:absolute;right:12px;top:calc(var(--tt-nav-height) - 4px);width:min(294px,calc(100vw - 24px));padding:8px;border:1px solid var(--tt-border);border-radius:15px;background:var(--tt-surface);box-shadow:0 18px 42px rgba(20,32,23,.16);display:flex;flex-direction:column;gap:5px}
+.persistentNavMenu.hidden{display:none!important}
+.persistentNavMenu button{width:100%!important;max-width:none!important;display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:48px!important;margin:0!important;padding:0 13px!important;border:0!important;border-radius:10px!important;background:transparent!important;color:var(--tt-ink)!important;box-shadow:none!important;font-size:15px!important;font-weight:700!important;text-align:left!important}
+.persistentNavMenu button:active,.persistentNavMenu button:hover{background:var(--tt-green-soft)!important}
+.persistentNavMenu button:disabled{opacity:.36}
+.persistentNavMenu span{color:var(--tt-muted);font-size:19px}
+.persistentNavMenuRule{height:1px;background:var(--tt-border);margin:3px 3px}
+.packingAccessoriesDetailOverlay{z-index:9700}
+.packingAccessoriesDetailShell{padding-top:var(--tt-nav-height)}
+.packingAccessoriesDetailTop{top:var(--tt-nav-height)}
+@media (min-width:700px){.persistentNavTop{padding-left:18px;padding-right:18px}.persistentNavStepper{padding-left:18px;padding-right:18px}.persistentNavTitle{font-size:19px}.persistentNavMenu{right:max(18px,calc((100vw - 1200px) / 2 + 18px))}}
+
+
+/* v1.87 Stock Picker — movement-led layout */
+.ttStockPickerPage{background:transparent!important;padding:0!important}
+.ttStockPickerPageHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:4px 0 14px}
+.ttStockPickerOrigin{font-size:13px;line-height:1.25;font-weight:700;color:var(--tt-green-deep);margin-top:4px}
+.ttStockPickerStatus{font-size:12px!important;line-height:1.3!important;font-weight:650!important;color:var(--tt-muted)!important;text-align:right;max-width:42%}
+.ttStockPickerSummary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:var(--tt-surface);border:1px solid var(--tt-border);border-radius:15px;padding:12px 4px;margin:0 0 18px;box-shadow:var(--tt-shadow)}
+.ttStockMetric{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-right:1px solid var(--tt-border);min-height:60px}
+.ttStockMetric:last-child{border-right:0}
+.ttStockMetric b{font-size:23px;line-height:1;font-weight:820;color:var(--tt-ink)}
+.ttStockMetric small{font-size:12px;font-weight:650;color:var(--tt-muted)}
+.ttStockMetricIcon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:16px;font-weight:900;margin-bottom:2px}
+.ttStockMetric.attention .ttStockMetricIcon{background:var(--tt-amber-soft);color:#a96a00}
+.ttStockPickerListTitle{font-size:19px;font-weight:820;color:var(--tt-ink);margin:0 0 10px}
+#stockPickerRows.stockPickerRows{display:flex!important;flex-direction:column!important;gap:10px!important}
+#stockPickerRows .stockPickerCard{display:block!important;background:var(--tt-surface)!important;border:1px solid var(--tt-border)!important;border-left:4px solid var(--tt-green)!important;border-radius:15px!important;padding:13px 13px 12px!important;margin:0!important;box-shadow:var(--tt-shadow)!important;opacity:1!important;filter:none!important}
+#stockPickerRows .stockPickerCard.moveHold{border-left-color:var(--tt-amber)!important}
+#stockPickerRows .stockPickerCard.moveBlocked{border-left-color:var(--tt-red)!important}
+#stockPickerRows .stockPickerCard.stockMoveCompleted{background:var(--tt-green-soft)!important}
+.ttStockCardTop{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.ttStockOrder{width:40px;height:40px;border-radius:10px;background:var(--tt-green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:850;flex:0 0 auto}
+.moveHold .ttStockOrder{background:var(--tt-amber)}
+.moveBlocked .ttStockOrder{background:var(--tt-red)}
+.ttStockCardIdentity{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;min-width:0;flex:1}
+.ttStockPackId{font-size:23px;line-height:1.05;font-weight:840;color:var(--tt-ink);letter-spacing:.01em}
+.ttStockLocation{display:flex;align-items:center;gap:5px;font-size:17px;line-height:1.1;font-weight:780;color:var(--tt-ink)}
+.ttStockLocation::before{content:"⌖";font-size:18px;color:var(--tt-muted)}
+.ttStockChevron{font-size:28px;line-height:1;color:var(--tt-muted);font-weight:500}
+.ttStockInstruction{display:inline-flex;align-items:center;gap:7px;min-height:34px;margin:0 0 11px 51px;padding:5px 11px 5px 8px;border-radius:999px;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:15px;font-weight:800}
+.ttStockInstruction::before{content:"→";width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--tt-green);color:#fff;font-size:14px}
+.moveHold .ttStockInstruction{background:var(--tt-amber-soft);color:#995c00}
+.moveHold .ttStockInstruction::before{background:var(--tt-amber)}
+.moveBlocked .ttStockInstruction{background:#fae6e4;color:#9c2b1f}
+.moveBlocked .ttStockInstruction::before{background:var(--tt-red)}
+.ttStockMetaRow{display:flex;flex-wrap:wrap;gap:7px 0;padding-left:51px;font-size:13px;font-weight:620;color:var(--tt-ink)}
+.ttStockMetaItem{display:inline-flex;align-items:center;gap:5px;min-height:22px;padding-right:10px;margin-right:10px;border-right:1px solid var(--tt-border)}
+.ttStockMetaItem:last-child{border-right:0;margin-right:0;padding-right:0}
+.ttStockMetaItem small{color:var(--tt-muted);font-size:11px;text-transform:uppercase;font-weight:750;letter-spacing:.03em}
+.ttStockWarning{display:flex;align-items:center;gap:7px;margin-top:10px;padding:8px 10px;border-radius:10px;background:#fae6e4;color:#9c2b1f;font-size:13px;font-weight:750}
+.ttStockAfterUse{display:block;margin:10px 0 0 51px;padding-top:8px;border-top:1px solid var(--tt-border);font-size:12px;font-weight:650;color:var(--tt-muted)}
+.ttStockAfterUse b{font-weight:780;color:var(--tt-ink)}
+@media (min-width:700px){
+ .ttStockPickerPageHeader{margin:10px 0 18px}
+ .ttStockPickerSummary{max-width:620px}
+ #stockPickerRows.stockPickerRows{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important}
+ .ttStockPackId{font-size:27px}
+ .ttStockLocation{font-size:20px}
+ .ttStockInstruction{font-size:17px}
+ .ttStockMetaRow{font-size:15px}
+}
+
 </style>
 </head>
 <body>
+<nav id="persistentNav" class="persistentNav" aria-label="Persistent app navigation">
+  <div class="persistentNavTop">
+    <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
+    <div class="persistentNavIdentity">
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.87</span></div>
+      <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
+    </div>
+    <div class="persistentNavActions">
+      <button id="persistentRefreshButton" type="button" class="persistentNavIcon persistentNavRefresh" onclick="persistentRefreshCurrentView()" aria-label="Refresh current view">↻</button>
+      <button type="button" class="persistentNavIcon" onclick="togglePersistentNavMenu()" aria-label="Open navigation menu">☰</button>
+    </div>
+  </div>
+  <div id="persistentNavStepper" class="persistentNavStepper hidden" aria-label="Process job navigation">
+    <button id="persistentPrevButton" type="button" class="persistentStepButton" onclick="navigateAdjacentProcessJob(-1)">‹ Previous</button>
+    <span id="persistentStepPosition" class="persistentStepPosition"></span>
+    <button id="persistentNextButton" type="button" class="persistentStepButton" onclick="navigateAdjacentProcessJob(1)">Next ›</button>
+  </div>
+  <div id="persistentNavMenu" class="persistentNavMenu hidden">
+    <button type="button" onclick="persistentGoHome()">Home / Job Queue <span>›</span></button>
+    <button id="persistentTeamQueueButton" type="button" onclick="persistentGoTeamQueue()">Current Team Queue <span>›</span></button>
+    <button id="persistentCoatingButton" type="button" onclick="persistentGoCoatingOverview()">Coating Overview <span>›</span></button>
+    <button type="button" onclick="persistentGoPackingQueue()">Packing Queue <span>›</span></button>
+    <button id="persistentStockButton" type="button" onclick="persistentGoStockPicker()">Stock Picker <span>›</span></button>
+    <div class="persistentNavMenuRule"></div>
+    <button type="button" onclick="persistentRefreshCurrentView()">Refresh current view <span>↻</span></button>
+  </div>
+</nav>
 <div id="jobContextBar" class="hidden"></div>
 <div class="panel">
 <div id="teamQueueBlock" class="queueHome">
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.83b</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.87</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1023,7 +1140,19 @@ body.packingAccessoriesOpen{overflow:hidden}
     <div id="jobQueue" class="queueJobList"></div>
   </section>
 </div>
-<div id="packingQueuePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="packingQueueTitle">Packing Queue</label><div id="packingQueueStatus"></div><div id="packingSyncStatus" class="hidden packingSyncStatus"></div></div><div id="packingQueueRows" class="packingQueueRows"></div><div class="basketActions"><button id="packingRetryStatusBtn" class="hidden" onclick="retryPackingStatusOutbox(false)">Retry pending status updates</button><button class="primaryBtn" onclick="loadPackingQueue(true)">Refresh Packing Queue</button><button onclick="backFromPackingQueue()">Back to home</button></div></div><div id="packingAccessoriesDetailPanel" class="hidden packingAccessoriesDetailOverlay" role="dialog" aria-modal="true" aria-label="Accessories detail"><div class="packingAccessoriesDetailShell"><div class="packingAccessoriesDetailTop"><button type="button" class="packingAccessoriesBack" onclick="closePackingAccessoriesDetail()">‹ Back to project pack</button><div id="packingAccessoriesDetailEyebrow" class="packingAccessoriesDetailEyebrow">Accessories</div><h2 id="packingAccessoriesDetailTitle" class="packingAccessoriesDetailTitle">Accessories</h2><div id="packingAccessoriesDetailMeta" class="packingAccessoriesDetailMeta"></div></div><div id="packingAccessoriesDetailRows" class="packingAccessoriesDetailRows"></div></div></div><div id="stockPickerPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="stockPickerTitle">Stock Picker</label><div id="stockPickerStatus"></div></div><div id="stockPickerRows" class="stockPickerRows"></div><div class="basketActions"><button onclick="backFromStockPicker()">Back to job queue</button></div></div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
+<div id="packingQueuePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="packingQueueTitle">Packing Queue</label><div id="packingQueueStatus"></div><div id="packingSyncStatus" class="hidden packingSyncStatus"></div></div><div id="packingQueueRows" class="packingQueueRows"></div><div class="basketActions"><button id="packingRetryStatusBtn" class="hidden" onclick="retryPackingStatusOutbox(false)">Retry pending status updates</button><button class="primaryBtn" onclick="loadPackingQueue(true)">Refresh Packing Queue</button><button onclick="backFromPackingQueue()">Back to home</button></div></div><div id="packingAccessoriesDetailPanel" class="hidden packingAccessoriesDetailOverlay" role="dialog" aria-modal="true" aria-label="Accessories detail"><div class="packingAccessoriesDetailShell"><div class="packingAccessoriesDetailTop"><button type="button" class="packingAccessoriesBack" onclick="closePackingAccessoriesDetail()">‹ Back to project pack</button><div id="packingAccessoriesDetailEyebrow" class="packingAccessoriesDetailEyebrow">Accessories</div><h2 id="packingAccessoriesDetailTitle" class="packingAccessoriesDetailTitle">Accessories</h2><div id="packingAccessoriesDetailMeta" class="packingAccessoriesDetailMeta"></div></div><div id="packingAccessoriesDetailRows" class="packingAccessoriesDetailRows"></div></div></div><div id="stockPickerPanel" class="hidden simpleBox ttStockPickerPage">
+  <div class="ttStockPickerPageHeader">
+    <div>
+      <label id="stockPickerTitle">Stock Picker</label>
+      <div id="stockPickerOrigin" class="ttStockPickerOrigin"></div>
+    </div>
+    <div id="stockPickerStatus" class="ttStockPickerStatus"></div>
+  </div>
+  <div id="stockPickerSummary" class="ttStockPickerSummary"></div>
+  <div class="ttStockPickerListTitle">Current Move List</div>
+  <div id="stockPickerRows" class="stockPickerRows"></div>
+  <div class="basketActions"><button onclick="backFromStockPicker()">Back</button></div>
+</div><div id="coatingOverviewPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="coatingOverviewTitle">Coating Overview</label><div id="coatingOverviewStatus"></div></div><div class="fieldBlock"><label>Totals by coating</label><div id="coatingOverviewTotals" class="stockPickerRows"></div></div><div class="fieldBlock"><label>Coating passes</label><div id="coatingOverviewRows" class="stockPickerRows"></div></div><div class="basketActions"><button onclick="backFromCoatingOverview()">Back to job queue</button></div></div>
 <div id="step0_entry" class="hidden"><div class="fieldBlock"><label>What do you want to do?</label><div class="modeButtons" id="processModeButtons"></div></div><div class="basketActions"><button class="primaryBtn" onclick="loadStockPicker()">Stock Picker</button><button class="coatingOverviewButton" onclick="loadCoatingOverview()">Coating Overview</button><button onclick="refreshCurrentTeamDashboard()">Force Refresh Schedule</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="processSetupPanel" class="hidden simpleBox"><div class="fieldBlock"><label id="processSetupTitle">Process Setup Check</label></div><div id="processJobCard" class="processJobCard"></div><div id="processCustomInfo" class="processCustomInfo hidden" onclick="toggleCustomInfoExpand()"></div><div id="processReminderBox" class="processReminderBox hidden"></div><div class="processSetupGrid" id="processSetupEntryFields"><div class="fieldBlock"><label>Operator ID</label><select id="operatorId"></select></div><div class="fieldBlock hidden" id="guestOperatorBlock"><label>Guest name / initials</label><input id="guestOperatorName" type="text" placeholder="Enter guest name" /></div><div id="extraOperatorSlots"></div><div class="fieldBlock" id="setupPackIdBlock"><label>Pack ID selected</label><select id="setupPackId"></select></div></div><div class="processChecks" id="processChecks"></div><div class="fieldBlock" id="processSetupNotesBlock"><label>Setup notes</label><textarea id="processSetupNotes" rows="3" placeholder="Optional notes"></textarea></div><div id="packingStatusActions" class="hidden packingStatusActions"><div id="packingStatusActionNote" class="packingStatusActionNote"></div><div class="basketActions"><button type="button" id="packingMarkPackedBtn" class="primaryBtn hidden" onclick="updatePackingProductionStatus('Packed',true)">Mark Packed</button><button type="button" id="packingReadyDispatchBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Dispatch')">Mark Ready for Dispatch</button><button type="button" id="packingReadyCollectionBtn" class="packingReleaseBtn hidden" onclick="releasePackingProductionStatus('Ready for Collection')">Mark Ready for Collection</button></div></div><div class="basketActions"><button type="button" id="processVisualiserBtn" class="hidden" onclick="openPreloadedVisualiserFromProcess()">Open Pack Visualiser</button><button type="button" id="quickPaintNoRejectBtn" class="hidden quickPaintNoRejectBtn" onclick="submitNoRejectsForCurrentPaintPass(false)">No rejects on this coat</button><button type="button" id="startRejectLoggingBtn" class="primaryBtn" onclick="startRejectLoggingFromSetup()">Start logging rejects</button><button id="changeSetupBtn" onclick="showProcessSetupScreen(currentEntryMode)">Change operator / setup checks</button><button id="backToProcessMenuBtn" onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div id="modeBlock" class="hidden"><label>Target Total is measured in:</label><select id="mode"></select></div>
@@ -1035,6 +1164,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 <div id="jobSignalsBox" class="hidden jobSignalsBox"></div><div id="summary" style="font-size:13px;margin-top:8px;color:#333;"></div><div id="saveStatus"></div><div class="grid" id="grid"></div><div id="preloadStatusPopup" class="hidden preloadStatusPopup"></div><div id="processWarningOverlay" class="hidden processWarningOverlay"><div class="processWarningBox"><div id="processWarningText" class="processWarningText"></div><button type="button" class="primaryBtn" onclick="closeProcessWarning()">OK</button></div></div>
 <script>
 let step=0,currentEntryMode="",currentTeam="",currentJob=null,currentTeamDashboard=null,currentPackingQueue=null,packingQueueActive=false,visualiserSourceProcess="",jobDetailRequests={},rejectBasket={},rejectHistory=[],currentProcessSetup={},currentOperators=["Beren","Jim","Saul","Shaun","Tony","Guest"],currentProcessCheckItems=[],currentBackendProcessChecks=[],currentBackendProcessSettings=[],currentDefectConfigRows=[];
+let lastProductionTeam="",persistentNavMenuOpen=false,persistentNavigationDirty=false,persistentNavigationOrigin="queue",persistentRefreshRestore=null,processChecksRecoveryInFlight=false,processChecksRecoveryAttemptKey="";
 const REJECT_DRAFT_PREFIX="ttRejectDraft",REJECT_SUBMITTED_PREFIX="ttRejectSubmitted",REJECT_OUTBOX_PREFIX="ttRejectOutbox|",REJECT_DEVICE_ID_KEY="ttRejectDeviceId";
 const REJECT_LOG_WEB_APP_URL="https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
 const urlParams=new URLSearchParams(window.location.search);let jobContext={productionUid:urlParams.get("uid")||urlParams.get("productionUid")||"",productionRow:urlParams.get("row")||"",jobNo:urlParams.get("jobNo")||"",sheetJob:urlParams.get("sheetJob")||urlParams.get("job")||"",packId:urlParams.get("packId")||""};
@@ -1127,9 +1257,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.83|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.87|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.83|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.87|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1275,7 +1405,7 @@ function applyJobDetailResponse(data){
   currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:currentDefectConfigRows;
 }
 
-function fetchJobDetailsForCache(job,onDone,silent){
+function fetchJobDetailsForCache(job,onDone,silent,forceLive){
   const sheetJob=job&&String(job.helperSheetName||job.sheetJob||"").trim();
   if(!sheetJob){
     if(onDone)onDone(null);
@@ -1283,7 +1413,7 @@ function fetchJobDetailsForCache(job,onDone,silent){
   }
 
   const cacheKey=getJobDetailsCacheKey(currentTeam,job);
-  const cached=getJobDetailsFromLocalCache(job);
+  const cached=forceLive?null:getJobDetailsFromLocalCache(job);
   if(cached){
     if(onDone)onDone(cached);
     return;
@@ -1314,7 +1444,7 @@ function fetchJobDetailsForCache(job,onDone,silent){
   };
 
   const script=document.createElement("script");
-  script.src=REJECT_LOG_WEB_APP_URL+"?action=getJobDetails&team="+encodeURIComponent(currentTeam||"")+"&sheetJob="+encodeURIComponent(sheetJob)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=getJobDetails&team="+encodeURIComponent(currentTeam||"")+"&sheetJob="+encodeURIComponent(sheetJob)+(forceLive?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
   script.onerror=function(){
     const callbacks=jobDetailRequests[cacheKey]||[];
     delete jobDetailRequests[cacheKey];
@@ -1602,6 +1732,7 @@ function applyTeamDashboardData(data,fromLocal){
     setQueueSyncIndicator("ready","Offline: Ready","Live queue cached");
   }
   setTimeout(refreshStatusThenPrefetchFirstOpen,0);
+  restorePersistentViewAfterRefresh();
 }
 
 function fetchTeamDashboard(team,forceFresh){
@@ -1635,10 +1766,11 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.83|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.87|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
-let currentPackingAccessoriesGroup=null,accessoryPickRequests={};
+const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
+let currentPackingAccessoriesGroup=null,accessoryPickRequests={},packingProjectCompleteRequests={};
 const PROCESS_OPERATOR_MEMORY_PREFIX="ttProcessOperatorMemory|v1.76|";
 const JOB_OPERATOR_MEMORY_PREFIX="ttJobProcessOperatorMemory|v1.76|";
 let packingStatusRequests={};
@@ -1723,11 +1855,16 @@ function updatePackingStatusOutboxUi(){
   const el=document.getElementById("packingSyncStatus");
   const retryBtn=document.getElementById("packingRetryStatusBtn");
   if(!el||!retryBtn)return;
-  const count=getPackingStatusOutboxItems().length;
+  const statusCount=getPackingStatusOutboxItems().length;
+  const completeCount=getPackingProjectCompleteOutboxItems().length;
+  const count=statusCount+completeCount;
   if(count){
     el.classList.remove("hidden");
     el.classList.add("pending");
-    el.innerText=count+" packing status update"+(count===1?" is":"s are")+" saved on this device and waiting to sync.";
+    const parts=[];
+    if(statusCount)parts.push(statusCount+" packing status update"+(statusCount===1?"":"s"));
+    if(completeCount)parts.push(completeCount+" project completion"+(completeCount===1?"":"s"));
+    el.innerText=parts.join(" and ")+" saved on this device and waiting to sync.";
     retryBtn.classList.remove("hidden");
   }else{
     el.classList.add("hidden");
@@ -1769,12 +1906,14 @@ function sendPackingStatusOutboxRecord(record,silent){
 }
 function retryPackingStatusOutbox(silent){
   const items=getPackingStatusOutboxItems();
+  const completions=getPackingProjectCompleteOutboxItems();
   updatePackingStatusOutboxUi();
-  if(!items.length){
+  if(!items.length&&!completions.length){
     if(!silent&&packingQueueActive)document.getElementById("packingQueueStatus").innerText="No pending packing status updates.";
     return;
   }
   items.forEach(item=>sendPackingStatusOutboxRecord(item.record,silent===true));
+  completions.forEach(item=>sendPackingProjectCompleteOutboxRecord(item.record,silent===true));
 }
 
 function accessoryStatusIsPicked(item){return normalise(item&&item.packingStatus||"")==="picked"}
@@ -1887,6 +2026,135 @@ function markPackingAccessoryPicked(accessoryUid){
   sendAccessoryPickOutboxRecord(record,false);
 }
 
+
+function getPackingProjectCompleteOutboxKey(groupKey){
+  return groupKey?PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX+encodeURIComponent(String(groupKey)):"";
+}
+function getPackingProjectCompleteOutboxItems(){
+  const items=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(key&&key.indexOf(PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX)===0){
+        try{
+          const record=JSON.parse(localStorage.getItem(key));
+          if(record&&record.requestId&&(record.invoiceNo||record.productionUid||record.productionRow))items.push({key:key,record:record});
+        }catch(err){}
+      }
+    }
+  }catch(err){}
+  return items.sort((a,b)=>String(a.record.createdAt||"").localeCompare(String(b.record.createdAt||"")));
+}
+function getPendingPackingProjectCompleteRecord(groupKey){
+  const key=getPackingProjectCompleteOutboxKey(groupKey);
+  if(!key)return null;
+  try{
+    const raw=localStorage.getItem(key);
+    return raw?JSON.parse(raw):null;
+  }catch(err){return null}
+}
+function savePackingProjectCompleteToOutbox(group){
+  try{
+    const key=getPackingProjectCompleteOutboxKey(group.key);
+    if(!key)return null;
+    const firstJob=(group.jobs||[])[0]||{};
+    const record={
+      groupKey:String(group.key||""),
+      invoiceNo:String(group.invoiceNo||"").trim(),
+      productionRow:String(firstJob.productionRow||""),
+      productionUid:String(firstJob.productionUid||""),
+      completedDeviceId:getRejectDeviceId(),
+      requestId:"packcomplete_"+getRejectDeviceId()+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,10),
+      lineCount:(group.jobs||[]).length,
+      createdAt:new Date().toISOString(),
+      attempts:0
+    };
+    localStorage.setItem(key,JSON.stringify(record));
+    updatePackingStatusOutboxUi();
+    return record;
+  }catch(err){return null}
+}
+function removePackingProjectCompleteOutboxRecord(record){
+  try{
+    const key=getPackingProjectCompleteOutboxKey(record.groupKey);
+    const raw=key?localStorage.getItem(key):"";
+    if(!raw)return;
+    const current=JSON.parse(raw);
+    if(current&&current.requestId===record.requestId)localStorage.removeItem(key);
+  }catch(err){}
+}
+function markPackingProjectCompleteOutboxAttempt(record){
+  try{
+    const key=getPackingProjectCompleteOutboxKey(record.groupKey);
+    const raw=key?localStorage.getItem(key):"";
+    if(!raw)return;
+    const current=JSON.parse(raw);
+    if(!current||current.requestId!==record.requestId)return;
+    current.attempts=Number(current.attempts||0)+1;
+    current.lastAttemptAt=new Date().toISOString();
+    localStorage.setItem(key,JSON.stringify(current));
+  }catch(err){}
+}
+function sendPackingProjectCompleteOutboxRecord(record,silent){
+  if(!record||!record.requestId||packingProjectCompleteRequests[record.requestId])return;
+  packingProjectCompleteRequests[record.requestId]=true;
+  markPackingProjectCompleteOutboxAttempt(record);
+  const callbackName="pwaPackingProjectCompleteCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+  window[callbackName]=function(data){
+    delete packingProjectCompleteRequests[record.requestId];
+    delete window[callbackName];
+    if(data&&data.ok){
+      removePackingProjectCompleteOutboxRecord(record);
+      clearPackingQueueLocalCache();
+      updatePackingStatusOutboxUi();
+      if(packingQueueActive){
+        showPreloadPopup("Project pack complete","Completed lines removed from the live queue",1400);
+        loadPackingQueue(true);
+      }
+    }else{
+      updatePackingStatusOutboxUi();
+      if(!silent&&packingQueueActive){
+        document.getElementById("packingQueueStatus").innerText=data&&data.error?data.error:"Project completion remains saved locally and could not sync yet.";
+        if(currentPackingQueue&&Array.isArray(currentPackingQueue.jobs))renderPackingQueue(applyPendingPackingStatusUpdates(currentPackingQueue.jobs),false);
+      }
+    }
+  };
+  const script=document.createElement("script");
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=completePackingInvoice&invoiceNo="+encodeURIComponent(record.invoiceNo||"")+"&productionRow="+encodeURIComponent(record.productionRow||"")+"&productionUid="+encodeURIComponent(record.productionUid||"")+"&completedDeviceId="+encodeURIComponent(record.completedDeviceId||"")+"&requestId="+encodeURIComponent(record.requestId)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.onerror=function(){
+    delete packingProjectCompleteRequests[record.requestId];
+    delete window[callbackName];
+    updatePackingStatusOutboxUi();
+    if(!silent&&packingQueueActive)document.getElementById("packingQueueStatus").innerText="Project completion remains saved locally and could not sync yet.";
+  };
+  document.body.appendChild(script);
+}
+function retryPackingProjectCompleteOutbox(silent){
+  getPackingProjectCompleteOutboxItems().forEach(item=>sendPackingProjectCompleteOutboxRecord(item.record,silent===true));
+}
+function getPackingProjectCompletionLabel(group){
+  const deliveries=(group.deliveryTypes||[]).map(value=>normalise(value));
+  if(deliveries.some(value=>value.indexOf("collection")!==-1))return"collected";
+  return"dispatched";
+}
+function markPackingProjectComplete(group){
+  if(!group||!group.ready||group.pendingCompletion)return;
+  const invoiceLabel=group.invoiceNo?"INV-"+group.invoiceNo:"this project pack";
+  const actionLabel=getPackingProjectCompletionLabel(group);
+  const lineCount=(group.jobs||[]).filter(job=>normalise(job.packingStatus||"")!=="complete").length;
+  const prompt="Confirm "+invoiceLabel+" has been "+actionLabel+" and mark "+lineCount+" ready product line"+(lineCount===1?"":"s")+" as Complete?\\n\\nThis removes the completed project pack from the live Packing Queue.";
+  if(!window.confirm(prompt))return;
+  const record=savePackingProjectCompleteToOutbox(group);
+  if(!record){
+    document.getElementById("packingQueueStatus").innerText="Could not save the Complete action locally.";
+    return;
+  }
+  group.pendingCompletion=true;
+  group.completePendingRecord=record;
+  if(currentPackingQueue&&Array.isArray(currentPackingQueue.jobs))renderPackingQueue(applyPendingPackingStatusUpdates(currentPackingQueue.jobs),false);
+  sendPackingProjectCompleteOutboxRecord(record,false);
+}
+
 function applyPackingQueueData(data,fromLocal){
   currentPackingQueue=data;
   currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
@@ -1956,12 +2224,15 @@ function buildPackingProjectGroups(jobs){
   });
   groups.forEach(group=>{
     group.accessories=getPackingProjectAccessories(group.invoiceNo);
+    group.completePendingRecord=getPendingPackingProjectCompleteRecord(group.key);
+    group.pendingCompletion=!!group.completePendingRecord;
     group.pending=group.jobs.some(job=>!!job.pendingSync);
     group.accessoryPending=group.accessories.some(item=>!!item.pendingPickSync);
     group.accessoryOutstanding=group.accessories.filter(item=>!accessoryStatusIsPicked(item)).length;
     group.blocked=group.jobs.some(job=>packingStatusIsBlocked(job.packingStatus));
     group.outstanding=group.jobs.filter(job=>!packingStatusIsSatisfied(job.packingStatus)).length;
-    group.ready=!group.pending&&!group.accessoryPending&&!group.blocked&&group.outstanding===0&&group.accessoryOutstanding===0;
+    group.ready=!group.pending&&!group.accessoryPending&&!group.pendingCompletion&&!group.blocked&&group.outstanding===0&&group.accessoryOutstanding===0;
+    group.readyForCompletion=!group.pending&&!group.accessoryPending&&!group.pendingCompletion&&!group.blocked&&group.outstanding===0&&group.accessoryOutstanding===0;
   });
   return groups.sort((a,b)=>{
     const aRank=a.blocked?0:(a.ready?2:1);
@@ -2041,18 +2312,21 @@ function renderPackingQueue(jobs,fromLocal){
   document.getElementById("packingQueueStatus").innerText=statusPrefix+groups.length+" project pack"+(groups.length===1?"":"s")+" | "+jobs.length+" product line"+(jobs.length===1?"":"s")+" | "+readyCount+" fully ready.";
   groups.forEach(group=>{
     const outer=document.createElement("section");
-    outer.className="packingProjectCard "+(group.ready?"ready":(group.blocked?"blocked":"open"));
+    outer.className="packingProjectCard "+(group.pendingCompletion?"completing":(group.ready?"ready":(group.blocked?"blocked":"open")));
     const invoiceLabel=group.invoiceNo?"INV-"+group.invoiceNo:"UNGROUPED LINE";
     const fulfilment=group.deliveryTypes.length===1?group.deliveryTypes[0]:(group.deliveryTypes.length>1?"Mixed fulfilment":"Delivery not set");
     const totalOutstanding=group.outstanding+group.accessoryOutstanding;
-    const stateText=(group.pending||group.accessoryPending)?"Pending sync":(group.blocked?"Attention":(group.ready?"Ready":totalOutstanding+" outstanding"));
+    const stateText=group.pendingCompletion?"Completing — sync pending":((group.pending||group.accessoryPending)?"Pending sync":(group.blocked?"Attention":(group.ready?"Ready":totalOutstanding+" outstanding")));
     const itemParts=[fulfilment,group.jobs.length+" product line"+(group.jobs.length===1?"":"s")];
     if(group.accessories.length)itemParts.push(group.accessories.length+" accessory line"+(group.accessories.length===1?"":"s"));
     itemParts.push(group.ready?"all ready":totalOutstanding+" outstanding");
     const summary=itemParts.join(" · ");
-    outer.innerHTML='<div class="packingProjectHeader"><div class="packingProjectTitle"><span class="packingProjectInvoice">'+escapeHtml(invoiceLabel)+'</span><span class="packingProjectClient">'+escapeHtml(group.client||"No client reference")+'</span><span class="packingProjectMeta">'+escapeHtml(summary)+'</span></div><span class="packingProjectState">'+escapeHtml(stateText)+'</span></div><div class="packingLineList"></div>'+renderPackingAccessories(group);
+    const completeAction=group.pendingCompletion?'<div class="packingProjectCompleteWrap"><div class="packingProjectCompletePending">Mark as Complete saved — syncing</div></div>':(group.ready?'<div class="packingProjectCompleteWrap"><button type="button" class="packingProjectCompleteBtn" data-complete-project="1">Mark as Complete</button></div>':'');
+    outer.innerHTML='<div class="packingProjectHeader"><div class="packingProjectTitle"><span class="packingProjectInvoice">'+escapeHtml(invoiceLabel)+'</span><span class="packingProjectClient">'+escapeHtml(group.client||"No client reference")+'</span><span class="packingProjectMeta">'+escapeHtml(summary)+'</span></div><span class="packingProjectState">'+escapeHtml(stateText)+'</span></div><div class="packingLineList"></div>'+renderPackingAccessories(group)+completeAction;
     const accessoryButton=outer.querySelector("[data-open-accessories]");
     if(accessoryButton)accessoryButton.onclick=()=>openPackingAccessoriesDetail(group);
+    const completeButton=outer.querySelector("[data-complete-project]");
+    if(completeButton)completeButton.onclick=()=>markPackingProjectComplete(group);
     const list=outer.querySelector(".packingLineList");
     group.jobs.forEach(job=>{
       const canOpen=packingValueIsTrue(job.canOpenPackingCard);
@@ -2218,6 +2492,9 @@ function showQueueTools(show){
 }
 
 function loadTeamQueue(team,forceFresh){
+  lastProductionTeam=String(team||"").toUpperCase().trim();
+  persistentNavigationOrigin="queue";
+  closePersistentNavMenu();
   packingQueueActive=false;currentPackingQueue=null;hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();
   currentTeam=team;currentJob=null;currentEntryMode="";currentProcessSetup={};step=0;
   clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";
@@ -2382,7 +2659,7 @@ function renderJobQueue(jobs){
       metaRows+='<div class="queueMetaRow"><span class="queueMetaItem wide"><b>Packs</b><span>'+escapeHtml(packText)+'</span></span></div>';
     }
     btn.innerHTML='<div class="queueCardHeader"><span class="queueJobNumber">'+numberText+'</span><div class="queueCardMain"><div class="queueClient">'+escapeHtml(job.sheetJob||"")+' — '+escapeHtml(job.client||"")+'</div><div class="queueBadgeRow">'+badges+'</div></div><span class="queueOpenChevron">›</span></div><div class="queueMetaRows">'+metaRows+'</div>';
-    btn.onclick=()=>selectQueueJob(job);
+    btn.onclick=()=>{persistentNavigationOrigin="queue";selectQueueJob(job);};
     wrap.appendChild(btn);
   });
 }
@@ -2473,6 +2750,7 @@ function buildStockRowsFromJobs(jobs){
         client:job.client||"",
         packId:packId,
         packLocation:pack.location||"",
+        rawKey:pack.rawKey||pack.packKey||"",
         species:job.species||"",
         length:job.length||"",
         finishedSize:job.finishedSize||"",
@@ -2682,36 +2960,160 @@ function buildCoatingOverviewFromJobs(jobs){
   return {rows,summary};
 }
 
-function loadStockPicker(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerPanel").classList.remove("hidden");document.getElementById("stockPickerTitle").innerText="Team "+currentTeam+" Stock Picker";document.getElementById("stockPickerRows").innerHTML="";const dashboard=getCurrentTeamDashboardOrCache();if(!dashboard){document.getElementById("stockPickerStatus").innerText="No saved queue found. Go back and tap Team "+currentTeam+" or Force Refresh Schedule.";return}renderStockPickerRows(buildStockRowsFromJobs(dashboard.jobs||[]))}
+let stockPickerOriginView="",stockPickerDirectRefreshInFlight=false;
 
+function stockPickerTitleCase(value){
+  return String(value||"").toLowerCase().replace(/\b\w/g,function(ch){return ch.toUpperCase()});
+}
+function getStockRawDisplay(row){
+  const parts=String(row&&row.rawKey||"").split("|").map(function(v){return String(v||"").trim()}).filter(Boolean);
+  return {
+    species:parts.length?parts[0]:String(row&&row.species||"").trim(),
+    rawSize:parts.length>1?parts[parts.length-1]:""
+  };
+}
+function getStockPrimaryInstruction(row){
+  const location=String(row&&row.packLocation||"").trim();
+  const after=String(row&&row.returnAfterUse||"").trim().toUpperCase();
+  if(row&&row.completed){
+    if(after.indexOf("KEEP AT ")===0)return "Move to Holding Area";
+    if(after.indexOf("RETURN TO ")===0)return "Return to Location "+(location||after.replace("RETURN TO ",""));
+    if(after.indexOf("MOVE TO ")===0)return "Move to "+stockPickerTitleCase(after.replace("MOVE TO ",""));
+  }
+  const destination=String(row&&row.packDestination||getPackDestination(row)||"").trim();
+  if(destination)return "Move to "+stockPickerTitleCase(destination);
+  return location?"Return to Location "+location:"Location required";
+}
+function getStockSecondaryInstruction(row){
+  if(row&&row.completed)return "";
+  const location=String(row&&row.packLocation||"").trim();
+  const after=String(row&&row.returnAfterUse||"").trim().toUpperCase();
+  if(after.indexOf("KEEP AT ")===0)return "After use: Move to Holding Area";
+  if(after.indexOf("RETURN TO ")===0)return "After use: Return to "+(location||after.replace("RETURN TO ",""));
+  if(after.indexOf("MOVE TO ")===0)return "After use: Move to "+stockPickerTitleCase(after.replace("MOVE TO ",""));
+  return "";
+}
+function getStockMovementClass(row,instruction){
+  const text=normalise(instruction||"");
+  if(text.indexOf("location required")!==-1)return " moveBlocked";
+  if(text.indexOf("holding area")!==-1)return " moveHold";
+  return row&&row.completed?" stockMoveCompleted":"";
+}
+function renderStockPickerSummary(rows){
+  const summary=document.getElementById("stockPickerSummary");
+  if(!summary)return;
+  const moveRows=(rows||[]).filter(function(row){return !row.completed});
+  const moulder=moveRows.filter(function(row){return normalise(getStockPrimaryInstruction(row)).indexOf("moulder")!==-1}).length;
+  const resaw=moveRows.filter(function(row){return normalise(getStockPrimaryInstruction(row)).indexOf("resaw")!==-1}).length;
+  summary.innerHTML='<div class="ttStockMetric"><span class="ttStockMetricIcon">▣</span><b>'+escapeHtml(String(moveRows.length))+'</b><small>Packs to move</small></div>'+
+    '<div class="ttStockMetric"><span class="ttStockMetricIcon">→</span><b>'+escapeHtml(String(moulder))+'</b><small>To Moulder</small></div>'+
+    '<div class="ttStockMetric attention"><span class="ttStockMetricIcon">→</span><b>'+escapeHtml(String(resaw))+'</b><small>To Resaw</small></div>';
+}
+function prepareStockPickerPanel(originLabel){
+  hidePostSaveScreen();hideProcessSetupScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();
+  document.getElementById("teamQueueBlock").classList.add("hidden");
+  document.getElementById("step0_entry").classList.add("hidden");
+  document.getElementById("simpleLogger").classList.add("hidden");
+  document.querySelector(".btnRow").classList.add("hidden");
+  document.getElementById("stockPickerPanel").classList.remove("hidden");
+  document.getElementById("stockPickerTitle").innerText="Stock Picker";
+  const origin=document.getElementById("stockPickerOrigin");
+  if(origin)origin.innerText=originLabel||("Team "+currentTeam+" movements");
+  updateJobContextBar();updateUI();
+}
+function loadStockPicker(originLabel){
+  if(!currentTeam||currentTeam==="PACKING"){showProcessWarning("Select Team A or Team B first.");return}
+  stockPickerOriginView=originLabel==="Packing Queue"?"packing":"team";
+  prepareStockPickerPanel(originLabel?("From: "+originLabel+" · Team "+currentTeam):("Team "+currentTeam+" movement list"));
+  document.getElementById("stockPickerRows").innerHTML="";
+  const dashboard=getCurrentTeamDashboardOrCache();
+  if(!dashboard){
+    document.getElementById("stockPickerStatus").innerText="Loading movement list...";
+    document.getElementById("stockPickerSummary").innerHTML="";
+    fetchStockPickerDashboardDirect(currentTeam,true);
+    return;
+  }
+  renderStockPickerRows(buildStockRowsFromJobs(dashboard.jobs||[]));
+}
+function fetchStockPickerDashboardDirect(team,forceFresh){
+  if(stockPickerDirectRefreshInFlight)return;
+  stockPickerDirectRefreshInFlight=true;
+  const status=document.getElementById("stockPickerStatus");
+  if(status)status.innerText=forceFresh?"Refreshing movement list...":"Loading movement list...";
+  const callbackName="pwaStockPickerDashboardCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+  window[callbackName]=function(data){
+    stockPickerDirectRefreshInFlight=false;
+    delete window[callbackName];
+    if(!data||!data.ok){
+      if(status)status.innerText="Could not refresh movement list.";
+      return;
+    }
+    saveTeamDashboardToLocalCache(team,data);
+    currentTeamDashboard=data;
+    if(isElementVisible("stockPickerPanel")&&currentTeam===team){
+      renderStockPickerRows(buildStockRowsFromJobs(data.jobs||[]));
+    }
+  };
+  const script=document.createElement("script");
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+(forceFresh?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.onerror=function(){
+    stockPickerDirectRefreshInFlight=false;
+    delete window[callbackName];
+    if(status)status.innerText="Movement list refresh failed.";
+  };
+  document.body.appendChild(script);
+}
 function renderStockPickerRows(rows){
   const wrap=document.getElementById("stockPickerRows");
+  const list=rows||[];
+  renderStockPickerSummary(list);
 
-  if(!rows.length){
+  if(!list.length){
     document.getElementById("stockPickerStatus").innerText="No Resaw or Moulder pack movements found for Team "+currentTeam+".";
     wrap.innerHTML="";
     return;
   }
 
-  document.getElementById("stockPickerStatus").innerText=rows.length+" pack movement"+(rows.length===1?"":"s")+" found.";
+  document.getElementById("stockPickerStatus").innerText=list.length+" pack movement"+(list.length===1?"":"s")+" listed";
   wrap.innerHTML="";
 
-  rows.forEach(row=>{
+  list.forEach(function(row,index){
     const card=document.createElement("div");
-    card.className="stockPickerCard"+(row.completed?" jobQueueComplete":"");
+    const instruction=getStockPrimaryInstruction(row);
+    const secondaryInstruction=getStockSecondaryInstruction(row);
+    const raw=getStockRawDisplay(row);
+    const location=String(row.packLocation||"").trim()||"NOT SET";
+    const cls=getStockMovementClass(row,instruction);
+    card.className="stockPickerCard"+cls;
 
-    const action=row.returnAfterUse||"";
-    const actionClass=action.indexOf("RETURN TO ")===0?"return":(action.indexOf("MOVE TO ")===0?"move":"keep");
-    const location=row.packLocation||"Location not set";
-    const completeBadge=row.completed?'<span class="jobCompleteBadge">COMPLETED</span>':"";
+    let metadata='';
+    metadata+='<span class="ttStockMetaItem"><small>Qty</small>'+escapeHtml(String(row.quantity||"—"))+'</span>';
+    if(row.client)metadata+='<span class="ttStockMetaItem">'+escapeHtml(row.client)+'</span>';
+    if(raw.species)metadata+='<span class="ttStockMetaItem">'+escapeHtml(raw.species)+'</span>';
+    if(raw.rawSize)metadata+='<span class="ttStockMetaItem"><small>Raw</small>'+escapeHtml(raw.rawSize)+'</span>';
 
-    card.innerHTML='<div class="stockPickerMain"><div class="stockPickerHeaderGrid"><div class="stockPickerLabelValue"><div class="stockPickerLabel">Pack ID</div><div class="stockPickerValue">'+escapeHtml(row.packId||"")+'</div></div><div class="stockPickerLabelValue"><div class="stockPickerLabel">Stock location</div><div class="stockPickerValue">'+escapeHtml(location)+'</div></div></div><div class="stockPickerAction '+actionClass+'">'+escapeHtml(action)+'</div><div class="stockPickerMeta">Job No: '+escapeHtml(row.jobNo||"")+" | Shift: "+escapeHtml(row.shift||"")+" | Job: "+escapeHtml(row.sheetJob||"")+completeBadge+'</div><div class="stockPickerMeta">Client: '+escapeHtml(row.client||"")+'</div><div class="stockPickerMeta stockPickerSpec">Spec: '+escapeHtml(row.species||"")+" | "+escapeHtml(row.length||"")+"m | "+escapeHtml(row.finishedSize||"")+" | "+escapeHtml(row.profile||"")+" | Qty "+escapeHtml(row.quantity||"")+'</div></div><div class="stockPickerGrid">'+stockDestinationTile(row.packDestination||getPackDestination(row))+"</div>";
+    let warning='';
+    if(!row.packLocation)warning='<div class="ttStockWarning">Location ID not set — confirm pack location before moving.</div>';
+
+    card.innerHTML='<div class="ttStockCardTop">'+
+      '<span class="ttStockOrder">'+escapeHtml(String(index+1))+'</span>'+
+      '<div class="ttStockCardIdentity"><span class="ttStockPackId">'+escapeHtml(row.packId||"")+'</span><span class="ttStockLocation">'+escapeHtml(location)+'</span></div>'+
+      '<span class="ttStockChevron">›</span></div>'+
+      '<div class="ttStockInstruction">'+escapeHtml(instruction)+'</div>'+
+      '<div class="ttStockMetaRow">'+metadata+'</div>'+
+      (secondaryInstruction?'<div class="ttStockAfterUse"><b>'+escapeHtml(secondaryInstruction)+'</b></div>':'')+
+      warning;
 
     wrap.appendChild(card);
   });
 }
 function stockPickerTile(label,value){const cleanLabel=String(label||"").trim();const cleanValue=String(value||"").trim();let valueHtml=escapeHtml(cleanValue);let extraClass="";if(cleanLabel==="Required for Resaw"||cleanLabel==="Required for Moulder"){if(cleanValue.toUpperCase()==="YES"){valueHtml='<span class="stockRequiredYes">YES</span>';extraClass=" requiredTileYes"}else if(cleanValue.toUpperCase()==="NO"){valueHtml='<span class="stockRequiredNo">NO</span>';extraClass=" requiredTileNo"}}return '<div class="stockPickerTile'+extraClass+'"><div class="stockPickerTileLabel">'+escapeHtml(cleanLabel)+'</div><div class="stockPickerTileValue">'+valueHtml+'</div></div>'}
-function backFromStockPicker(){hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();if(currentJob){document.getElementById("step0_entry").classList.remove("hidden");document.getElementById("teamQueueBlock").classList.add("hidden")}else{document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden")}updateUI()}
+function backFromStockPicker(){
+  hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();
+  if(stockPickerOriginView==="packing"){stockPickerOriginView="";loadPackingQueue();return}
+  if(currentJob){document.getElementById("step0_entry").classList.remove("hidden");document.getElementById("teamQueueBlock").classList.add("hidden")}else{document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden")}
+  updateUI();
+}
 function hideStockPickerScreen(){const panel=document.getElementById("stockPickerPanel");if(panel)panel.classList.add("hidden")}
 function loadCoatingOverview(){if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}const dashboard=getCurrentTeamDashboardOrCache();if(!dashboard){showProcessWarning("No saved queue found. Tap Team "+currentTeam+" or Force Refresh Schedule.");return}const overview=buildCoatingOverviewFromJobs(dashboard.jobs||[]);updateCoatingOverviewButtons(dashboard.jobs||[]);if(!overview.rows.length){showProcessWarning("No Paint Room / coating jobs scheduled for Team "+currentTeam+".");return}hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();document.getElementById("teamQueueBlock").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("coatingOverviewPanel").classList.remove("hidden");document.getElementById("coatingOverviewTitle").innerText="Team "+currentTeam+" Coating Overview";document.getElementById("coatingOverviewTotals").innerHTML="";document.getElementById("coatingOverviewRows").innerHTML="";renderCoatingOverview(overview.summary,overview.rows)}
 
@@ -2736,6 +3138,7 @@ function findJobFromOverviewRow(row){
 }
 
 function openPaintRoomFromCoatingOverview(row){
+  persistentNavigationOrigin="coating";
   const job=findJobFromOverviewRow(row);
 
   if(!job){
@@ -3042,8 +3445,84 @@ function packingCheckMatchesJob(item,job){
   if(key.indexOf("ironmongery")!==-1&&!hasIronmongery)return false;
   return true;
 }
-function configureProcessChecks(mode){const processStage=(ENTRY_MODES[mode]||{}).processStage||"";const jobVariant=getJobProcessVariant(currentJob);currentProcessCheckItems=currentBackendProcessChecks.filter(row=>normalise(row.process)===normalise(processStage)&&checkVariantMatches(row.processVariant||"",jobVariant)&&checkFireTreatmentMatch(row.fireTreatmentMatch||"",currentJob)&&packingCheckMatchesJob(row,currentJob));currentProcessCheckItems.sort((a,b)=>Number(a.displayOrder||9999)-Number(b.displayOrder||9999));const wrap=document.getElementById("processChecks");wrap.innerHTML="";if(!currentProcessCheckItems.length){const line=document.createElement("div");line.className="processReminderBox";line.innerText="No setup checks configured for "+getProcessStageTitle(processStage,currentJob)+".";wrap.appendChild(line);return}currentProcessCheckItems.forEach((item,index)=>{const label=document.createElement("label");label.className="checkLine";const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.id="processCheck_"+index;checkbox.dataset.checkKey=item.checkKey||"";checkbox.dataset.checkLabel=item.checkLabel||"";checkbox.dataset.required=String(item.required!==false);const textWrap=document.createElement("span");textWrap.className="checkTextWrap";const span=document.createElement("span");span.textContent=item.checkLabel||"";textWrap.appendChild(span);const sopUrl=String(item.sopUrl||"").trim();if(sopUrl){const link=document.createElement("a");link.className="checkSopLink";link.href=sopUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent=item.sopLabel||"GembaDoc";link.onclick=function(event){event.stopPropagation()};link.onmousedown=function(event){event.stopPropagation()};link.ontouchstart=function(event){event.stopPropagation()};textWrap.appendChild(link)}label.appendChild(checkbox);label.appendChild(textWrap);wrap.appendChild(label)})}
+function configureProcessChecks(mode){
+  const processStage=(ENTRY_MODES[mode]||{}).processStage||"";
+  const jobVariant=getJobProcessVariant(currentJob);
+  const recoveryKey=[
+    currentTeam||"",
+    currentJob&&currentJob.productionUid||currentJob&&currentJob.productionRow||currentJob&&currentJob.sheetJob||"",
+    mode||"",
+    jobVariant||""
+  ].join("|");
 
+  currentProcessCheckItems=currentBackendProcessChecks.filter(row=>
+    normalise(row.process)===normalise(processStage)&&
+    checkVariantMatches(row.processVariant||"",jobVariant)&&
+    checkFireTreatmentMatch(row.fireTreatmentMatch||"",currentJob)&&
+    packingCheckMatchesJob(row,currentJob)
+  );
+  currentProcessCheckItems.sort((a,b)=>Number(a.displayOrder||9999)-Number(b.displayOrder||9999));
+
+  const wrap=document.getElementById("processChecks");
+  wrap.innerHTML="";
+
+  if(!currentProcessCheckItems.length){
+    const line=document.createElement("div");
+    line.className="processReminderBox";
+
+    if(currentJob&&processStage&&processChecksRecoveryAttemptKey!==recoveryKey&&!processChecksRecoveryInFlight){
+      processChecksRecoveryAttemptKey=recoveryKey;
+      processChecksRecoveryInFlight=true;
+      line.innerText="Loading setup checks for "+getProcessStageTitle(processStage,currentJob)+"...";
+      wrap.appendChild(line);
+
+      fetchJobDetailsForCache(currentJob,function(data){
+        processChecksRecoveryInFlight=false;
+        if(data&&data.ok)applyJobDetailResponse(data);
+        if(currentEntryMode===mode&&!document.getElementById("processSetupPanel").classList.contains("hidden")){
+          configureProcessChecks(mode);
+        }
+      },false,true);
+      return;
+    }
+
+    line.innerText="No setup checks configured for "+getProcessStageTitle(processStage,currentJob)+".";
+    wrap.appendChild(line);
+    return;
+  }
+
+  currentProcessCheckItems.forEach((item,index)=>{
+    const label=document.createElement("label");
+    label.className="checkLine";
+    const checkbox=document.createElement("input");
+    checkbox.type="checkbox";
+    checkbox.id="processCheck_"+index;
+    checkbox.dataset.checkKey=item.checkKey||"";
+    checkbox.dataset.checkLabel=item.checkLabel||"";
+    checkbox.dataset.required=String(item.required!==false);
+    const textWrap=document.createElement("span");
+    textWrap.className="checkTextWrap";
+    const span=document.createElement("span");
+    span.textContent=item.checkLabel||"";
+    textWrap.appendChild(span);
+    const sopUrl=String(item.sopUrl||"").trim();
+    if(sopUrl){
+      const link=document.createElement("a");
+      link.className="checkSopLink";
+      link.href=sopUrl;
+      link.target="_blank";
+      link.rel="noopener noreferrer";
+      link.textContent=item.sopLabel||"GembaDoc";
+      link.onclick=function(event){event.stopPropagation()};
+      link.onmousedown=function(event){event.stopPropagation()};
+      link.ontouchstart=function(event){event.stopPropagation()};
+      textWrap.appendChild(link);
+    }
+    label.appendChild(checkbox);
+    label.appendChild(textWrap);
+    wrap.appendChild(label);
+  });
+}
 function renderProcessJobCard(mode){const card=document.getElementById("processJobCard"),title=document.getElementById("processSetupTitle"),customInfoBox=document.getElementById("processCustomInfo"),reminderBox=document.getElementById("processReminderBox"),config=ENTRY_MODES[mode]||{};const processStage=config.processStage||"Process";const stageTitle=getProcessStageTitle(processStage,currentJob);title.innerText=stageTitle+" Setup Check";if(!currentJob){card.innerHTML="";customInfoBox.classList.add("hidden");reminderBox.classList.add("hidden");return}let jobTiles;if(isStandalonePackingJob()){jobTiles=[["Status",currentJob.packingStatus||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Delivery Type",currentJob.deliveryType||"Not set"]]}else if(processStage==="Paint Room"&&isFrTreatmentStage(currentJob)){jobTiles=[["Job",currentJob.sheetJob||""],["Stage","FR Treatment"],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Treatment",getFireTreatmentDisplay(currentJob)||"Fire Treatment"],["Treatment qty",displayNotYetSet(currentJob.paintQty)]]}else if(processStage==="Paint Room"&&isRecoatJob(currentJob)){jobTiles=[["Job",currentJob.sheetJob||""],["Stage",getJobProcessVariant(currentJob)],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Coating",currentJob.coating||""],["Paint qty",displayNotYetSet(currentJob.paintQty)]]}else{jobTiles=[["Job",currentJob.sheetJob||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Texture",currentJob.texture||""]]}let html=processSection("Job Summary",buildTileRows(jobTiles));if(isFireTreatmentActive(currentJob)){html+=processSection("Fire Treatment",'<div class="frTreatmentLine">FR TREATMENT — '+escapeHtml(getFireTreatmentDisplay(currentJob)||"Fire Treatment")+'</div>')}const allExtraFields=getProcessFieldValuesForCurrentJob(processStage).filter(field=>String(field.value||"").trim()!=="");const routeFields=allExtraFields.filter(field=>isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const infoFields=allExtraFields.filter(field=>!isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const processTiles=[];infoFields.forEach(field=>{let displayValue=field.value||"";if(normalise(field.fieldLabel||field.fieldKey)==="paint qty")displayValue=displayNotYetSet(displayValue);if(String(displayValue||"").trim()!==""&&!processTiles.some(tile=>normalise(tile[0])===normalise(field.fieldLabel||field.fieldKey)))processTiles.push([field.fieldLabel||field.fieldKey||"",displayValue])});if(processStage==="Paint Room"&&shouldShowRackingInfoForProcess(processStage)){getPaintRoomRackingTiles(currentJob).forEach(tile=>{if(!processTiles.some(existing=>normalise(existing[0])===normalise(tile[0])))processTiles.push(tile)})}if(processTiles.length)html+=processSection("Process Info",'<div class="processExtraFieldsGrid">'+processTiles.map(tile=>processTile(tile[0],tile[1])).join("")+'</div>');if(shouldShowPackMaterialForProcess(processStage))html+=processSection("Pack / Material",buildProcessPackCards());card.innerHTML=html;const customInfo=String(currentJob.customInfo||"").trim();if(customInfo){customInfoBox.innerText=customInfo;customInfoBox.classList.remove("hidden");customInfoBox.classList.add("collapsed")}else customInfoBox.classList.add("hidden");const reminder=getReminderForEntryMode(mode);if(reminder){reminderBox.innerText="Reminder: "+reminder;reminderBox.classList.remove("hidden")}else reminderBox.classList.add("hidden")}
 
 function isRoutingFieldLabel(label){const t=normalise(label);return t.indexOf("required")!==-1||t==="resaw"||t==="moulder"||t==="charring"||t==="sander"||t==="brushing"||t==="paint room"||t==="packing"}
@@ -3178,6 +3657,7 @@ function mergeJobDetails(baseJob,detailsJob){
   return merged;
 }
 function finishSelectQueueJob(job,modeAfterLoad){
+  persistentNavigationDirty=false;
   hidePreloadPopup();hideJobSignalsBox();
   currentJob=job;
   updateCurrentDashboardJob(job);
@@ -3251,7 +3731,7 @@ function updateJobContextBar(){const bar=document.getElementById("jobContextBar"
 function getPackOptions(){if(currentJob&&Array.isArray(currentJob.packs)&&currentJob.packs.length){return currentJob.packs.filter(p=>p.packId).map(p=>({packId:p.packId,label:"Pack "+p.packOrder+": "+p.packId+(p.location?" ("+p.location+")":"")+(p.stockCheck&&p.stockCheck!=="OK"?" ("+p.stockCheck+")":"")}))}if(jobContext.packId)return[{packId:jobContext.packId,label:jobContext.packId}];return[]}
 function populatePackSelect(selectEl,selectedPackId){const packs=getPackOptions();selectEl.innerHTML="";const ph=document.createElement("option");ph.value="";ph.textContent="Select Pack ID";ph.disabled=true;ph.selected=true;selectEl.appendChild(ph);packs.forEach(p=>{const o=document.createElement("option");o.value=p.packId;o.textContent=p.label;selectEl.appendChild(o)});if(selectedPackId&&packs.some(p=>p.packId===selectedPackId))selectEl.value=selectedPackId;else if(packs.length===1)selectEl.value=packs[0].packId;else selectEl.value=""}
 function fillPackIdFields(){populatePackSelect(document.getElementById("simplePackId"),jobContext.packId||"");populatePackSelect(document.getElementById("setupPackId"),jobContext.packId||"")}
-function setEntryMode(mode){currentEntryMode=mode;currentProcessSetup={};if(mode!=="pack_visualiser")visualiserSourceProcess="";hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();document.getElementById("saveStatus").innerText="";if(mode==="pack_visualiser"){visualiserSourceProcess="";step=1}else{step=0;document.getElementById("simpleLoggerTitle").innerText=ENTRY_MODES[mode].label;buildBasketRejectButtons(mode);if((ENTRY_MODES[mode]||{}).showSetup)showProcessSetupScreen(mode);else restoreRejectDraft()}fillPackIdFields();updateUI();render()}
+function setEntryMode(mode){persistentNavigationDirty=false;currentEntryMode=mode;currentProcessSetup={};if(mode!=="pack_visualiser")visualiserSourceProcess="";hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();document.getElementById("saveStatus").innerText="";if(mode==="pack_visualiser"){visualiserSourceProcess="";step=1}else{step=0;document.getElementById("simpleLoggerTitle").innerText=ENTRY_MODES[mode].label;buildBasketRejectButtons(mode);if((ENTRY_MODES[mode]||{}).showSetup)showProcessSetupScreen(mode);else restoreRejectDraft()}fillPackIdFields();updateUI();render()}
 function returnToMenu(){hidePostSaveScreen();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentProcessSetup={};step=0;clearRejectBasket(true);document.getElementById("saveStatus").innerText="";clearGrid();document.getElementById("summary").innerText="";updateUI()}
 function showPostSaveScreen(payload,totalRejects){document.getElementById("simpleLogger").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");const panel=document.getElementById("postSavePanel"),title=document.getElementById("postSaveTitle"),details=document.getElementById("postSaveDetails");title.innerText="Saved";const lines=[];lines.push("Job: "+(jobContext.sheetJob||""));lines.push("Process: "+getProcessStageTitle(((ENTRY_MODES[currentEntryMode]||{}).processStage||""),currentJob));if(payload.quickNoRejects)lines.push("Outcome: No rejects on this coat");lines.push("Pack ID: "+(payload.packId||""));lines.push("Total rejects: "+totalRejects);if(currentJob){lines.push("Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""))}if(payload.processSetup){const setup=payload.processSetup;lines.push("");lines.push("Setup checks:");lines.push("Operator: "+(setup.operatorId||"")+(setup.guestOperatorName?" - "+setup.guestOperatorName:""));if(Array.isArray(setup.checks))setup.checks.forEach(check=>lines.push(check.label+": "+(check.checked?"Yes":"No")));if(setup.notes)lines.push("Notes: "+setup.notes)}lines.push("");lines.push("Reject details:");if(Array.isArray(payload.rejects)&&payload.rejects.length){payload.rejects.forEach(line=>lines.push("• "+(line.defectType||"")+": "+Number(line.rejectQty||0)))}else lines.push("• No reject details found");if(payload.rejectNote){lines.push("");lines.push("Reject note: "+payload.rejectNote)}details.innerHTML=lines.map(escapeHtml).join("<br>");panel.classList.remove("hidden");updateLocalOutboxStatus()}
 function hidePostSaveScreen(){const panel=document.getElementById("postSavePanel");if(panel)panel.classList.add("hidden")}
@@ -3349,6 +3829,153 @@ function addExtraRejectsSamePack(){
   updateUI();
 }
 
+
+function closePersistentNavMenu(){
+  persistentNavMenuOpen=false;
+  const menu=document.getElementById("persistentNavMenu");
+  if(menu)menu.classList.add("hidden");
+}
+function togglePersistentNavMenu(){
+  persistentNavMenuOpen=!persistentNavMenuOpen;
+  const menu=document.getElementById("persistentNavMenu");
+  if(menu)menu.classList.toggle("hidden",!persistentNavMenuOpen);
+  updatePersistentNav();
+}
+function isProductionTeamContext(){return currentTeam==="A"||currentTeam==="B"}
+function isElementVisible(id){const el=document.getElementById(id);return !!el&&!el.classList.contains("hidden")}
+function navigationJobIdentity(job){
+  if(!job)return "";
+  return [job.productionUid||"",job.productionRow||"",job.helperSheetName||job.sheetJob||"",getJobProcessVariant(job)||""].map(value=>String(value||"").trim()).join("|");
+}
+function currentProcessCanStep(){return isProductionTeamContext()&&!!currentJob&&!!currentEntryMode&&currentEntryMode!=="pack_visualiser"&&!isElementVisible("postSavePanel")}
+function modeAvailableForNavigation(job,mode){
+  if(!job||!mode)return false;
+  const previous=currentJob;
+  currentJob=job;
+  let available=false;
+  try{available=!!getProcessAvailability(mode).available}catch(err){available=false}
+  currentJob=previous;
+  return available;
+}
+function getNavigableProcessJobs(){
+  if(!currentProcessCanStep())return [];
+  const dashboard=getCurrentTeamDashboardOrCache();
+  const jobs=dashboard&&Array.isArray(dashboard.jobs)?dashboard.jobs:[];
+  return jobs.filter(job=>modeAvailableForNavigation(job,currentEntryMode));
+}
+function currentProcessPosition(){
+  const jobs=getNavigableProcessJobs();
+  const key=navigationJobIdentity(currentJob);
+  let index=jobs.findIndex(job=>navigationJobIdentity(job)===key);
+  if(index<0&&currentJob)index=jobs.findIndex(job=>sameOperationalJob(job,currentJob)&&normalise(getJobProcessVariant(job)||"")===normalise(getJobProcessVariant(currentJob)||""));
+  return {jobs:jobs,index:index};
+}
+function hasUnsavedNavigationWork(){return persistentNavigationDirty||Object.keys(rejectBasket||{}).length>0}
+function confirmLeaveProcessIfNeeded(){
+  if(!hasUnsavedNavigationWork())return true;
+  return window.confirm("You have unsaved changes on this job. Leave this screen and discard them?");
+}
+function navigateAdjacentProcessJob(direction){
+  closePersistentNavMenu();
+  if(!confirmLeaveProcessIfNeeded())return;
+  const position=currentProcessPosition();
+  if(position.index<0)return;
+  const next=position.jobs[position.index+direction];
+  if(!next)return;
+  persistentNavigationDirty=false;
+  selectQueueJob(next,currentEntryMode);
+}
+function persistentViewTitle(){
+  if(isElementVisible("packingAccessoriesDetailPanel"))return "Accessories";
+  if(isElementVisible("packingQueuePanel"))return "Packing Queue";
+  if(isElementVisible("coatingOverviewPanel"))return "Team "+currentTeam+" · Coating Overview";
+  if(isElementVisible("stockPickerPanel"))return "Team "+currentTeam+" · Stock Picker";
+  if(currentJob&&currentEntryMode&&ENTRY_MODES[currentEntryMode])return ENTRY_MODES[currentEntryMode].menuLabel+" · "+(currentJob.sheetJob||currentJob.client||"Job");
+  if(currentJob)return "Team "+currentTeam+" · Job";
+  if(isProductionTeamContext())return "Team "+currentTeam+" · Job Queue";
+  return "Job Queue";
+}
+function updatePersistentNav(){
+  const title=document.getElementById("persistentNavTitle");
+  if(title)title.innerText=persistentViewTitle();
+  const teamEnabled=isProductionTeamContext()||!!lastProductionTeam;
+  const teamButton=document.getElementById("persistentTeamQueueButton");
+  const coatingButton=document.getElementById("persistentCoatingButton");
+  const stockButton=document.getElementById("persistentStockButton");
+  if(teamButton)teamButton.disabled=!teamEnabled;
+  if(coatingButton)coatingButton.disabled=!teamEnabled;
+  if(stockButton)stockButton.disabled=!teamEnabled;
+  const stepper=document.getElementById("persistentNavStepper");
+  const position=currentProcessPosition();
+  const showStepper=currentProcessCanStep()&&position.jobs.length>1&&position.index>=0;
+  if(stepper)stepper.classList.toggle("hidden",!showStepper);
+  document.body.classList.toggle("persistentNavHasStepper",showStepper);
+  if(showStepper){
+    document.getElementById("persistentStepPosition").innerText=(position.index+1)+" / "+position.jobs.length;
+    document.getElementById("persistentPrevButton").disabled=position.index<=0;
+    document.getElementById("persistentNextButton").disabled=position.index>=position.jobs.length-1;
+  }
+}
+function resetToHomeScreen(){
+  closePackingAccessoriesDetail();hidePreloadPopup();hideJobSignalsBox();hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();
+  packingQueueActive=false;currentPackingQueue=null;currentTeam="";currentJob=null;currentEntryMode="";currentProcessSetup={};persistentNavigationDirty=false;persistentNavigationOrigin="queue";step=0;rejectBasket={};rejectHistory=[];
+  jobContext={productionUid:"",productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("jobQueue").innerHTML="";const list=document.getElementById("queueListSection");if(list)list.classList.add("hidden");setQueueAreaSelection("");showQueueTools(false);setQueueSyncIndicator("idle","Offline support","Select an area");updateJobContextBar();updateUI();
+}
+function persistentGoHome(){closePersistentNavMenu();if(!confirmLeaveProcessIfNeeded())return;resetToHomeScreen()}
+function persistentProductionTeam(){return isProductionTeamContext()?currentTeam:lastProductionTeam}
+function persistentGoTeamQueue(){
+  closePersistentNavMenu();if(!confirmLeaveProcessIfNeeded())return;
+  const team=persistentProductionTeam();
+  if(team)loadTeamQueue(team);else resetToHomeScreen();
+}
+function persistentGoPackingQueue(){closePersistentNavMenu();if(!confirmLeaveProcessIfNeeded())return;loadPackingQueue()}
+function persistentGoCoatingOverview(){
+  closePersistentNavMenu();if(!confirmLeaveProcessIfNeeded())return;
+  const team=persistentProductionTeam();if(!team){showProcessWarning("Select Team A or Team B first.");return}
+  if(currentTeam!==team||!getCurrentTeamDashboardOrCache()){persistentRefreshRestore={view:"coating"};loadTeamQueue(team,true);return}
+  currentJob=null;currentEntryMode="";persistentNavigationOrigin="coating";updateJobContextBar();loadCoatingOverview();updateUI();
+}
+function persistentGoStockPicker(){
+  closePersistentNavMenu();if(!confirmLeaveProcessIfNeeded())return;
+  const cameFromPacking=isElementVisible("packingQueuePanel")||isElementVisible("packingAccessoriesDetailPanel")||currentTeam==="PACKING";
+  const team=persistentProductionTeam();if(!team){showProcessWarning("Select Team A or Team B first.");return}
+  lastProductionTeam=team;
+  packingQueueActive=false;
+  currentTeam=team;currentJob=null;currentEntryMode="";currentProcessSetup={};
+  const cached=getTeamDashboardFromLocalCache(team);
+  currentTeamDashboard=cached&&cached.data?cached.data:null;
+  loadStockPicker(cameFromPacking?"Packing Queue":("Team "+team+" Queue"));
+  fetchStockPickerDashboardDirect(team,true);
+}
+function persistentRefreshCurrentView(){
+  closePersistentNavMenu();
+  const button=document.getElementById("persistentRefreshButton");if(button)button.classList.add("rotating");
+  setTimeout(function(){if(button)button.classList.remove("rotating")},1200);
+  if(isElementVisible("packingAccessoriesDetailPanel")||isElementVisible("packingQueuePanel")||currentTeam==="PACKING"){loadPackingQueue(true);return}
+  if(!isProductionTeamContext()){
+    if(lastProductionTeam)loadTeamQueue(lastProductionTeam,true);else showProcessWarning("Select Team A or Team B to refresh its schedule.");
+    return;
+  }
+  if(!confirmLeaveProcessIfNeeded())return;
+  if(isElementVisible("coatingOverviewPanel")){persistentRefreshRestore={view:"coating"};refreshCurrentTeamDashboard();return}
+  if(isElementVisible("stockPickerPanel")){fetchStockPickerDashboardDirect(currentTeam,true);return}
+  if(currentJob){persistentRefreshRestore={view:"job",job:currentJob,mode:currentEntryMode,origin:persistentNavigationOrigin};refreshCurrentTeamDashboard();return}
+  refreshCurrentTeamDashboard();
+}
+function restorePersistentViewAfterRefresh(){
+  const restore=persistentRefreshRestore;if(!restore)return;
+  persistentRefreshRestore=null;
+  if(restore.view==="coating"){setTimeout(function(){persistentNavigationOrigin="coating";loadCoatingOverview();updateUI()},0);return}
+  if(restore.view==="stock"){setTimeout(function(){loadStockPicker();updateUI()},0);return}
+  if(restore.view==="job"){
+    const dashboard=getCurrentTeamDashboardOrCache();const jobs=dashboard&&Array.isArray(dashboard.jobs)?dashboard.jobs:[];const key=navigationJobIdentity(restore.job);const job=jobs.find(row=>navigationJobIdentity(row)===key)||jobs.find(row=>sameOperationalJob(row,restore.job));
+    if(job)setTimeout(function(){persistentNavigationOrigin=restore.origin||"queue";selectQueueJob(job,restore.mode||"")},0);
+  }
+}
+document.addEventListener("input",function(event){if(event.target&&event.target.closest&&(event.target.closest("#processSetupPanel")||event.target.closest("#simpleLogger")))persistentNavigationDirty=true});
+document.addEventListener("change",function(event){if(event.target&&event.target.closest&&(event.target.closest("#processSetupPanel")||event.target.closest("#simpleLogger")))persistentNavigationDirty=true});
+document.addEventListener("click",function(event){const nav=document.getElementById("persistentNav");if(persistentNavMenuOpen&&nav&&!nav.contains(event.target))closePersistentNavMenu()});
+
 function backToProcessMenu(){hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";buildProcessMenu();updateUI()}
 function backToJobQueue(){if(packingQueueActive||currentTeam==="PACKING"){loadPackingQueue();return}hidePostSaveScreen();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentJob=null;currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];jobContext={productionUid:"",productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";updateJobContextBar();document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");if(currentTeam){const dashboard=getCurrentTeamDashboardOrCache();if(dashboard&&Array.isArray(dashboard.jobs)){renderJobQueue(dashboard.jobs);document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved queue.";setTimeout(refreshStatusThenPrefetchFirstOpen,0)}else loadTeamQueue(currentTeam)}else{document.getElementById("queueStatus").innerText="";document.getElementById("jobQueue").innerHTML=""}}
 
@@ -3356,7 +3983,7 @@ function state(){return{mode:modeSel.value,boards:+document.getElementById("boar
 function basePieces(s){if(s.mode==="linear"){if(!s.metres||!s.boardLength)return 0;return Math.ceil(s.metres/s.boardLength)}return s.boards}
 function calculationResult(){const s=state(),base=basePieces(s),total=base+s.rejects,physicalBoards=Math.ceil(total/s.yield),basePhysicalBoards=Math.ceil(base/s.yield);let rows=[],rem=physicalBoards;if(s.topLoose!==null){const t=Math.min(s.topLoose,rem);rows.push(t);rem-=t}while(rem>0){const c=Math.min(s.perRow,rem);rows.push(c);rem-=c}return{mode:s.mode,inputBoards:s.boards,inputMetres:s.metres,boardLength:s.boardLength,yield:s.yield,topLoose:s.topLoose,rows:rows.length,baseBoards:base,basePhysicalBoards,perRow:s.perRow,rejects:s.rejects,total,physicalBoards}}
 function canProceed(){const s=state();if(currentEntryMode!=="pack_visualiser")return false;if(step===1)return s.mode==="boards"?s.boards>0:(s.metres>0&&s.boardLength>0);if(step===2)return s.perRow>0;if(step===4)return s.topLoose!==null;return true}
-function updateUI(){const isMenu=currentEntryMode==="",isVisualiser=currentEntryMode==="pack_visualiser",isSimpleLogger=currentEntryMode&&currentEntryMode!=="pack_visualiser",inStep5=isVisualiser&&step===5,postSaveVisible=!document.getElementById("postSavePanel").classList.contains("hidden"),processSetupVisible=!document.getElementById("processSetupPanel").classList.contains("hidden"),stockPickerVisible=!document.getElementById("stockPickerPanel").classList.contains("hidden"),coatingOverviewVisible=!document.getElementById("coatingOverviewPanel").classList.contains("hidden"),packingQueueVisible=!document.getElementById("packingQueuePanel").classList.contains("hidden");document.getElementById("teamQueueBlock").classList.toggle("hidden",currentJob!==null||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("step0_entry").classList.toggle("hidden",!isMenu||currentJob===null||postSaveVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("simpleLogger").classList.toggle("hidden",!isSimpleLogger||postSaveVisible||processSetupVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("modeBlock").classList.toggle("hidden",!isVisualiser||inStep5||postSaveVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("boardsWrap").classList.toggle("hidden",modeSel.value!=="boards");document.getElementById("linearWrap").classList.toggle("hidden",modeSel.value!=="linear");document.querySelectorAll(".step").forEach(el=>el.classList.add("hidden"));if(isVisualiser&&!stockPickerVisible&&!coatingOverviewVisible&&!packingQueueVisible){if(step===1)document.getElementById("step1_boards").classList.remove("hidden");if(step===2)document.getElementById("step2_perRow").classList.remove("hidden");if(step===3)document.getElementById("step3_yield").classList.remove("hidden");if(step===4)document.getElementById("step4_loose").classList.remove("hidden");if(step===5)document.getElementById("step5_rejects").classList.remove("hidden")}document.getElementById("nextBtn").disabled=!canProceed();document.getElementById("nextBtn").classList.toggle("hidden",!isVisualiser||inStep5);document.getElementById("backBtn").classList.toggle("hidden",!isVisualiser||step<=1||postSaveVisible);document.querySelector(".btnRow").classList.toggle("hidden",!isVisualiser||inStep5||postSaveVisible||processSetupVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);updateLooseOptions()}
+function updateUI(){const isMenu=currentEntryMode==="",isVisualiser=currentEntryMode==="pack_visualiser",isSimpleLogger=currentEntryMode&&currentEntryMode!=="pack_visualiser",inStep5=isVisualiser&&step===5,postSaveVisible=!document.getElementById("postSavePanel").classList.contains("hidden"),processSetupVisible=!document.getElementById("processSetupPanel").classList.contains("hidden"),stockPickerVisible=!document.getElementById("stockPickerPanel").classList.contains("hidden"),coatingOverviewVisible=!document.getElementById("coatingOverviewPanel").classList.contains("hidden"),packingQueueVisible=!document.getElementById("packingQueuePanel").classList.contains("hidden");document.getElementById("teamQueueBlock").classList.toggle("hidden",currentJob!==null||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("step0_entry").classList.toggle("hidden",!isMenu||currentJob===null||postSaveVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("simpleLogger").classList.toggle("hidden",!isSimpleLogger||postSaveVisible||processSetupVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("modeBlock").classList.toggle("hidden",!isVisualiser||inStep5||postSaveVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("boardsWrap").classList.toggle("hidden",modeSel.value!=="boards");document.getElementById("linearWrap").classList.toggle("hidden",modeSel.value!=="linear");document.querySelectorAll(".step").forEach(el=>el.classList.add("hidden"));if(isVisualiser&&!stockPickerVisible&&!coatingOverviewVisible&&!packingQueueVisible){if(step===1)document.getElementById("step1_boards").classList.remove("hidden");if(step===2)document.getElementById("step2_perRow").classList.remove("hidden");if(step===3)document.getElementById("step3_yield").classList.remove("hidden");if(step===4)document.getElementById("step4_loose").classList.remove("hidden");if(step===5)document.getElementById("step5_rejects").classList.remove("hidden")}document.getElementById("nextBtn").disabled=!canProceed();document.getElementById("nextBtn").classList.toggle("hidden",!isVisualiser||inStep5);document.getElementById("backBtn").classList.toggle("hidden",!isVisualiser||step<=1||postSaveVisible);document.querySelector(".btnRow").classList.toggle("hidden",!isVisualiser||inStep5||postSaveVisible||processSetupVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);updateLooseOptions();updatePersistentNav()}
 function nextStep(){if(canProceed()){if(step===2&&visualiserSourceProcess==="moulder_rejects")step=4;else if(step===3)step=4;else step++}updateUI();render()}
 function prevStep(){if(step===4&&visualiserSourceProcess==="moulder_rejects")step=2;else if(step>1)step--;updateUI();render()}
 function clearGrid(){document.getElementById("grid").innerHTML=""}
