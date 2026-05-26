@@ -913,13 +913,19 @@ button.packingLineCard:active{transform:scale(.994)}
 .packingLineCard.blocked .packingLineStatus{background:#f4d8d3;color:#9b3020}
 .packingLineChevron{font-size:23px;line-height:1;font-weight:650;color:var(--tt-green-deep);text-align:right}
 div.packingLineCard .packingLineChevron{color:#c7ceca}
-.packingAccessoriesCard{width:100%!important;max-width:none!important;display:flex!important;align-items:center;justify-content:space-between;gap:10px;margin:11px 0 0!important;border-radius:12px!important;background:#f4f6f3!important;border:1px solid #e3e7e2!important;padding:11px 12px!important;text-align:left!important;color:var(--tt-ink)!important;box-shadow:none!important;cursor:pointer}
+.packingAccessoriesCard{width:100%!important;max-width:none!important;display:flex!important;align-items:center;justify-content:space-between;gap:10px;margin:11px 0 0!important;border-radius:12px!important;background:#fffaf1!important;border:1px solid #edd7ae!important;border-left:5px solid #d58c14!important;padding:11px 12px 11px 10px!important;text-align:left!important;color:var(--tt-ink)!important;box-shadow:none!important;cursor:pointer}
+.packingAccessoriesCard.picked{background:var(--tt-green-soft)!important;border-color:#d4e9d9!important;border-left-color:var(--tt-green)!important}
+.packingAccessoriesCard.pending{background:var(--tt-amber-soft)!important}
 .packingAccessoriesCard:active{transform:scale(.994)}
 .packingAccessoriesSummary{display:flex;align-items:center;gap:10px;min-width:0}
-.packingAccessoriesIcon{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:#e4efe7;color:var(--tt-green-deep);font-size:17px;font-weight:800;flex:none}
+.packingAccessoriesIcon{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:#f3e1be;color:#805100;font-size:17px;font-weight:800;flex:none}
+.packingAccessoriesCard.picked .packingAccessoriesIcon{background:#d9eedf;color:var(--tt-green-deep)}
 .packingAccessoriesHeader{display:flex;flex-direction:column;gap:3px;min-width:0}
 .packingAccessoriesHeader strong{font-size:13px;line-height:1.15;font-weight:850;letter-spacing:.07em;text-transform:uppercase;color:#59645c}
 .packingAccessoriesHeader small{font-size:13px;line-height:1.25;color:#28322b;font-weight:600;white-space:normal}
+.packingAccessoriesQtyPrompt{display:inline-flex;align-items:baseline;gap:3px;margin-right:4px;font-weight:900;color:#805100}
+.packingAccessoriesCard.picked .packingAccessoriesQtyPrompt{color:var(--tt-green-deep)}
+.packingAccessoriesQtyPrompt b{font-size:18px;line-height:1}
 .packingAccessoriesOpen{display:flex;align-items:center;gap:6px;color:var(--tt-green-deep);font-size:12px;font-weight:800;white-space:nowrap;flex:none}
 .packingAccessoriesOpen b{font-size:23px;line-height:1}
 .packingAccessoryPending{font-size:13px;line-height:1.35;color:#755100;background:#fff5e7;border:1px solid #edd7ae;padding:8px 9px;border-radius:9px}
@@ -931,11 +937,21 @@ div.packingLineCard .packingLineChevron{color:#c7ceca}
 .packingAccessoriesDetailTitle{font-size:clamp(27px,4vw,35px);font-weight:800;line-height:1.12;letter-spacing:-.035em;color:var(--tt-ink);margin:0 0 7px}
 .packingAccessoriesDetailMeta{font-size:14px;line-height:1.35;color:var(--tt-muted);font-weight:560}
 .packingAccessoriesDetailRows{display:flex;flex-direction:column;gap:12px}
-.packingAccessoryDetailCard{background:var(--tt-surface);border:1px solid var(--tt-border);border-left:5px solid var(--tt-green);border-radius:var(--tt-radius);padding:15px 14px;box-shadow:var(--tt-shadow)}
-.packingAccessoryDetailRowHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:9px}
+.packingAccessoryDetailCard{background:var(--tt-surface);border:1px solid #edd7ae;border-left:5px solid #d58c14;border-radius:var(--tt-radius);padding:15px 14px;box-shadow:var(--tt-shadow)}
+.packingAccessoryDetailCard.picked{background:var(--tt-green-soft);border-color:#d4e9d9;border-left-color:var(--tt-green)}
+.packingAccessoryDetailRowHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:11px}
 .packingAccessoryDetailType{font-size:12px;font-weight:850;letter-spacing:.075em;text-transform:uppercase;color:var(--tt-muted)}
-.packingAccessoryQty{display:inline-flex;align-items:center;padding:7px 10px;border-radius:999px;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:13px;font-weight:850;white-space:nowrap}
+.packingAccessoryBoxQty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:82px;padding:8px 12px;border-radius:12px;background:var(--tt-amber-soft);color:#805100;white-space:nowrap}
+.packingAccessoryDetailCard.picked .packingAccessoryBoxQty{background:#d9eedf;color:var(--tt-green-deep)}
+.packingAccessoryBoxQty strong{font-size:30px;line-height:1;font-weight:900;letter-spacing:-.03em}
+.packingAccessoryBoxQty small{font-size:11px;line-height:1.2;margin-top:3px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
 .packingAccessoryDescription{font-size:16px;line-height:1.4;color:var(--tt-ink);font-weight:610;white-space:normal;overflow-wrap:anywhere}
+.packingAccessoryStatusRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #e7e7e2}
+.packingAccessoryState{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;background:var(--tt-amber-soft);color:#805100;font-size:11px;font-weight:850;letter-spacing:.045em;text-transform:uppercase}
+.packingAccessoryDetailCard.picked .packingAccessoryState{background:#d9eedf;color:var(--tt-green-deep)}
+.packingAccessoryPickBtn{display:inline-flex!important;width:auto!important;max-width:none!important;min-height:44px!important;margin:0!important;padding:0 14px!important;border-radius:11px!important;background:var(--tt-green)!important;border:1px solid var(--tt-green)!important;color:#fff!important;font-size:14px!important;font-weight:800!important;box-shadow:none!important}
+.packingAccessoryPickBtn:disabled{opacity:.55;cursor:not-allowed}
+.packingAccessoryPickedMeta{font-size:12px;line-height:1.3;color:var(--tt-muted);font-weight:600;text-align:right}
 .packingAccessoryDetailEmpty{padding:15px 14px;border-radius:var(--tt-radius);background:var(--tt-amber-soft);border:1px solid #edd7ae;color:#755100;font-size:15px;line-height:1.4;font-weight:570}
 body.packingAccessoriesOpen{overflow:hidden}
 @media (min-width:700px){
@@ -1107,9 +1123,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.81|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.82|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.81|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.82|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1615,8 +1631,10 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.81|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.82|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
+const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
+let currentPackingAccessoriesGroup=null,accessoryPickRequests={};
 const PROCESS_OPERATOR_MEMORY_PREFIX="ttProcessOperatorMemory|v1.76|";
 const JOB_OPERATOR_MEMORY_PREFIX="ttJobProcessOperatorMemory|v1.76|";
 let packingStatusRequests={};
@@ -1755,6 +1773,116 @@ function retryPackingStatusOutbox(silent){
   items.forEach(item=>sendPackingStatusOutboxRecord(item.record,silent===true));
 }
 
+function accessoryStatusIsPicked(item){return normalise(item&&item.packingStatus||"")==="picked"}
+function getAccessoryPickOutboxKey(accessoryUid){return accessoryUid?ACCESSORY_PICK_OUTBOX_PREFIX+encodeURIComponent(String(accessoryUid)):""}
+function getAccessoryPickOutboxItems(){
+  const items=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(key&&key.indexOf(ACCESSORY_PICK_OUTBOX_PREFIX)===0){
+        const record=JSON.parse(localStorage.getItem(key)||"null");
+        if(record&&record.accessoryUid&&record.requestId)items.push({key:key,record:record});
+      }
+    }
+  }catch(err){}
+  return items;
+}
+function saveAccessoryPickToOutbox(item){
+  try{
+    const uid=String(item&&item.accessoryUid||"").trim();
+    if(!uid)return null;
+    const record={
+      accessoryUid:uid,
+      invoiceNo:String(item.invoiceNo||"").trim(),
+      packingStatus:"Picked",
+      pickedDeviceId:getRejectDeviceId(),
+      requestId:"accessory_pick_"+getRejectDeviceId()+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,10),
+      createdAt:new Date().toISOString(),
+      attempts:0
+    };
+    localStorage.setItem(getAccessoryPickOutboxKey(uid),JSON.stringify(record));
+    return record;
+  }catch(err){return null}
+}
+function removeAccessoryPickOutboxRecord(record){
+  try{
+    const key=getAccessoryPickOutboxKey(record.accessoryUid);
+    const raw=key?localStorage.getItem(key):"";
+    if(!raw)return;
+    const current=JSON.parse(raw);
+    if(current&&current.requestId===record.requestId)localStorage.removeItem(key);
+  }catch(err){}
+}
+function markAccessoryPickOutboxAttempt(record){
+  try{
+    const key=getAccessoryPickOutboxKey(record.accessoryUid);
+    const raw=key?localStorage.getItem(key):"";
+    if(!raw)return;
+    const current=JSON.parse(raw);
+    if(!current||current.requestId!==record.requestId)return;
+    current.attempts=Number(current.attempts||0)+1;
+    current.lastAttemptAt=new Date().toISOString();
+    localStorage.setItem(key,JSON.stringify(current));
+  }catch(err){}
+}
+function applyPendingAccessoryPickUpdates(items){
+  const pendingMap={};
+  getAccessoryPickOutboxItems().forEach(entry=>{pendingMap[String(entry.record.accessoryUid||"").trim()]=entry.record});
+  return (items||[]).map(item=>{
+    const pending=pendingMap[String(item.accessoryUid||"").trim()];
+    if(!pending)return item;
+    return Object.assign({},item,{packingStatus:"Picked",pendingPickSync:true,pendingPickRecord:pending});
+  });
+}
+function sendAccessoryPickOutboxRecord(record,silent){
+  if(!record||!record.requestId||accessoryPickRequests[record.requestId])return;
+  accessoryPickRequests[record.requestId]=true;
+  markAccessoryPickOutboxAttempt(record);
+  const callbackName="pwaAccessoryPickCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+  window[callbackName]=function(data){
+    delete accessoryPickRequests[record.requestId];
+    delete window[callbackName];
+    if(data&&data.ok){
+      removeAccessoryPickOutboxRecord(record);
+      clearPackingQueueLocalCache();
+      if(packingQueueActive){
+        showPreloadPopup("Accessory picked","Packing list updated",1200);
+        loadPackingQueue(true);
+      }
+    }else if(!silent&&packingQueueActive){
+      document.getElementById("packingQueueStatus").innerText="Accessory pick remains saved locally and could not sync yet.";
+    }
+  };
+  const script=document.createElement("script");
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=updateAccessoryPackingStatus&accessoryUid="+encodeURIComponent(record.accessoryUid||"")+"&packingStatus="+encodeURIComponent(record.packingStatus||"")+"&pickedDeviceId="+encodeURIComponent(record.pickedDeviceId||"")+"&requestId="+encodeURIComponent(record.requestId)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.onerror=function(){
+    delete accessoryPickRequests[record.requestId];
+    delete window[callbackName];
+    if(!silent&&packingQueueActive)document.getElementById("packingQueueStatus").innerText="Accessory pick remains saved locally and could not sync yet.";
+  };
+  document.body.appendChild(script);
+}
+function retryAccessoryPickOutbox(silent){
+  getAccessoryPickOutboxItems().forEach(item=>sendAccessoryPickOutboxRecord(item.record,silent===true));
+}
+function markPackingAccessoryPicked(accessoryUid){
+  const items=(currentPackingAccessoriesGroup&&currentPackingAccessoriesGroup.accessories)||[];
+  const item=items.find(row=>String(row.accessoryUid||"").trim()===String(accessoryUid||"").trim());
+  if(!item||accessoryStatusIsPicked(item))return;
+  if(!window.confirm("Confirm this accessory line has been picked and included in the pack?"))return;
+  const record=saveAccessoryPickToOutbox(item);
+  if(!record){
+    document.getElementById("packingQueueStatus").innerText="Could not save the accessory confirmation locally.";
+    return;
+  }
+  item.packingStatus="Picked";
+  item.pendingPickSync=true;
+  openPackingAccessoriesDetail(currentPackingAccessoriesGroup);
+  if(currentPackingQueue&&Array.isArray(currentPackingQueue.jobs))renderPackingQueue(applyPendingPackingStatusUpdates(currentPackingQueue.jobs),false);
+  sendAccessoryPickOutboxRecord(record,false);
+}
+
 function applyPackingQueueData(data,fromLocal){
   currentPackingQueue=data;
   currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
@@ -1778,7 +1906,7 @@ function loadPackingQueue(forceFresh){
     document.getElementById("packingQueueRows").innerHTML="";
     document.getElementById("packingQueueStatus").innerText=forceFresh?"Refreshing Packing Queue...":"Loading Packing Queue...";
   }
-  updateJobContextBar();updateUI();updatePackingStatusOutboxUi();retryPackingStatusOutbox(true);
+  updateJobContextBar();updateUI();updatePackingStatusOutboxUi();retryPackingStatusOutbox(true);retryAccessoryPickOutbox(true);
   const callbackName="pwaPackingQueueCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
   window[callbackName]=function(data){
     delete window[callbackName];
@@ -1805,7 +1933,7 @@ function packingStatusIsBlocked(status){
 function getPackingProjectAccessories(invoiceNo){
   const key=String(invoiceNo||"").trim();
   if(!key||!currentPackingQueue||!Array.isArray(currentPackingQueue.accessories))return[];
-  return currentPackingQueue.accessories.filter(item=>String(item.invoiceNo||"").trim()===key);
+  return applyPendingAccessoryPickUpdates(currentPackingQueue.accessories.filter(item=>String(item.invoiceNo||"").trim()===key));
 }
 function buildPackingProjectGroups(jobs){
   const groups=[];
@@ -1825,9 +1953,11 @@ function buildPackingProjectGroups(jobs){
   groups.forEach(group=>{
     group.accessories=getPackingProjectAccessories(group.invoiceNo);
     group.pending=group.jobs.some(job=>!!job.pendingSync);
+    group.accessoryPending=group.accessories.some(item=>!!item.pendingPickSync);
+    group.accessoryOutstanding=group.accessories.filter(item=>!accessoryStatusIsPicked(item)).length;
     group.blocked=group.jobs.some(job=>packingStatusIsBlocked(job.packingStatus));
     group.outstanding=group.jobs.filter(job=>!packingStatusIsSatisfied(job.packingStatus)).length;
-    group.ready=!group.pending&&!group.blocked&&group.outstanding===0;
+    group.ready=!group.pending&&!group.accessoryPending&&!group.blocked&&group.outstanding===0&&group.accessoryOutstanding===0;
   });
   return groups.sort((a,b)=>{
     const aRank=a.blocked?0:(a.ready?2:1);
@@ -1849,28 +1979,38 @@ function renderPackingAccessories(group){
   const staged=group.accessories||[];
   const indicated=group.jobs.some(job=>normalise(job.ironmongeryRequired||"")==="yes");
   if(!staged.length&&!indicated)return"";
-  const totalQty=packingAccessoryTotalQty(staged);
-  const summary=staged.length?(staged.length+" item"+(staged.length===1?"":"s")+(totalQty?" · Qty "+totalQty:"")):"Details unavailable for pre-staging import";
-  return '<button type="button" class="packingAccessoriesCard" data-open-accessories="1"><span class="packingAccessoriesSummary"><span class="packingAccessoriesIcon">⌁</span><span class="packingAccessoriesHeader"><strong>Accessories</strong><small>'+escapeHtml(summary)+'</small></span></span><span class="packingAccessoriesOpen">View <b>›</b></span></button>';
+  const totalBoxes=packingAccessoryTotalQty(staged);
+  const outstanding=staged.filter(item=>!accessoryStatusIsPicked(item)).length;
+  const pending=staged.some(item=>!!item.pendingPickSync);
+  const picked=staged.length>0&&outstanding===0&&!pending;
+  const summary=staged.length?('<span class="packingAccessoriesQtyPrompt"><b>'+escapeHtml(String(totalBoxes||"—"))+'</b> boxes</span> · '+staged.length+' item'+(staged.length===1?'':'s')+' · '+(pending?'sync pending':(picked?'picked':outstanding+' to pick'))):'Details unavailable for pre-staging import';
+  return '<button type="button" class="packingAccessoriesCard '+(picked?'picked':(pending?'pending':'open'))+'" data-open-accessories="1"><span class="packingAccessoriesSummary"><span class="packingAccessoriesIcon">⌁</span><span class="packingAccessoriesHeader"><strong>Accessories</strong><small>'+summary+'</small></span></span><span class="packingAccessoriesOpen">View <b>›</b></span></button>';
 }
 function openPackingAccessoriesDetail(group){
+  currentPackingAccessoriesGroup=group||null;
   const panel=document.getElementById("packingAccessoriesDetailPanel");
   const rows=document.getElementById("packingAccessoriesDetailRows");
-  const staged=(group&&group.accessories)||[];
+  const staged=applyPendingAccessoryPickUpdates((group&&group.accessories)||[]);
+  if(currentPackingAccessoriesGroup)currentPackingAccessoriesGroup.accessories=staged;
   const indicated=(group&&group.jobs||[]).some(job=>normalise(job.ironmongeryRequired||"")==="yes");
   const invoiceLabel=group&&group.invoiceNo?"INV-"+group.invoiceNo:"Project pack";
   const client=String(group&&group.client||"No client reference").trim();
-  const totalQty=packingAccessoryTotalQty(staged);
+  const totalBoxes=packingAccessoryTotalQty(staged);
+  const pickedCount=staged.filter(item=>accessoryStatusIsPicked(item)).length;
   document.getElementById("packingAccessoriesDetailEyebrow").innerText=invoiceLabel;
   document.getElementById("packingAccessoriesDetailTitle").innerText="Accessories";
-  document.getElementById("packingAccessoriesDetailMeta").innerText=client+(staged.length?" · "+staged.length+" item"+(staged.length===1?"":"s")+(totalQty?" · Total qty "+totalQty:""):"");
+  document.getElementById("packingAccessoriesDetailMeta").innerText=client+(staged.length?" · "+totalBoxes+" boxes to include · "+pickedCount+" of "+staged.length+" picked":"");
   rows.innerHTML="";
   if(staged.length){
     staged.forEach(item=>{
       const card=document.createElement("div");
-      card.className="packingAccessoryDetailCard";
-      const qty=packingAccessoryQty(item);
-      card.innerHTML='<div class="packingAccessoryDetailRowHead"><span class="packingAccessoryDetailType">'+escapeHtml(item.accessoryType||"Accessory")+'</span>'+(qty?'<span class="packingAccessoryQty">Qty '+escapeHtml(String(qty))+'</span>':'')+'</div><div class="packingAccessoryDescription">'+escapeHtml(item.description||"No accessory description supplied")+'</div>';
+      const picked=accessoryStatusIsPicked(item);
+      const pending=!!item.pendingPickSync;
+      card.className="packingAccessoryDetailCard"+(picked?" picked":"");
+      const boxes=packingAccessoryQty(item);
+      const statusText=pending?"Picked — syncing":(picked?"Picked":"To be picked");
+      const action=picked?('<span class="packingAccessoryPickedMeta">'+escapeHtml(pending?"Saved locally — syncing":"Included in pack")+'</span>'):('<button type="button" class="packingAccessoryPickBtn" onclick="markPackingAccessoryPicked(\''+escapeHtml(String(item.accessoryUid||"")).replace(/&#39;/g,"\\'")+'\')">Mark as Picked</button>');
+      card.innerHTML='<div class="packingAccessoryDetailRowHead"><span class="packingAccessoryDetailType">'+escapeHtml(item.accessoryType||"Accessory")+'</span><span class="packingAccessoryBoxQty"><strong>'+escapeHtml(String(boxes||"—"))+'</strong><small>boxes</small></span></div><div class="packingAccessoryDescription">'+escapeHtml(item.description||"No accessory description supplied")+'</div><div class="packingAccessoryStatusRow"><span class="packingAccessoryState">'+escapeHtml(statusText)+'</span>'+action+'</div>';
       rows.appendChild(card);
     });
   }else if(indicated){
@@ -1880,6 +2020,7 @@ function openPackingAccessoriesDetail(group){
   document.body.classList.add("packingAccessoriesOpen");
 }
 function closePackingAccessoriesDetail(){
+  currentPackingAccessoriesGroup=null;
   document.getElementById("packingAccessoriesDetailPanel").classList.add("hidden");
   document.body.classList.remove("packingAccessoriesOpen");
 }
@@ -1899,8 +2040,12 @@ function renderPackingQueue(jobs,fromLocal){
     outer.className="packingProjectCard "+(group.ready?"ready":(group.blocked?"blocked":"open"));
     const invoiceLabel=group.invoiceNo?"INV-"+group.invoiceNo:"UNGROUPED LINE";
     const fulfilment=group.deliveryTypes.length===1?group.deliveryTypes[0]:(group.deliveryTypes.length>1?"Mixed fulfilment":"Delivery not set");
-    const stateText=group.pending?"Pending sync":(group.blocked?"Attention":(group.ready?"Ready":group.outstanding+" outstanding"));
-    const summary=fulfilment+" · "+group.jobs.length+" product line"+(group.jobs.length===1?"":"s")+(group.ready?" · all ready":(" · "+group.outstanding+" outstanding"));
+    const totalOutstanding=group.outstanding+group.accessoryOutstanding;
+    const stateText=(group.pending||group.accessoryPending)?"Pending sync":(group.blocked?"Attention":(group.ready?"Ready":totalOutstanding+" outstanding"));
+    const itemParts=[fulfilment,group.jobs.length+" product line"+(group.jobs.length===1?"":"s")];
+    if(group.accessories.length)itemParts.push(group.accessories.length+" accessory line"+(group.accessories.length===1?"":"s"));
+    itemParts.push(group.ready?"all ready":totalOutstanding+" outstanding");
+    const summary=itemParts.join(" · ");
     outer.innerHTML='<div class="packingProjectHeader"><div class="packingProjectTitle"><span class="packingProjectInvoice">'+escapeHtml(invoiceLabel)+'</span><span class="packingProjectClient">'+escapeHtml(group.client||"No client reference")+'</span><span class="packingProjectMeta">'+escapeHtml(summary)+'</span></div><span class="packingProjectState">'+escapeHtml(stateText)+'</span></div><div class="packingLineList"></div>'+renderPackingAccessories(group);
     const accessoryButton=outer.querySelector("[data-open-accessories]");
     if(accessoryButton)accessoryButton.onclick=()=>openPackingAccessoriesDetail(group);
@@ -3361,5 +3506,4 @@ buildProcessMenu();updateLocalOutboxStatus();updateJobContextBar();fillPackIdFie
 </script>
 </body>
 </html>
-
 
