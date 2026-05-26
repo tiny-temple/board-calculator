@@ -977,7 +977,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.87 persistent navigation, process stepping and stock picker redesign */
+/* v1.88 persistent navigation and grouped stock picker pack journeys */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1060,6 +1060,22 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
  .ttStockMetaRow{font-size:15px}
 }
 
+
+/* v1.88 Stock Picker — grouped physical pack journeys */
+#stockPickerRows .stockPickerCard.multiUse{border-left-color:var(--tt-green-deep)!important}
+.ttStockPackMeta{display:flex;flex-wrap:wrap;gap:7px 0;padding:0 0 11px 51px;font-size:13px;font-weight:660;color:var(--tt-ink)}
+.ttStockJourney{margin:0 0 0 51px;border-top:1px solid var(--tt-border);padding-top:8px}
+.ttStockJourneyTitle{font-size:11px;font-weight:800;color:var(--tt-muted);letter-spacing:.06em;text-transform:uppercase;margin:0 0 7px}
+.ttStockUse{display:flex;gap:9px;align-items:flex-start;padding:7px 0}
+.ttStockUseIndex{width:23px;height:23px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:12px;font-weight:850;flex:0 0 auto}
+.ttStockUseText{min-width:0;flex:1}
+.ttStockUseText b{display:block;font-size:14px;line-height:1.25;font-weight:790;color:var(--tt-ink)}
+.ttStockUseText small{display:block;margin-top:2px;font-size:12px;line-height:1.35;color:var(--tt-muted);font-weight:630}
+.ttStockTransfer{margin:0 0 0 32px;padding:4px 8px;border-left:2px solid var(--tt-green-border);font-size:12px;line-height:1.3;color:var(--tt-green-deep);font-weight:760}
+.ttStockFinalMove{display:block;margin:8px 0 0 51px;padding-top:8px;border-top:1px solid var(--tt-border);font-size:12px;font-weight:680;color:var(--tt-muted)}
+.ttStockFinalMove b{font-weight:800;color:var(--tt-ink)}
+.ttStockGroupCount{display:inline-flex;align-items:center;margin-left:6px;padding:3px 8px;border-radius:999px;background:var(--tt-green-soft);color:var(--tt-green-deep);font-size:11px;font-weight:820;text-transform:uppercase;letter-spacing:.03em}
+
 </style>
 </head>
 <body>
@@ -1067,7 +1083,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.87</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.88</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1096,7 +1112,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.87</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.88</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1257,9 +1273,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.87|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.88|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.87|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.88|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1766,7 +1782,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.87|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.88|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -2999,13 +3015,64 @@ function getStockMovementClass(row,instruction){
   if(text.indexOf("holding area")!==-1)return " moveHold";
   return row&&row.completed?" stockMoveCompleted":"";
 }
+function groupStockMovementRows(rows){
+  const groups=[];
+  const byPack={};
+  (rows||[]).forEach(function(row,index){
+    const key=normalise(row.packId||"")||("unknown-"+index);
+    if(!byPack[key]){
+      byPack[key]={
+        packId:row.packId||"",
+        packLocation:row.packLocation||"",
+        rawKey:row.rawKey||"",
+        species:row.species||"",
+        rows:[]
+      };
+      groups.push(byPack[key]);
+    }
+    const group=byPack[key];
+    if(!group.packLocation&&row.packLocation)group.packLocation=row.packLocation;
+    if(!group.rawKey&&row.rawKey)group.rawKey=row.rawKey;
+    if(!group.species&&row.species)group.species=row.species;
+    group.rows.push(row);
+  });
+  return groups;
+}
+function getStockGroupPrimaryInstruction(group){
+  const first=group&&group.rows&&group.rows[0]?group.rows[0]:group;
+  const instruction=getStockPrimaryInstruction(first);
+  if(group&&group.rows&&group.rows.length>1&&normalise(instruction).indexOf("move to ")===0){
+    return instruction+" · "+group.rows.length+" jobs";
+  }
+  return instruction;
+}
+function getStockFinalMovement(group){
+  const rows=group&&group.rows||[];
+  const last=rows.length?rows[rows.length-1]:{};
+  const location=String(group&&group.packLocation||last.packLocation||"").trim();
+  const after=String(last.returnAfterUse||"").trim().toUpperCase();
+  if(after.indexOf("RETURN TO ")===0)return location?"Return to Location "+location:"Return to Location not set";
+  if(after.indexOf("KEEP AT ")===0)return "Move to Holding Area";
+  if(after.indexOf("MOVE TO ")===0)return "Move to "+stockPickerTitleCase(after.replace("MOVE TO ",""));
+  return location?"Return to Location "+location:"Return to Location not set";
+}
+function getStockTransferInstruction(row){
+  const after=String(row&&row.returnAfterUse||"").trim().toUpperCase();
+  if(after.indexOf("KEEP AT ")===0)return "Keep at "+stockPickerTitleCase(after.replace("KEEP AT ",""))+" for next job";
+  if(after.indexOf("MOVE TO ")===0)return "Then move to "+stockPickerTitleCase(after.replace("MOVE TO ",""))+" for next job";
+  return "";
+}
+function getStockJobLabel(row,index){
+  return String(row&&row.sheetJob||row&&row.jobNo||("Job "+(index+1))).trim();
+}
 function renderStockPickerSummary(rows){
   const summary=document.getElementById("stockPickerSummary");
   if(!summary)return;
-  const moveRows=(rows||[]).filter(function(row){return !row.completed});
-  const moulder=moveRows.filter(function(row){return normalise(getStockPrimaryInstruction(row)).indexOf("moulder")!==-1}).length;
-  const resaw=moveRows.filter(function(row){return normalise(getStockPrimaryInstruction(row)).indexOf("resaw")!==-1}).length;
-  summary.innerHTML='<div class="ttStockMetric"><span class="ttStockMetricIcon">▣</span><b>'+escapeHtml(String(moveRows.length))+'</b><small>Packs to move</small></div>'+
+  const groups=groupStockMovementRows(rows);
+  const active=groups.filter(function(group){return group.rows.some(function(row){return !row.completed})});
+  const moulder=active.filter(function(group){return normalise(getStockGroupPrimaryInstruction(group)).indexOf("moulder")!==-1}).length;
+  const resaw=active.filter(function(group){return normalise(getStockGroupPrimaryInstruction(group)).indexOf("resaw")!==-1}).length;
+  summary.innerHTML='<div class="ttStockMetric"><span class="ttStockMetricIcon">▣</span><b>'+escapeHtml(String(active.length))+'</b><small>Packs to move</small></div>'+
     '<div class="ttStockMetric"><span class="ttStockMetricIcon">→</span><b>'+escapeHtml(String(moulder))+'</b><small>To Moulder</small></div>'+
     '<div class="ttStockMetric attention"><span class="ttStockMetricIcon">→</span><b>'+escapeHtml(String(resaw))+'</b><small>To Resaw</small></div>';
 }
@@ -3065,43 +3132,65 @@ function fetchStockPickerDashboardDirect(team,forceFresh){
 }
 function renderStockPickerRows(rows){
   const wrap=document.getElementById("stockPickerRows");
-  const list=rows||[];
-  renderStockPickerSummary(list);
+  const usageRows=rows||[];
+  const groups=groupStockMovementRows(usageRows);
+  renderStockPickerSummary(usageRows);
 
-  if(!list.length){
+  if(!groups.length){
     document.getElementById("stockPickerStatus").innerText="No Resaw or Moulder pack movements found for Team "+currentTeam+".";
     wrap.innerHTML="";
     return;
   }
 
-  document.getElementById("stockPickerStatus").innerText=list.length+" pack movement"+(list.length===1?"":"s")+" listed";
+  const plannedUses=usageRows.length;
+  document.getElementById("stockPickerStatus").innerText=groups.length+" physical pack"+(groups.length===1?"":"s")+" · "+plannedUses+" planned use"+(plannedUses===1?"":"s");
   wrap.innerHTML="";
 
-  list.forEach(function(row,index){
+  groups.forEach(function(group,index){
+    const first=group.rows[0]||{};
     const card=document.createElement("div");
-    const instruction=getStockPrimaryInstruction(row);
-    const secondaryInstruction=getStockSecondaryInstruction(row);
-    const raw=getStockRawDisplay(row);
-    const location=String(row.packLocation||"").trim()||"NOT SET";
-    const cls=getStockMovementClass(row,instruction);
+    const instruction=getStockGroupPrimaryInstruction(group);
+    const finalInstruction=getStockFinalMovement(group);
+    const raw=getStockRawDisplay({rawKey:group.rawKey,species:group.species||first.species});
+    const location=String(group.packLocation||"").trim()||"NOT SET";
+    let cls=getStockMovementClass(first,instruction);
+    if(group.rows.length>1)cls+=" multiUse";
+    if(!String(group.packLocation||"").trim())cls+=" moveBlocked";
     card.className="stockPickerCard"+cls;
 
-    let metadata='';
-    metadata+='<span class="ttStockMetaItem"><small>Qty</small>'+escapeHtml(String(row.quantity||"—"))+'</span>';
-    if(row.client)metadata+='<span class="ttStockMetaItem">'+escapeHtml(row.client)+'</span>';
-    if(raw.species)metadata+='<span class="ttStockMetaItem">'+escapeHtml(raw.species)+'</span>';
-    if(raw.rawSize)metadata+='<span class="ttStockMetaItem"><small>Raw</small>'+escapeHtml(raw.rawSize)+'</span>';
+    let packMeta='';
+    if(raw.species)packMeta+='<span class="ttStockMetaItem">'+escapeHtml(raw.species)+'</span>';
+    if(raw.rawSize)packMeta+='<span class="ttStockMetaItem"><small>Raw</small>'+escapeHtml(raw.rawSize)+'</span>';
+    if(group.rows.length>1)packMeta+='<span class="ttStockGroupCount">'+escapeHtml(String(group.rows.length))+' jobs</span>';
+
+    let usesHtml='<div class="ttStockJourney"><div class="ttStockJourneyTitle">Planned use'+(group.rows.length===1?"":"s")+'</div>';
+    group.rows.forEach(function(row,useIndex){
+      const process=stockPickerTitleCase(String(row.packDestination||getPackDestination(row)||"Process"));
+      const detailParts=[];
+      if(row.client)detailParts.push(row.client);
+      if(row.quantity)detailParts.push("Qty "+row.quantity);
+      if(row.finishedSize)detailParts.push(row.finishedSize);
+      usesHtml+='<div class="ttStockUse"><span class="ttStockUseIndex">'+escapeHtml(String(useIndex+1))+'</span>'+
+        '<div class="ttStockUseText"><b>'+escapeHtml(getStockJobLabel(row,useIndex))+' · '+escapeHtml(process)+'</b>'+
+        '<small>'+escapeHtml(detailParts.join(" · "))+'</small></div></div>';
+      if(useIndex<group.rows.length-1){
+        const transfer=getStockTransferInstruction(row);
+        if(transfer)usesHtml+='<div class="ttStockTransfer">'+escapeHtml(transfer)+'</div>';
+      }
+    });
+    usesHtml+='</div>';
 
     let warning='';
-    if(!row.packLocation)warning='<div class="ttStockWarning">Location ID not set — confirm pack location before moving.</div>';
+    if(!String(group.packLocation||"").trim())warning='<div class="ttStockWarning">Location ID not set — confirm pack location before moving.</div>';
 
     card.innerHTML='<div class="ttStockCardTop">'+
       '<span class="ttStockOrder">'+escapeHtml(String(index+1))+'</span>'+
-      '<div class="ttStockCardIdentity"><span class="ttStockPackId">'+escapeHtml(row.packId||"")+'</span><span class="ttStockLocation">'+escapeHtml(location)+'</span></div>'+
+      '<div class="ttStockCardIdentity"><span class="ttStockPackId">'+escapeHtml(group.packId||"")+'</span><span class="ttStockLocation">'+escapeHtml(location)+'</span></div>'+
       '<span class="ttStockChevron">›</span></div>'+
       '<div class="ttStockInstruction">'+escapeHtml(instruction)+'</div>'+
-      '<div class="ttStockMetaRow">'+metadata+'</div>'+
-      (secondaryInstruction?'<div class="ttStockAfterUse"><b>'+escapeHtml(secondaryInstruction)+'</b></div>':'')+
+      '<div class="ttStockPackMeta">'+packMeta+'</div>'+
+      usesHtml+
+      '<div class="ttStockFinalMove"><b>After final use:</b> '+escapeHtml(finalInstruction)+'</div>'+
       warning;
 
     wrap.appendChild(card);
