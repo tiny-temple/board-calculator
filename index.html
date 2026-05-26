@@ -977,7 +977,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.92 coating overview packing-style refinement and refresh stale-list indicator */
+/* v1.93 compact active process job header and process-priority layout */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1248,6 +1248,154 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   .ttCoatingClient{font-size:20px}
 }
 
+
+/* v1.93 Active job / process card — compact context, process data foregrounded */
+#processSetupPanel.simpleBox{background:transparent!important;padding:0!important;border:0!important;box-shadow:none!important}
+#processSetupPanel .fieldBlock:first-child{margin-bottom:10px}
+#processSetupTitle{font-size:22px!important;line-height:1.1!important;font-weight:760!important;letter-spacing:-.01em;color:var(--tt-ink)!important}
+#processJobCard.processJobCard{
+  display:block!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  margin:0 0 12px!important;
+}
+.ttProcessSummary{
+  background:var(--tt-surface);
+  border:1px solid var(--tt-border);
+  border-left:5px solid var(--tt-green);
+  border-radius:var(--tt-radius);
+  padding:12px 12px 11px;
+  margin:0 0 10px;
+  box-shadow:var(--tt-shadow);
+}
+.ttProcessSummaryTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:7px}
+.ttProcessClient{
+  min-width:0;
+  font-size:22px;
+  line-height:1.12;
+  font-weight:780;
+  letter-spacing:-.025em;
+  color:var(--tt-ink);
+  overflow-wrap:anywhere;
+}
+.ttProcessStageChip{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  min-height:27px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:var(--tt-green-soft);
+  color:var(--tt-green-deep);
+  font-size:10px;
+  line-height:1.1;
+  font-weight:850;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.ttProcessSummaryMeta{display:flex;flex-wrap:wrap;gap:0;margin:0 0 7px;color:var(--tt-muted);font-size:12px;line-height:1.35;font-weight:670}
+.ttProcessSummaryMeta span{display:inline-flex;align-items:center;padding-right:10px;margin-right:10px;border-right:1px solid var(--tt-border)}
+.ttProcessSummaryMeta span:last-child{border-right:0;margin-right:0;padding-right:0}
+.ttProcessSpec{
+  font-size:14px;
+  line-height:1.38;
+  color:var(--tt-ink);
+  font-weight:660;
+}
+.ttProcessSpecSecondary{
+  margin-top:3px;
+  font-size:12px;
+  line-height:1.35;
+  color:var(--tt-muted);
+  font-weight:570;
+}
+#processJobCard .processSection{
+  background:var(--tt-surface);
+  border:1px solid var(--tt-border);
+  border-radius:var(--tt-radius);
+  padding:11px 11px 10px;
+  margin:0 0 10px;
+  box-shadow:var(--tt-shadow);
+}
+#processJobCard .ttProcessActiveInfo{
+  border-left:5px solid var(--tt-green);
+  background:var(--tt-surface);
+}
+#processJobCard .processSectionTitle{
+  font-size:15px;
+  line-height:1.2;
+  font-weight:760;
+  color:var(--tt-ink);
+  margin:0 0 8px;
+}
+#processJobCard .ttProcessActiveInfo .processSectionTitle{
+  color:var(--tt-green-deep);
+}
+#processJobCard .processExtraFieldsGrid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:6px!important;
+  margin:0!important;
+}
+#processJobCard .processJobTile{
+  background:#f5f7f4;
+  border:1px solid #e5e9e4;
+  border-radius:9px;
+  padding:7px 8px!important;
+  min-width:0;
+}
+#processJobCard .processTileImportant{
+  background:var(--tt-green-soft);
+  border-color:#d4e9d9;
+}
+#processJobCard .processJobTileLabel{
+  display:block;
+  font-size:9px!important;
+  line-height:1.15;
+  font-weight:820!important;
+  color:var(--tt-muted)!important;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+  margin:0 0 3px!important;
+}
+#processJobCard .processJobTileValue{
+  display:block;
+  font-size:13px!important;
+  line-height:1.28;
+  font-weight:680!important;
+  color:var(--tt-ink)!important;
+  overflow-wrap:anywhere;
+}
+#processJobCard .processTileImportant .processJobTileValue{color:var(--tt-green-deep)!important}
+#processJobCard .frTreatmentLine{
+  border-radius:9px;
+  padding:8px 9px;
+  font-size:12px;
+  font-weight:760;
+}
+#processJobCard .processPackGrid{gap:7px}
+#processJobCard .processPackCard{
+  background:#f5f7f4;
+  border:1px solid #e5e9e4;
+  border-radius:10px;
+  padding:9px;
+}
+#processJobCard .processPackId{font-size:15px;font-weight:760;margin-bottom:4px}
+#processJobCard .processPackLocation{font-size:13px;font-weight:650;margin-bottom:3px}
+#processJobCard .processInfoText{font-size:11px;line-height:1.35;color:var(--tt-muted)}
+@media (min-width:700px){
+  #processSetupTitle{font-size:24px!important}
+  .ttProcessClient{font-size:25px}
+  .ttProcessSummary{padding:14px}
+  .ttProcessSummaryMeta{font-size:13px}
+  .ttProcessSpec{font-size:15px}
+  #processJobCard .processSectionTitle{font-size:17px}
+  #processJobCard .processJobTileValue{font-size:14px!important}
+}
+
 </style>
 </head>
 <body>
@@ -1255,7 +1403,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.92</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.93</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1284,7 +1432,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.92</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.93</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1458,9 +1606,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.92|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.93|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.92|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.93|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1972,7 +2120,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.92|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.93|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -3881,8 +4029,124 @@ function configureProcessChecks(mode){
     wrap.appendChild(label);
   });
 }
-function renderProcessJobCard(mode){const card=document.getElementById("processJobCard"),title=document.getElementById("processSetupTitle"),customInfoBox=document.getElementById("processCustomInfo"),reminderBox=document.getElementById("processReminderBox"),config=ENTRY_MODES[mode]||{};const processStage=config.processStage||"Process";const stageTitle=getProcessStageTitle(processStage,currentJob);title.innerText=stageTitle+" Setup Check";if(!currentJob){card.innerHTML="";customInfoBox.classList.add("hidden");reminderBox.classList.add("hidden");return}let jobTiles;if(isStandalonePackingJob()){jobTiles=[["Status",currentJob.packingStatus||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Delivery Type",currentJob.deliveryType||"Not set"]]}else if(processStage==="Paint Room"&&isFrTreatmentStage(currentJob)){jobTiles=[["Job",currentJob.sheetJob||""],["Stage","FR Treatment"],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Treatment",getFireTreatmentDisplay(currentJob)||"Fire Treatment"],["Treatment qty",displayNotYetSet(currentJob.paintQty)]]}else if(processStage==="Paint Room"&&isRecoatJob(currentJob)){jobTiles=[["Job",currentJob.sheetJob||""],["Stage",getJobProcessVariant(currentJob)],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Coating",currentJob.coating||""],["Paint qty",displayNotYetSet(currentJob.paintQty)]]}else{jobTiles=[["Job",currentJob.sheetJob||""],["Client",currentJob.client||""],["Qty",currentJob.quantity||""],["Length",(currentJob.length||"")+"m"],["Species",currentJob.species||""],["Finished Size",currentJob.finishedSize||""],["Profile",currentJob.profile||""],["Texture",currentJob.texture||""]]}let html=processSection("Job Summary",buildTileRows(jobTiles));if(isFireTreatmentActive(currentJob)){html+=processSection("Fire Treatment",'<div class="frTreatmentLine">FR TREATMENT — '+escapeHtml(getFireTreatmentDisplay(currentJob)||"Fire Treatment")+'</div>')}const allExtraFields=getProcessFieldValuesForCurrentJob(processStage).filter(field=>String(field.value||"").trim()!=="");const routeFields=allExtraFields.filter(field=>isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const infoFields=allExtraFields.filter(field=>!isRoutingFieldLabel(field.fieldLabel||field.fieldKey||""));const processTiles=[];infoFields.forEach(field=>{let displayValue=field.value||"";if(normalise(field.fieldLabel||field.fieldKey)==="paint qty")displayValue=displayNotYetSet(displayValue);if(String(displayValue||"").trim()!==""&&!processTiles.some(tile=>normalise(tile[0])===normalise(field.fieldLabel||field.fieldKey)))processTiles.push([field.fieldLabel||field.fieldKey||"",displayValue])});if(processStage==="Paint Room"&&shouldShowRackingInfoForProcess(processStage)){getPaintRoomRackingTiles(currentJob).forEach(tile=>{if(!processTiles.some(existing=>normalise(existing[0])===normalise(tile[0])))processTiles.push(tile)})}if(processTiles.length)html+=processSection("Process Info",'<div class="processExtraFieldsGrid">'+processTiles.map(tile=>processTile(tile[0],tile[1])).join("")+'</div>');if(shouldShowPackMaterialForProcess(processStage))html+=processSection("Pack / Material",buildProcessPackCards());card.innerHTML=html;const customInfo=String(currentJob.customInfo||"").trim();if(customInfo){customInfoBox.innerText=customInfo;customInfoBox.classList.remove("hidden");customInfoBox.classList.add("collapsed")}else customInfoBox.classList.add("hidden");const reminder=getReminderForEntryMode(mode);if(reminder){reminderBox.innerText="Reminder: "+reminder;reminderBox.classList.remove("hidden")}else reminderBox.classList.add("hidden")}
+function compactProcessSummaryHtml(processStage,stageTitle){
+  const client=String(currentJob&&currentJob.client||"").trim()||"Client not set";
+  const jobNo=String(currentJob&&currentJob.sheetJob||currentJob&&currentJob.jobNo||"").trim();
+  const qty=String(currentJob&&currentJob.quantity||"").trim();
+  const length=String(currentJob&&currentJob.length||"").trim();
+  const meta=[];
+  if(jobNo)meta.push("Job No. "+jobNo);
+  if(qty)meta.push("Qty "+qty);
+  if(length)meta.push(length+"m");
+  if(isStandalonePackingJob()&&currentJob.packingStatus)meta.push(currentJob.packingStatus);
 
+  const specPrimary=[
+    currentJob&&currentJob.finishedSize||"",
+    currentJob&&currentJob.profile||"",
+    currentJob&&currentJob.species||""
+  ].filter(Boolean).join(" · ");
+  const specSecondary=[
+    currentJob&&currentJob.texture||"",
+    processStage==="Paint Room"&&currentJob&&currentJob.coating?currentJob.coating:"",
+    isStandalonePackingJob()&&currentJob&&currentJob.deliveryType?currentJob.deliveryType:""
+  ].filter(Boolean).join(" · ");
+
+  return '<div class="ttProcessSummary">'+
+    '<div class="ttProcessSummaryTop"><div class="ttProcessClient">'+escapeHtml(client)+'</div><span class="ttProcessStageChip">'+escapeHtml(stageTitle||processStage||"Process")+'</span></div>'+
+    (meta.length?'<div class="ttProcessSummaryMeta">'+meta.map(function(item){return '<span>'+escapeHtml(item)+'</span>'}).join("")+'</div>':"")+
+    (specPrimary?'<div class="ttProcessSpec">'+escapeHtml(specPrimary)+'</div>':"")+
+    (specSecondary?'<div class="ttProcessSpecSecondary">'+escapeHtml(specSecondary)+'</div>':"")+
+  '</div>';
+}
+function activeProcessSection(title,innerHtml){
+  return '<div class="processSection ttProcessActiveInfo"><div class="processSectionTitle">'+escapeHtml(title)+'</div>'+innerHtml+'</div>';
+}
+function pushUniqueProcessTile(tiles,label,value){
+  const cleanLabel=String(label||"").trim();
+  const cleanValue=String(value||"").trim();
+  if(!cleanLabel||!cleanValue)return;
+  if(!tiles.some(function(tile){return normalise(tile[0])===normalise(cleanLabel)}))tiles.push([cleanLabel,cleanValue]);
+}
+function renderProcessJobCard(mode){
+  const card=document.getElementById("processJobCard");
+  const title=document.getElementById("processSetupTitle");
+  const customInfoBox=document.getElementById("processCustomInfo");
+  const reminderBox=document.getElementById("processReminderBox");
+  const config=ENTRY_MODES[mode]||{};
+  const processStage=config.processStage||"Process";
+  const stageTitle=getProcessStageTitle(processStage,currentJob);
+
+  title.innerText=stageTitle+" Setup Check";
+  if(!currentJob){
+    card.innerHTML="";
+    customInfoBox.classList.add("hidden");
+    reminderBox.classList.add("hidden");
+    return;
+  }
+
+  let html=compactProcessSummaryHtml(processStage,stageTitle);
+  const allExtraFields=getProcessFieldValuesForCurrentJob(processStage).filter(function(field){return String(field.value||"").trim()!==""});
+  const infoFields=allExtraFields.filter(function(field){return !isRoutingFieldLabel(field.fieldLabel||field.fieldKey||"")});
+  const processTiles=[];
+
+  if(isStandalonePackingJob()){
+    pushUniqueProcessTile(processTiles,"Status",currentJob.packingStatus||"");
+    pushUniqueProcessTile(processTiles,"Delivery Type",currentJob.deliveryType||"Not set");
+  }
+  if(processStage==="Paint Room"&&isFrTreatmentStage(currentJob)){
+    pushUniqueProcessTile(processTiles,"Stage","FR Treatment");
+    pushUniqueProcessTile(processTiles,"Treatment",getFireTreatmentDisplay(currentJob)||"Fire Treatment");
+    pushUniqueProcessTile(processTiles,"Treatment Qty",displayNotYetSet(currentJob.paintQty));
+  }else if(processStage==="Paint Room"&&isRecoatJob(currentJob)){
+    pushUniqueProcessTile(processTiles,"Stage",getJobProcessVariant(currentJob));
+    pushUniqueProcessTile(processTiles,"Coating",currentJob.coating||"");
+    pushUniqueProcessTile(processTiles,"Paint Qty",displayNotYetSet(currentJob.paintQty));
+  }else if(processStage==="Paint Room"){
+    pushUniqueProcessTile(processTiles,"Coating",currentJob.coating||"");
+    if(String(currentJob.paintQty||"").trim())pushUniqueProcessTile(processTiles,"Paint Qty",displayNotYetSet(currentJob.paintQty));
+  }
+
+  infoFields.forEach(function(field){
+    let displayValue=field.value||"";
+    if(normalise(field.fieldLabel||field.fieldKey)==="paint qty")displayValue=displayNotYetSet(displayValue);
+    pushUniqueProcessTile(processTiles,field.fieldLabel||field.fieldKey||"",displayValue);
+  });
+
+  if(processStage==="Paint Room"&&shouldShowRackingInfoForProcess(processStage)){
+    getPaintRoomRackingTiles(currentJob).forEach(function(tile){
+      pushUniqueProcessTile(processTiles,tile[0],tile[1]);
+    });
+  }
+
+  if(processTiles.length){
+    html+=activeProcessSection(stageTitle+" Info",'<div class="processExtraFieldsGrid">'+processTiles.map(function(tile){return processTile(tile[0],tile[1])}).join("")+'</div>');
+  }
+  if(isFireTreatmentActive(currentJob)){
+    html+=processSection("Fire Treatment",'<div class="frTreatmentLine">FR TREATMENT — '+escapeHtml(getFireTreatmentDisplay(currentJob)||"Fire Treatment")+'</div>');
+  }
+  if(shouldShowPackMaterialForProcess(processStage)){
+    html+=processSection("Pack / Material",buildProcessPackCards());
+  }
+
+  card.innerHTML=html;
+
+  const customInfo=String(currentJob.customInfo||"").trim();
+  if(customInfo){
+    customInfoBox.innerText=customInfo;
+    customInfoBox.classList.remove("hidden");
+    customInfoBox.classList.add("collapsed");
+  }else{
+    customInfoBox.classList.add("hidden");
+  }
+
+  const reminder=getReminderForEntryMode(mode);
+  if(reminder){
+    reminderBox.innerText="Reminder: "+reminder;
+    reminderBox.classList.remove("hidden");
+  }else{
+    reminderBox.classList.add("hidden");
+  }
+}
 function isRoutingFieldLabel(label){const t=normalise(label);return t.indexOf("required")!==-1||t==="resaw"||t==="moulder"||t==="charring"||t==="sander"||t==="brushing"||t==="paint room"||t==="packing"}
 function processSection(title,html){return '<div class="processSection"><div class="processSectionTitle">'+escapeHtml(title)+'</div>'+html+'</div>'}
 function buildProcessPackCards(){const packs=currentJob&&Array.isArray(currentJob.packs)?currentJob.packs:[];if(!packs.length)return '<div class="processInfoText">No Pack ID found for this job.</div>';let html='<div class="processPackGrid">';packs.forEach(pack=>{html+='<div class="processPackCard"><div class="processPackId">Pack ID: '+escapeHtml(pack.packId||"")+'</div><div class="processPackLocation">Location: '+escapeHtml(pack.location||"Location not set")+'</div>'+(pack.rawKey?'<div class="processInfoText">Raw key: '+escapeHtml(pack.rawKey)+'</div>':"")+(pack.stockCheck&&pack.stockCheck!=="OK"?'<div class="processInfoText">Stock check: '+escapeHtml(pack.stockCheck)+'</div>':"")+'</div>'});html+='</div>';return html}
