@@ -878,6 +878,57 @@ body{background:var(--tt-bg);color:var(--tt-ink)}
   .queueMetaRows{margin-left:0;margin-top:12px}
 }
 
+
+/* v1.80 Packing invoice stack — project pack presentation */
+#packingQueuePanel{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;margin-top:0!important}
+#packingQueuePanel>.fieldBlock{margin:0 0 16px}
+#packingQueueTitle{display:block;font-size:clamp(28px,4vw,36px)!important;font-weight:800!important;line-height:1.1!important;letter-spacing:-.035em;color:var(--tt-ink)!important;margin:0 0 6px!important}
+#packingQueueStatus{font-size:14px;line-height:1.35;color:var(--tt-muted);font-weight:550}
+.packingQueueRows{display:grid;grid-template-columns:1fr;gap:14px;width:100%}
+.packingProjectCard{position:relative;display:block;width:100%;background:var(--tt-surface);border:1px solid var(--tt-border);border-left:5px solid #d58c14;border-radius:var(--tt-radius);padding:15px 14px 14px;margin:0;box-shadow:var(--tt-shadow);overflow:hidden}
+.packingProjectCard.ready{border-left-color:var(--tt-green)}
+.packingProjectCard.blocked{border-left-color:#c94630}
+.packingProjectHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-left:2px;margin-bottom:11px}
+.packingProjectTitle{min-width:0;display:flex;flex-direction:column;gap:4px}
+.packingProjectInvoice{font-size:12px;line-height:1.15;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--tt-muted)}
+.packingProjectClient{font-size:21px;line-height:1.15;font-weight:760;letter-spacing:-.025em;color:var(--tt-ink);white-space:normal;overflow-wrap:anywhere}
+.packingProjectMeta{font-size:13px;line-height:1.3;font-weight:560;color:var(--tt-muted);margin-top:3px}
+.packingProjectState{flex:none;display:inline-flex;align-items:center;padding:7px 9px;border-radius:999px;background:var(--tt-amber-soft);color:#8d5900;font-size:11px;font-weight:850;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.packingProjectCard.ready .packingProjectState{background:var(--tt-green-soft);color:var(--tt-green-deep)}
+.packingProjectCard.blocked .packingProjectState{background:#fff1ee;color:#a63722}
+.packingLineList{display:flex;flex-direction:column;gap:8px;padding:0;margin:0}
+.packingLineCard{width:100%!important;max-width:none!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto 16px;gap:8px;align-items:center;text-align:left!important;margin:0!important;padding:11px 10px!important;border:1px solid #e5e9e4!important;border-radius:12px!important;background:#fafbf9!important;color:var(--tt-ink)!important;box-shadow:none!important}
+div.packingLineCard{cursor:default}
+button.packingLineCard{cursor:pointer}
+button.packingLineCard:active{transform:scale(.994)}
+.packingLineCard.satisfied{background:var(--tt-green-soft)!important;border-color:#d4e9d9!important}
+.packingLineCard.pending{background:var(--tt-amber-soft)!important;border-color:#efddbe!important}
+.packingLineCard.blocked{background:#fff3f1!important;border-color:#efcfc9!important}
+.packingLineMain{min-width:0}
+.packingLineTitle{font-size:15px;line-height:1.25;font-weight:720;color:var(--tt-ink);white-space:normal;overflow-wrap:anywhere}
+.packingLineMeta{font-size:12px;line-height:1.32;color:var(--tt-muted);font-weight:540;margin-top:3px;white-space:normal}
+.packingLineStatus{display:inline-flex;align-items:center;padding:5px 7px;border-radius:999px;background:#e9ece9;color:#4f5a52;font-size:10px;line-height:1.15;font-weight:850;text-transform:uppercase;letter-spacing:.035em;white-space:nowrap;max-width:132px;text-align:center}
+.packingLineCard.satisfied .packingLineStatus{background:#d9eedf;color:var(--tt-green-deep)}
+.packingLineCard.pending .packingLineStatus{background:#f1dfbd;color:#805100}
+.packingLineCard.blocked .packingLineStatus{background:#f4d8d3;color:#9b3020}
+.packingLineChevron{font-size:23px;line-height:1;font-weight:650;color:var(--tt-green-deep);text-align:right}
+div.packingLineCard .packingLineChevron{color:#c7ceca}
+.packingAccessoriesCard{margin-top:11px;border-radius:12px;background:#f4f6f3;border:1px solid #e3e7e2;padding:10px 11px}
+.packingAccessoriesHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 7px;font-size:11px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:#59645c}
+.packingAccessoryItem{display:flex;align-items:flex-start;gap:7px;font-size:13px;line-height:1.3;color:#28322b;font-weight:560;margin-top:5px}
+.packingAccessoryDot{width:6px;height:6px;flex:none;border-radius:50%;background:var(--tt-green);margin-top:5px}
+.packingAccessoryType{font-weight:760;margin-right:4px}
+.packingAccessoryPending{font-size:13px;line-height:1.35;color:#755100;background:#fff5e7;border:1px solid #edd7ae;padding:8px 9px;border-radius:9px}
+@media (min-width:700px){
+  .packingProjectCard{padding:20px 20px 18px}
+  .packingProjectClient{font-size:clamp(23px,2vw,30px)}
+  .packingProjectMeta{font-size:clamp(14px,1.25vw,17px)}
+  .packingLineCard{padding:14px 14px!important}
+  .packingLineTitle{font-size:clamp(16px,1.35vw,20px)}
+  .packingLineMeta,.packingAccessoryItem,.packingAccessoryPending{font-size:clamp(14px,1.2vw,17px)}
+  .packingLineStatus{font-size:12px;padding:6px 10px;max-width:190px}
+}
+
 </style>
 </head>
 <body>
@@ -1035,9 +1086,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.79|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.80|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.79|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.80|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1543,7 +1594,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.79|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.80|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const PROCESS_OPERATOR_MEMORY_PREFIX="ttProcessOperatorMemory|v1.76|";
 const JOB_OPERATOR_MEMORY_PREFIX="ttJobProcessOperatorMemory|v1.76|";
@@ -1721,34 +1772,102 @@ function loadPackingQueue(forceFresh){
   script.onerror=function(){delete window[callbackName];document.getElementById("packingQueueStatus").innerText=cached?"Saved Packing Queue shown — live refresh failed.":"Packing Queue load failed.";};
   document.body.appendChild(script);
 }
+function packingStatusIsSatisfied(status){
+  const value=normalise(status||"");
+  return value==="ready for dispatch"||value==="ready for collection"||value==="complete";
+}
+function packingStatusIsBlocked(status){
+  const value=normalise(status||"");
+  return value.indexOf("hold")!==-1||value.indexOf("waiting for material")!==-1||value.indexOf("blocked")!==-1;
+}
+function getPackingProjectAccessories(invoiceNo){
+  const key=String(invoiceNo||"").trim();
+  if(!key||!currentPackingQueue||!Array.isArray(currentPackingQueue.accessories))return[];
+  return currentPackingQueue.accessories.filter(item=>String(item.invoiceNo||"").trim()===key);
+}
+function buildPackingProjectGroups(jobs){
+  const groups=[];
+  const map={};
+  (jobs||[]).forEach(job=>{
+    const invoiceNo=String(job.invoiceNo||"").trim();
+    const key=invoiceNo?"invoice|"+invoiceNo:"line|"+getPackingJobLocalId(job);
+    if(!map[key]){
+      map[key]={key:key,invoiceNo:invoiceNo,jobs:[],client:String(job.client||"").trim(),deliveryTypes:[]};
+      groups.push(map[key]);
+    }
+    map[key].jobs.push(job);
+    const delivery=String(job.deliveryType||"").trim();
+    if(delivery&&map[key].deliveryTypes.indexOf(delivery)===-1)map[key].deliveryTypes.push(delivery);
+    if(!map[key].client&&job.client)map[key].client=String(job.client||"").trim();
+  });
+  groups.forEach(group=>{
+    group.accessories=getPackingProjectAccessories(group.invoiceNo);
+    group.pending=group.jobs.some(job=>!!job.pendingSync);
+    group.blocked=group.jobs.some(job=>packingStatusIsBlocked(job.packingStatus));
+    group.outstanding=group.jobs.filter(job=>!packingStatusIsSatisfied(job.packingStatus)).length;
+    group.ready=!group.pending&&!group.blocked&&group.outstanding===0;
+  });
+  return groups.sort((a,b)=>{
+    const aRank=a.blocked?0:(a.ready?2:1);
+    const bRank=b.blocked?0:(b.ready?2:1);
+    if(aRank!==bRank)return aRank-bRank;
+    const ai=Number(a.invoiceNo||0),bi=Number(b.invoiceNo||0);
+    if(ai&&bi&&ai!==bi)return ai-bi;
+    return Number((a.jobs[0]||{}).productionRow||0)-Number((b.jobs[0]||{}).productionRow||0);
+  });
+}
+function renderPackingAccessories(group){
+  const staged=group.accessories||[];
+  const indicated=group.jobs.some(job=>normalise(job.ironmongeryRequired||"")==="yes");
+  if(!staged.length&&!indicated)return"";
+  let html='<div class="packingAccessoriesCard"><div class="packingAccessoriesHeader"><span>Accessories</span><span>'+escapeHtml(String(staged.length||""))+'</span></div>';
+  if(staged.length){
+    staged.forEach(item=>{
+      html+='<div class="packingAccessoryItem"><span class="packingAccessoryDot"></span><span><span class="packingAccessoryType">'+escapeHtml(item.accessoryType||"Accessory")+'</span>'+escapeHtml(item.description||"")+'</span></div>';
+    });
+  }else{
+    html+='<div class="packingAccessoryPending">Accessories are marked on this invoice, but line details were imported before accessory staging was enabled.</div>';
+  }
+  return html+'</div>';
+}
 function renderPackingQueue(jobs,fromLocal){
   const wrap=document.getElementById("packingQueueRows");
   wrap.innerHTML="";
   if(!jobs.length){
-    document.getElementById("packingQueueStatus").innerText="No jobs are currently included in the Packing Queue.";
+    document.getElementById("packingQueueStatus").innerText="No project packs are currently included in the Packing Queue.";
     return;
   }
-  const openCount=jobs.filter(job=>packingValueIsTrue(job.canOpenPackingCard)).length;
-  document.getElementById("packingQueueStatus").innerText=(fromLocal?"Saved list shown — refreshing live. ":"")+jobs.length+" job"+(jobs.length===1?"":"s")+" shown | "+openCount+" available to open.";
-  jobs.forEach(job=>{
-    const canOpen=packingValueIsTrue(job.canOpenPackingCard);
-    const displayState=String(job.cardDisplayState||job.packingStatus||"").trim();
-    const productionStatus=normalise(job.packingStatus||"");
-    const packed=productionStatus==="packed";
-    const released=productionStatus==="ready for dispatch"||productionStatus==="ready for collection";
-    const card=document.createElement(canOpen?"button":"div");
-    card.className="packingQueueCard "+(canOpen?"packingQueueCardActive ":"")+(packed?"packingQueueCardPacked jobQueueComplete ":(released?"packingQueueCardReleased ":(!canOpen?"packingQueueCardWaiting ":"")));
-    let prompt="";
-    if(canOpen){
-      if(packed)prompt='<div class="packingQueuePrompt">OPEN TO RELEASE JOB</div>';
-      else if(released)prompt='<div class="packingQueuePrompt">OPEN JOB INFORMATION</div>';
-      else prompt='<div class="packingQueuePrompt">OPEN PACKING CARD</div>';
-    }
-    card.innerHTML='<div class="packingQueueStatusBadge">'+escapeHtml(displayState||job.packingStatus||"")+'</div><div class="packingQueueClient">'+escapeHtml(job.client||"")+'</div><div class="packingQueueMeta">Production Row: '+escapeHtml(job.productionRow||"")+' | Status: '+escapeHtml(job.packingStatus||"")+'</div><div class="packingQueueSpec">Spec: '+escapeHtml(job.species||"")+' | '+escapeHtml(job.length||"")+'m | '+escapeHtml(job.finishedSize||"")+' | '+escapeHtml(job.profile||"")+' | Qty '+escapeHtml(job.quantity||"")+'</div><div class="packingQueueMeta">Coating: '+escapeHtml(job.coating||"")+' | Delivery Type: '+escapeHtml(job.deliveryType||"Not set")+'</div>'+prompt;
-    if(canOpen)card.onclick=()=>openPackingQueueJob(job);
-    wrap.appendChild(card);
+  const groups=buildPackingProjectGroups(jobs);
+  const readyCount=groups.filter(group=>group.ready).length;
+  const statusPrefix=fromLocal?"Saved list shown — refreshing live. ":"";
+  document.getElementById("packingQueueStatus").innerText=statusPrefix+groups.length+" project pack"+(groups.length===1?"":"s")+" | "+jobs.length+" product line"+(jobs.length===1?"":"s")+" | "+readyCount+" fully ready.";
+  groups.forEach(group=>{
+    const outer=document.createElement("section");
+    outer.className="packingProjectCard "+(group.ready?"ready":(group.blocked?"blocked":"open"));
+    const invoiceLabel=group.invoiceNo?"INV-"+group.invoiceNo:"UNGROUPED LINE";
+    const fulfilment=group.deliveryTypes.length===1?group.deliveryTypes[0]:(group.deliveryTypes.length>1?"Mixed fulfilment":"Delivery not set");
+    const stateText=group.pending?"Pending sync":(group.blocked?"Attention":(group.ready?"Ready":group.outstanding+" outstanding"));
+    const summary=fulfilment+" · "+group.jobs.length+" product line"+(group.jobs.length===1?"":"s")+(group.ready?" · all ready":(" · "+group.outstanding+" outstanding"));
+    outer.innerHTML='<div class="packingProjectHeader"><div class="packingProjectTitle"><span class="packingProjectInvoice">'+escapeHtml(invoiceLabel)+'</span><span class="packingProjectClient">'+escapeHtml(group.client||"No client reference")+'</span><span class="packingProjectMeta">'+escapeHtml(summary)+'</span></div><span class="packingProjectState">'+escapeHtml(stateText)+'</span></div><div class="packingLineList"></div>'+renderPackingAccessories(group);
+    const list=outer.querySelector(".packingLineList");
+    group.jobs.forEach(job=>{
+      const canOpen=packingValueIsTrue(job.canOpenPackingCard);
+      const satisfied=packingStatusIsSatisfied(job.packingStatus)&&!job.pendingSync;
+      const blocked=packingStatusIsBlocked(job.packingStatus);
+      const line=document.createElement(canOpen?"button":"div");
+      if(canOpen)line.type="button";
+      line.className="packingLineCard"+(satisfied?" satisfied":(blocked?" blocked":(job.pendingSync?" pending":"")));
+      const title=[job.finishedSize,job.profile].filter(Boolean).join(" · ")||"Production line";
+      const meta=[job.quantity?job.quantity+" pcs":"",job.length?job.length+"m":"",job.species||""].filter(Boolean).join(" · ");
+      const state=String(job.cardDisplayState||job.packingStatus||"Waiting").trim();
+      line.innerHTML='<div class="packingLineMain"><div class="packingLineTitle">'+escapeHtml(title)+'</div><div class="packingLineMeta">'+escapeHtml(meta)+'</div></div><span class="packingLineStatus">'+escapeHtml(state)+'</span><span class="packingLineChevron">'+(canOpen?'›':'')+'</span>';
+      if(canOpen)line.onclick=()=>openPackingQueueJob(job);
+      list.appendChild(line);
+    });
+    wrap.appendChild(outer);
   });
 }
+
 function openPackingQueueJob(job){
   packingQueueActive=true;currentTeam="PACKING";
   finishSelectQueueJob(job,"packing_rejects");
