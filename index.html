@@ -977,7 +977,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.90 persistent refresh stale-list indicator */
+/* v1.91 stock picker packing-style refinement and refresh stale-list indicator */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1091,6 +1091,108 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   transition:opacity .16s ease,filter .16s ease;
 }
 
+
+/* v1.91 Stock Picker — align presentation with Packing Queue */
+.ttStockPickerPageHeader{margin:2px 0 12px}
+.ttStockPickerPageHeader #stockPickerTitle{font-size:22px!important;line-height:1.1!important;font-weight:760!important;letter-spacing:-.01em}
+.ttStockPickerOrigin{font-size:12px;font-weight:650;margin-top:3px}
+.ttStockPickerStatus{font-size:11px!important;font-weight:650!important}
+.ttStockPickerSummary{padding:10px 4px;margin-bottom:15px;border-radius:14px}
+.ttStockMetric{min-height:54px}
+.ttStockMetric b{font-size:21px;font-weight:780}
+.ttStockMetric small{font-size:11px;font-weight:650}
+.ttStockMetricIcon{width:27px;height:27px;font-size:14px}
+.ttStockPickerListTitle{font-size:17px;font-weight:760;margin-bottom:9px}
+#stockPickerRows.stockPickerRows{gap:9px!important}
+#stockPickerRows .stockPickerCard{
+  border-radius:14px!important;
+  padding:12px 12px 11px!important;
+  border-left-width:4px!important;
+}
+#stockPickerRows .stockPickerCard.locationMissing{border-left-color:var(--tt-green)!important}
+.ttStockCardTop{gap:9px;margin-bottom:8px}
+.ttStockOrder{width:36px;height:36px;border-radius:9px;font-size:17px;font-weight:790}
+.ttStockPackId{font-size:20px;font-weight:780}
+.ttStockLocation{font-size:14px;font-weight:700}
+.ttStockLocation::before{font-size:15px}
+.ttStockInstruction{
+  margin:0 0 9px 45px;
+  min-height:30px;
+  padding:4px 10px 4px 7px;
+  font-size:14px;
+  font-weight:730;
+  background:var(--tt-green-soft)!important;
+  color:var(--tt-green-deep)!important;
+}
+.ttStockInstruction::before{width:20px;height:20px;font-size:13px;background:var(--tt-green)!important}
+.moveHold .ttStockInstruction{
+  background:var(--tt-amber-soft)!important;
+  color:#995c00!important;
+}
+.moveHold .ttStockInstruction::before{background:var(--tt-amber)!important}
+.ttStockPackMeta{
+  padding:0 0 8px 45px;
+  font-size:12px;
+  font-weight:630;
+}
+.ttStockGroupCount{font-size:10px;padding:3px 7px}
+.ttStockJourney{
+  margin:0 0 0 45px;
+  border-top:0;
+  padding-top:0;
+}
+.ttStockJourneyTitle{
+  margin:0 0 6px;
+  font-size:11px;
+  font-weight:740;
+  color:var(--tt-muted);
+  text-transform:none;
+  letter-spacing:0;
+}
+.ttStockUse{
+  background:#f5f7f4;
+  border:1px solid var(--tt-border);
+  border-radius:10px;
+  padding:8px 9px;
+  gap:8px;
+  margin-bottom:6px;
+}
+.ttStockUseIndex{
+  width:22px;height:22px;border-radius:6px;
+  background:var(--tt-green-soft);
+  font-weight:760;
+}
+.ttStockUseText b{font-size:13px;font-weight:720}
+.ttStockUseText small{font-size:11px;font-weight:570}
+.ttStockTransfer{
+  margin:-1px 0 6px 31px;
+  padding:3px 7px;
+  font-size:11px;
+  font-weight:680;
+  border-left:2px solid var(--tt-green-border);
+}
+.ttStockFinalMove{
+  margin:8px 0 0 45px;
+  padding-top:8px;
+  font-size:11px;
+  font-weight:600;
+}
+.ttStockFinalMove b{font-weight:700}
+.ttStockWarning{
+  margin-top:9px;
+  padding:7px 9px;
+  border-radius:9px;
+  font-size:12px;
+  font-weight:700;
+}
+@media (min-width:700px){
+  .ttStockPickerPageHeader #stockPickerTitle{font-size:24px!important}
+  .ttStockPackId{font-size:22px}
+  .ttStockLocation{font-size:15px}
+  .ttStockInstruction{font-size:15px}
+  .ttStockMetaRow{font-size:13px}
+}
+
 </style>
 </head>
 <body>
@@ -1098,7 +1200,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.90</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.91</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1127,7 +1229,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.90</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.91</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1288,9 +1390,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.90|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.91|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.90|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.91|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1802,7 +1904,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.90|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.91|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -3224,7 +3326,7 @@ function renderStockPickerRows(rows){
     const location=String(group.packLocation||"").trim()||"NOT SET";
     let cls=getStockMovementClass(first,instruction);
     if(group.rows.length>1)cls+=" multiUse";
-    if(!String(group.packLocation||"").trim())cls+=" moveBlocked";
+    if(!String(group.packLocation||"").trim())cls+=" locationMissing";
     card.className="stockPickerCard"+cls;
 
     let packMeta='';
@@ -3232,7 +3334,7 @@ function renderStockPickerRows(rows){
     if(raw.rawSize)packMeta+='<span class="ttStockMetaItem"><small>Raw</small>'+escapeHtml(raw.rawSize)+'</span>';
     if(group.rows.length>1)packMeta+='<span class="ttStockGroupCount">'+escapeHtml(String(group.rows.length))+' jobs</span>';
 
-    let usesHtml='<div class="ttStockJourney"><div class="ttStockJourneyTitle">Planned use'+(group.rows.length===1?"":"s")+'</div>';
+    let usesHtml='<div class="ttStockJourney"><div class="ttStockJourneyTitle">Job No.</div>';
     group.rows.forEach(function(row,useIndex){
       const process=stockPickerTitleCase(String(row.packDestination||getPackDestination(row)||"Process"));
       const detailParts=[];
@@ -3250,12 +3352,11 @@ function renderStockPickerRows(rows){
     usesHtml+='</div>';
 
     let warning='';
-    if(!String(group.packLocation||"").trim())warning='<div class="ttStockWarning">Location ID not set — confirm pack location before moving.</div>';
+    if(!String(group.packLocation||"").trim())warning='<div class="ttStockWarning">Location ID not set</div>';
 
     card.innerHTML='<div class="ttStockCardTop">'+
       '<span class="ttStockOrder">'+escapeHtml(String(index+1))+'</span>'+
-      '<div class="ttStockCardIdentity"><span class="ttStockPackId">'+escapeHtml(group.packId||"")+'</span><span class="ttStockLocation">'+escapeHtml(location)+'</span></div>'+
-      '<span class="ttStockChevron">›</span></div>'+
+      '<div class="ttStockCardIdentity"><span class="ttStockPackId">'+escapeHtml(group.packId||"")+'</span><span class="ttStockLocation">'+escapeHtml(location)+'</span></div></div>'+
       '<div class="ttStockInstruction">'+escapeHtml(instruction)+'</div>'+
       '<div class="ttStockPackMeta">'+packMeta+'</div>'+
       usesHtml+
