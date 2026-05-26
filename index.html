@@ -966,6 +966,10 @@ body.packingAccessoriesOpen{overflow:hidden}
   .packingLineStatus{font-size:12px;padding:6px 10px;max-width:190px}
 }
 
+
+.queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
+.queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
+
 </style>
 </head>
 <body>
@@ -975,7 +979,7 @@ body.packingAccessoriesOpen{overflow:hidden}
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <h1 class="queuePageTitle">Job Queue</h1>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.83</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1123,9 +1127,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.82|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.83|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.82|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.83|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -1631,7 +1635,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.82|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.83|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 let currentPackingAccessoriesGroup=null,accessoryPickRequests={};
@@ -1918,7 +1922,7 @@ function loadPackingQueue(forceFresh){
     applyPackingQueueData(data,false);
   };
   const script=document.createElement("script");
-  script.src=REJECT_LOG_WEB_APP_URL+"?action=getPackingQueue"+(forceFresh?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=getPackingQueue&fresh=1&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
   script.onerror=function(){delete window[callbackName];document.getElementById("packingQueueStatus").innerText=cached?"Saved Packing Queue shown — live refresh failed.":"Packing Queue load failed.";};
   document.body.appendChild(script);
 }
