@@ -977,7 +977,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.97 coat-stage outer cards and sheet-job-specific confirmed process evidence */
+/* v1.98 coat-stage completion colour and confirmed process evidence */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1481,6 +1481,29 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   .ttCoatingStageJobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 }
 
+
+/* v1.98 Coating stage completion — complete coat groups override in-progress amber */
+.ttCoatingStageGroup.complete{
+  border-left-color:var(--tt-green)!important;
+  background:var(--tt-green-soft)!important;
+}
+.ttCoatingStageGroup.complete .ttCoatingStageGroupCount{
+  background:var(--tt-green)!important;
+  color:#fff!important;
+}
+.ttCoatingStageGroup.complete .ttCoatingPassCard.logged{
+  background:#fff!important;
+  border-color:#d4e9d9!important;
+}
+.ttCoatingStageGroup.complete .ttCoatingInnerJobTag{
+  background:var(--tt-green-soft)!important;
+  color:var(--tt-green-deep)!important;
+}
+.ttCoatingStageGroup.complete .ttCoatingLoggedTag{
+  background:var(--tt-green)!important;
+  color:#fff!important;
+}
+
 </style>
 </head>
 <body>
@@ -1488,7 +1511,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.97</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.98</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1517,7 +1540,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.97</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.98</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1691,9 +1714,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.97|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.98|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.97|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.98|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -2205,7 +2228,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.97|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.98|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -3860,9 +3883,13 @@ function renderCoatingOverview(summary,rows){
   groupOrder.forEach(function(label){
     const groupRows=grouped[label];
     const group=document.createElement("section");
+    const allComplete=groupRows.length>0&&groupRows.every(function(row){return !!row.completed});
     const groupClass=label==="FR Treatment"?" fr":(coatingStageSortOrder(label)>1?" recoat":"");
-    group.className="ttCoatingStageGroup"+groupClass;
-    group.innerHTML='<div class="ttCoatingStageGroupHeader"><h3>'+escapeHtml(label)+'</h3><span class="ttCoatingStageGroupCount">'+escapeHtml(String(groupRows.length))+' job'+(groupRows.length===1?"":"s")+'</span></div><div class="ttCoatingStageJobs"></div>';
+    group.className="ttCoatingStageGroup"+groupClass+(allComplete?" complete":"");
+    const countText=allComplete
+      ? "Complete"
+      : (String(groupRows.length)+" job"+(groupRows.length===1?"":"s"));
+    group.innerHTML='<div class="ttCoatingStageGroupHeader"><h3>'+escapeHtml(label)+'</h3><span class="ttCoatingStageGroupCount">'+escapeHtml(countText)+'</span></div><div class="ttCoatingStageJobs"></div>';
     const jobWrap=group.querySelector(".ttCoatingStageJobs");
     groupRows.forEach(function(row){jobWrap.appendChild(renderCoatingPassCard(row,true))});
     rowsWrap.appendChild(group);
