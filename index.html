@@ -977,7 +977,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.94 post-save adjacent-job navigation correction */
+/* v1.95 confirmed reject submission UI and non-optimistic process evidence */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1396,6 +1396,13 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   #processJobCard .processJobTileValue{font-size:14px!important}
 }
 
+
+/* v1.95 Submission acknowledgement state */
+.postSaveSyncStatus{margin:8px 0 13px;padding:10px 12px;border-radius:11px;font-size:14px;line-height:1.35;font-weight:720}
+.postSaveSyncStatus.pending{background:var(--tt-amber-soft);color:#805100;border:1px solid #efd7a9}
+.postSaveSyncStatus.confirmed{background:var(--tt-green-soft);color:var(--tt-green-deep);border:1px solid #d4e9d9}
+.postSaveSyncStatus.failed{background:#fae6e4;color:#9c2b1f;border:1px solid #f0c9c4}
+
 </style>
 </head>
 <body>
@@ -1403,7 +1410,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.94</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.95</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1432,7 +1439,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.94</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.95</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1507,7 +1514,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
 <div id="modeBlock" class="hidden"><label>Target Total is measured in:</label><select id="mode"></select></div>
 <div id="step1_boards" class="step hidden"><div id="boardsWrap"><input id="boards" type="number" placeholder="Quantity of Boards Required" /></div><div id="linearWrap"><input id="metres" type="number" placeholder="Number of Linear Metres Required" /><select id="boardLength"></select></div></div><div id="step2_perRow" class="step hidden"><select id="perRow"></select></div><div id="step3_yield" class="step hidden"><label>Yield when bandsawing</label><select id="yield"></select></div><div id="step4_loose" class="step hidden"><select id="topLoose"></select></div><div id="step5_rejects" class="step hidden step5Bar"><select id="rejects"></select><div class="step5Buttons"><button onclick="prevStep()">Back</button><button onclick="resetAll()">Reset</button><button onclick="backToProcessMenu()">Back to process menu</button></div></div>
 <div id="simpleLogger" class="hidden simpleBox"><div class="fieldBlock"><label id="simpleLoggerTitle">Log Rejects</label></div><div class="fieldBlock"><label>Pack ID used</label><select id="simplePackId"></select></div><div class="rejectLoggerLayout"><div class="rejectLoggerLeft"><div class="fieldBlock"><label>Tap defects as they happen</label><div id="rejectButtonGrid" class="rejectButtonGrid"></div></div></div><div class="rejectLoggerRight"><div id="rejectBasketTotals" class="rejectBasketTotals">No rejects logged yet.</div><div id="rejectNoteBlock" class="fieldBlock hidden" style="margin-top:10px;"><label id="rejectNoteLabel">Reject note required</label><textarea id="rejectNote" rows="3" placeholder="Add detail for Other or note-required defects"></textarea></div><div class="basketActions"><button onclick="undoLastReject()">Undo Last</button><button onclick="clearRejectBasket()">Clear</button><button id="simpleSaveBtn" class="primaryBtn" onclick="reviewAndSaveBasket()">Review Pack</button><button onclick="returnToMenu()">Back to menu</button></div></div></div></div>
-<div id="postSavePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="postSaveTitle">Saved</label><div id="postSaveDetails" style="font-size:16px;line-height:1.35;color:#333;"></div><div id="localOutboxStatus" style="margin-top:12px;font-size:16px;line-height:1.35;color:#333;"></div></div><div class="basketActions"><button class="primaryBtn" onclick="addExtraRejectsSamePack()">Add extra rejects to same pack</button><button onclick="logAnotherPack()">Log next pack / same setup</button><button onclick="resendLocalOutbox()">Resend local backups</button><button onclick="clearLocalOutboxBackups()">Clear local backups after checking Reject Log</button><button onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
+<div id="postSavePanel" class="hidden simpleBox"><div class="fieldBlock"><label id="postSaveTitle">Sending entry</label><div id="postSaveSyncStatus" class="postSaveSyncStatus pending">Waiting for workbook confirmation...</div><div id="postSaveDetails" style="font-size:16px;line-height:1.35;color:#333;"></div><div id="localOutboxStatus" style="margin-top:12px;font-size:16px;line-height:1.35;color:#333;"></div></div><div class="basketActions"><button class="primaryBtn" onclick="addExtraRejectsSamePack()">Add extra rejects to same pack</button><button onclick="logAnotherPack()">Log next pack / same setup</button><button onclick="resendLocalOutbox()">Resend local backups</button><button onclick="clearLocalOutboxBackups()">Clear local backups after checking Reject Log</button><button onclick="backToProcessMenu()">Back to process menu</button><button onclick="backToJobQueue()">Back to job queue</button></div></div>
 <div class="btnRow"><button id="nextBtn" onclick="nextStep()">Next</button><button id="backBtn" onclick="prevStep()">Back</button><button onclick="resetAll()">Reset</button><button onclick="returnToMenu()">Back to menu</button></div>
 </div>
 <div id="jobSignalsBox" class="hidden jobSignalsBox"></div><div id="summary" style="font-size:13px;margin-top:8px;color:#333;"></div><div id="saveStatus"></div><div class="grid" id="grid"></div><div id="preloadStatusPopup" class="hidden preloadStatusPopup"></div><div id="processWarningOverlay" class="hidden processWarningOverlay"><div class="processWarningBox"><div id="processWarningText" class="processWarningText"></div><button type="button" class="primaryBtn" onclick="closeProcessWarning()">OK</button></div></div>
@@ -1606,9 +1613,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.94|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.95|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.94|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.95|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -2120,7 +2127,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.94|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.95|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -2976,6 +2983,17 @@ function mergeLoggedProcessRecord(job,record){
     job.loggedProcessRecords.push(record);
   }
 }
+function payloadMatchesOperationalJob(payload,job){
+  const payloadUid=String(payload&&payload.productionUid||"").trim();
+  const jobUid=String(job&&job.productionUid||"").trim();
+  if(payloadUid)return !!jobUid&&payloadUid===jobUid;
+  const payloadRow=String(payload&&payload.productionRow||"").trim();
+  const jobRow=String(job&&job.productionRow||"").trim();
+  if(payloadRow&&jobRow)return payloadRow===jobRow;
+  const payloadSheet=String(payload&&payload.sheetJob||"").trim();
+  const jobSheet=String(job&&job.sheetJob||"").trim();
+  return !!payloadSheet&&!!jobSheet&&normalise(payloadSheet)===normalise(jobSheet);
+}
 function markProcessEvidenceLocally(payload,totalRejects){
   if(!payload||!payload.processStage)return;
   const record=processEvidenceRecordFromPayload(payload,totalRejects);
@@ -2984,12 +3002,21 @@ function markProcessEvidenceLocally(payload,totalRejects){
   if(currentTeamDashboard&&Array.isArray(currentTeamDashboard.jobs)){
     currentTeamDashboard.jobs.forEach(job=>candidates.push(job));
   }
+  const applied=[];
   candidates.forEach(job=>{
-    if(!sameOperationalJob(job,currentJob))return;
+    if(applied.indexOf(job)!==-1)return;
+    applied.push(job);
+    if(!payloadMatchesOperationalJob(payload,job))return;
     if(normalise(payload.processStage||"")==="paint room"&&normalise(getJobProcessVariant(job))!==normalise(payload.processVariant||""))return;
     mergeLoggedProcessRecord(job,Object.assign({},record));
   });
   if(currentTeamDashboard&&currentTeamDashboard.ok)saveTeamDashboardToLocalCache(currentTeam,currentTeamDashboard);
+  if(isElementVisible("coatingOverviewPanel")){
+    const overview=buildCoatingOverviewFromJobs(currentTeamDashboard&&currentTeamDashboard.jobs||[]);
+    renderCoatingOverview(overview.summary,overview.rows);
+  }else if(isElementVisible("teamQueueBlock")){
+    renderJobQueue(currentTeamDashboard&&currentTeamDashboard.jobs||[]);
+  }
 }
 function getProcessStageTitle(processStage,job){
   const variant=getJobProcessVariant(job);
@@ -4261,13 +4288,13 @@ function submitNoRejectsForCurrentPaintPass(fromOverview){
       rejectQty:0
     }]
   };
-  markProcessEvidenceLocally(payload,0);
   const outboxOk=sendRejectPayloadInBackground(payload);
   persistentNavigationDirty=false;
   rejectBasket={};
   rejectHistory=[];
   document.getElementById("saveStatus").innerText="";
   showPostSaveScreen(payload,0);
+  confirmRejectSubmissionWritten(payload,0,0);
   if(!outboxOk){
     const details=document.getElementById("postSaveDetails");
     if(details)details.innerHTML+="<br><br>"+escapeHtml("Warning: this device may not have saved a full local backup. Check the Reject Log before repeating this action.");
@@ -4358,7 +4385,88 @@ function populatePackSelect(selectEl,selectedPackId){const packs=getPackOptions(
 function fillPackIdFields(){populatePackSelect(document.getElementById("simplePackId"),jobContext.packId||"");populatePackSelect(document.getElementById("setupPackId"),jobContext.packId||"")}
 function setEntryMode(mode){persistentNavigationDirty=false;currentEntryMode=mode;currentProcessSetup={};if(mode!=="pack_visualiser")visualiserSourceProcess="";hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();document.getElementById("saveStatus").innerText="";if(mode==="pack_visualiser"){visualiserSourceProcess="";step=1}else{step=0;document.getElementById("simpleLoggerTitle").innerText=ENTRY_MODES[mode].label;buildBasketRejectButtons(mode);if((ENTRY_MODES[mode]||{}).showSetup)showProcessSetupScreen(mode);else restoreRejectDraft()}fillPackIdFields();updateUI();render()}
 function returnToMenu(){hidePostSaveScreen();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentProcessSetup={};step=0;clearRejectBasket(true);document.getElementById("saveStatus").innerText="";clearGrid();document.getElementById("summary").innerText="";updateUI()}
-function showPostSaveScreen(payload,totalRejects){document.getElementById("simpleLogger").classList.add("hidden");document.getElementById("step0_entry").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");const panel=document.getElementById("postSavePanel"),title=document.getElementById("postSaveTitle"),details=document.getElementById("postSaveDetails");title.innerText="Saved";const lines=[];lines.push("Job: "+(jobContext.sheetJob||""));lines.push("Process: "+getProcessStageTitle(((ENTRY_MODES[currentEntryMode]||{}).processStage||""),currentJob));if(payload.quickNoRejects)lines.push("Outcome: No rejects on this coat");lines.push("Pack ID: "+(payload.packId||""));lines.push("Total rejects: "+totalRejects);if(currentJob){lines.push("Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""))}if(payload.processSetup){const setup=payload.processSetup;lines.push("");lines.push("Setup checks:");lines.push("Operator: "+(setup.operatorId||"")+(setup.guestOperatorName?" - "+setup.guestOperatorName:""));if(Array.isArray(setup.checks))setup.checks.forEach(check=>lines.push(check.label+": "+(check.checked?"Yes":"No")));if(setup.notes)lines.push("Notes: "+setup.notes)}lines.push("");lines.push("Reject details:");if(Array.isArray(payload.rejects)&&payload.rejects.length){payload.rejects.forEach(line=>lines.push("• "+(line.defectType||"")+": "+Number(line.rejectQty||0)))}else lines.push("• No reject details found");if(payload.rejectNote){lines.push("");lines.push("Reject note: "+payload.rejectNote)}details.innerHTML=lines.map(escapeHtml).join("<br>");panel.classList.remove("hidden");updateLocalOutboxStatus()}
+let currentPostSaveSubmissionId="";
+function setPostSaveSyncState(state,text){
+  const sync=document.getElementById("postSaveSyncStatus");
+  if(!sync)return;
+  sync.className="postSaveSyncStatus "+state;
+  sync.innerText=text;
+}
+function showPostSaveScreen(payload,totalRejects){
+  document.getElementById("simpleLogger").classList.add("hidden");
+  document.getElementById("step0_entry").classList.add("hidden");
+  document.querySelector(".btnRow").classList.add("hidden");
+  const panel=document.getElementById("postSavePanel"),title=document.getElementById("postSaveTitle"),details=document.getElementById("postSaveDetails");
+  currentPostSaveSubmissionId=String(payload.submissionId||"");
+  title.innerText="Sending entry";
+  setPostSaveSyncState("pending","Stored locally — waiting for workbook confirmation.");
+  const lines=[];
+  lines.push("Job: "+(payload.sheetJob||jobContext.sheetJob||""));
+  lines.push("Process: "+getProcessStageTitle(((ENTRY_MODES[currentEntryMode]||{}).processStage||""),currentJob));
+  if(payload.quickNoRejects)lines.push("Outcome: No rejects on this coat");
+  lines.push("Pack ID: "+(payload.packId||""));
+  lines.push("Total rejects: "+totalRejects);
+  if(currentJob){lines.push("Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""))}
+  if(payload.processSetup){
+    const setup=payload.processSetup;
+    lines.push("");
+    lines.push("Setup checks:");
+    lines.push("Operator: "+(setup.operatorId||"")+(setup.guestOperatorName?" - "+setup.guestOperatorName:""));
+    if(Array.isArray(setup.checks))setup.checks.forEach(check=>lines.push(check.label+": "+(check.checked?"Yes":"No")));
+    if(setup.notes)lines.push("Notes: "+setup.notes);
+  }
+  lines.push("");
+  lines.push("Reject details:");
+  if(Array.isArray(payload.rejects)&&payload.rejects.length){payload.rejects.forEach(line=>lines.push("• "+(line.defectType||"")+": "+Number(line.rejectQty||0)))}else lines.push("• No reject details found");
+  if(payload.rejectNote){lines.push("");lines.push("Reject note: "+payload.rejectNote)}
+  details.innerHTML=lines.map(escapeHtml).join("<br>");
+  panel.classList.remove("hidden");
+  updateLocalOutboxStatus();
+}
+function confirmRejectSubmissionWritten(payload,totalRejects,attempt){
+  const submissionId=String(payload&&payload.submissionId||"").trim();
+  if(!submissionId)return;
+  const tries=Number(attempt||0);
+  const callbackName="pwaRejectConfirmationCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+  window[callbackName]=function(data){
+    delete window[callbackName];
+    if(data&&data.ok&&data.eventRecorded){
+      markProcessEvidenceLocally(payload,totalRejects);
+      if(currentPostSaveSubmissionId===submissionId&&!document.getElementById("postSavePanel").classList.contains("hidden")){
+        document.getElementById("postSaveTitle").innerText="Saved";
+        setPostSaveSyncState("confirmed","Confirmed in workbook and process history.");
+      }
+      return;
+    }
+    if(data&&data.ok&&String(data.status||"").toUpperCase()==="ERROR"){
+      if(currentPostSaveSubmissionId===submissionId&&!document.getElementById("postSavePanel").classList.contains("hidden")){
+        document.getElementById("postSaveTitle").innerText="Not saved";
+        setPostSaveSyncState("failed","Workbook rejected this entry: "+String(data.note||"Unknown error")+".");
+      }
+      return;
+    }
+    if(tries<8){
+      setTimeout(function(){confirmRejectSubmissionWritten(payload,totalRejects,tries+1)},1200);
+      return;
+    }
+    if(currentPostSaveSubmissionId===submissionId&&!document.getElementById("postSavePanel").classList.contains("hidden")){
+      document.getElementById("postSaveTitle").innerText="Not confirmed";
+      setPostSaveSyncState("failed","No workbook confirmation received. The entry remains in local backup; do not assume it has been logged.");
+    }
+  };
+  const script=document.createElement("script");
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=getSubmissionStatus&submissionId="+encodeURIComponent(submissionId)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.onerror=function(){
+    delete window[callbackName];
+    if(tries<8){
+      setTimeout(function(){confirmRejectSubmissionWritten(payload,totalRejects,tries+1)},1200);
+    }else if(currentPostSaveSubmissionId===submissionId&&!document.getElementById("postSavePanel").classList.contains("hidden")){
+      document.getElementById("postSaveTitle").innerText="Not confirmed";
+      setPostSaveSyncState("failed","Cannot confirm the workbook write. The entry remains in local backup.");
+    }
+  };
+  document.body.appendChild(script);
+}
 function hidePostSaveScreen(){const panel=document.getElementById("postSavePanel");if(panel)panel.classList.add("hidden")}
 function logAnotherPack(){
   hidePostSaveScreen();
@@ -4774,11 +4882,11 @@ try{
   rejectBasket={};
   rejectHistory=[];
   renderRejectBasket();
-  markProcessEvidenceLocally(payload,totalRejects);
   const outboxOk=sendRejectPayloadInBackground(payload);
   persistentNavigationDirty=false;
   status.innerText="";
   showPostSaveScreen(payload,totalRejects);
+  confirmRejectSubmissionWritten(payload,totalRejects,0);
   if(!archivedOk||!outboxOk){
     const details=document.getElementById("postSaveDetails");
     if(details){
