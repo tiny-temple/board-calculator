@@ -977,7 +977,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.93 compact active process job header and process-priority layout */
+/* v1.94 post-save adjacent-job navigation correction */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1403,7 +1403,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.93</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.94</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1432,7 +1432,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.93</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.94</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1606,9 +1606,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.93|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.94|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.93|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.94|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -2120,7 +2120,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.93|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.94|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -4263,6 +4263,9 @@ function submitNoRejectsForCurrentPaintPass(fromOverview){
   };
   markProcessEvidenceLocally(payload,0);
   const outboxOk=sendRejectPayloadInBackground(payload);
+  persistentNavigationDirty=false;
+  rejectBasket={};
+  rejectHistory=[];
   document.getElementById("saveStatus").innerText="";
   showPostSaveScreen(payload,0);
   if(!outboxOk){
@@ -4469,7 +4472,7 @@ function navigationJobIdentity(job){
   if(!job)return "";
   return [job.productionUid||"",job.productionRow||"",job.helperSheetName||job.sheetJob||"",getJobProcessVariant(job)||""].map(value=>String(value||"").trim()).join("|");
 }
-function currentProcessCanStep(){return isProductionTeamContext()&&!!currentJob&&!!currentEntryMode&&currentEntryMode!=="pack_visualiser"&&!isElementVisible("postSavePanel")}
+function currentProcessCanStep(){return isProductionTeamContext()&&!!currentJob&&!!currentEntryMode&&currentEntryMode!=="pack_visualiser"}
 function modeAvailableForNavigation(job,mode){
   if(!job||!mode)return false;
   const previous=currentJob;
@@ -4773,6 +4776,7 @@ try{
   renderRejectBasket();
   markProcessEvidenceLocally(payload,totalRejects);
   const outboxOk=sendRejectPayloadInBackground(payload);
+  persistentNavigationDirty=false;
   status.innerText="";
   showPostSaveScreen(payload,totalRejects);
   if(!archivedOk||!outboxOk){
