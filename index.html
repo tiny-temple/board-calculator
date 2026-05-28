@@ -977,7 +977,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.98 coat-stage completion colour and confirmed process evidence */
+/* v1.99 Paint Room prepared touch-up label print queue */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1504,6 +1504,42 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   color:#fff!important;
 }
 
+
+/* v1.99 Paint Room touch-up label print control */
+.ttTouchUpLabelSection{
+  border-left:5px solid var(--tt-green)!important;
+}
+.ttTouchUpLabelHeader{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:0 0 9px;
+}
+.ttTouchUpLabelHeader .processSectionTitle{margin:0!important}
+.ttTouchUpLabelState{
+  display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;
+  background:var(--tt-green-soft);color:var(--tt-green-deep);
+  font-size:10px;line-height:1.1;font-weight:850;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;
+}
+.ttTouchUpLabelState.queued{background:var(--tt-amber-soft);color:#805100}
+.ttTouchUpLabelItems{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}
+.ttTouchUpLabelItem{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  border:1px solid #e5e9e4;border-radius:10px;background:#f5f7f4;padding:8px 9px;
+}
+.ttTouchUpLabelIdentity{min-width:0}
+.ttTouchUpLabelIdentity b{display:block;font-size:13px;line-height:1.25;font-weight:740;color:var(--tt-ink)}
+.ttTouchUpLabelIdentity small{display:block;margin-top:2px;font-size:11px;line-height:1.25;font-weight:590;color:var(--tt-muted)}
+.ttTouchUpLabelQty{font-size:16px;line-height:1.1;font-weight:790;color:var(--tt-green-deep);white-space:nowrap}
+.ttTouchUpPrintBtn{
+  display:flex!important;align-items:center;justify-content:center;width:100%!important;min-height:44px!important;
+  padding:10px 12px!important;border:1px solid var(--tt-green)!important;border-radius:11px!important;
+  background:var(--tt-green)!important;color:#fff!important;font-size:14px!important;font-weight:780!important;
+}
+.ttTouchUpPrintBtn:disabled{opacity:.45!important;cursor:wait!important}
+.ttTouchUpLabelNote{margin:8px 0 0;font-size:11px;line-height:1.35;font-weight:590;color:var(--tt-muted)}
+.ttTouchUpPrintFeedback{margin:8px 0 0;padding:8px 9px;border-radius:9px;font-size:12px;line-height:1.35;font-weight:680}
+.ttTouchUpPrintFeedback.pending{background:var(--tt-amber-soft);color:#805100}
+.ttTouchUpPrintFeedback.success{background:var(--tt-green-soft);color:var(--tt-green-deep)}
+.ttTouchUpPrintFeedback.error{background:#fae6e4;color:#9c2b1f}
+
 </style>
 </head>
 <body>
@@ -1511,7 +1547,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.98</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.99</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1540,7 +1576,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.98</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.99</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1620,7 +1656,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
 </div>
 <div id="jobSignalsBox" class="hidden jobSignalsBox"></div><div id="summary" style="font-size:13px;margin-top:8px;color:#333;"></div><div id="saveStatus"></div><div class="grid" id="grid"></div><div id="preloadStatusPopup" class="hidden preloadStatusPopup"></div><div id="processWarningOverlay" class="hidden processWarningOverlay"><div class="processWarningBox"><div id="processWarningText" class="processWarningText"></div><button type="button" class="primaryBtn" onclick="closeProcessWarning()">OK</button></div></div>
 <script>
-let step=0,currentEntryMode="",currentTeam="",currentJob=null,currentTeamDashboard=null,currentPackingQueue=null,packingQueueActive=false,visualiserSourceProcess="",jobDetailRequests={},rejectBasket={},rejectHistory=[],currentProcessSetup={},currentOperators=["Beren","Jim","Saul","Shaun","Tony","Guest"],currentProcessCheckItems=[],currentBackendProcessChecks=[],currentBackendProcessSettings=[],currentDefectConfigRows=[];
+let step=0,currentEntryMode="",currentTeam="",currentJob=null,currentTeamDashboard=null,currentPackingQueue=null,packingQueueActive=false,visualiserSourceProcess="",jobDetailRequests={},rejectBasket={},rejectHistory=[],currentProcessSetup={},currentOperators=["Beren","Jim","Saul","Shaun","Tony","Guest"],currentProcessCheckItems=[],currentBackendProcessChecks=[],currentBackendProcessSettings=[],currentDefectConfigRows=[],touchUpLabelPrintInFlight=false;
 let lastProductionTeam="",persistentNavMenuOpen=false,persistentNavigationDirty=false,persistentNavigationOrigin="queue",persistentRefreshRestore=null,processChecksRecoveryInFlight=false,processChecksRecoveryAttemptKey="";
 const REJECT_DRAFT_PREFIX="ttRejectDraft",REJECT_SUBMITTED_PREFIX="ttRejectSubmitted",REJECT_OUTBOX_PREFIX="ttRejectOutbox|",REJECT_DEVICE_ID_KEY="ttRejectDeviceId";
 const REJECT_LOG_WEB_APP_URL="https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
@@ -1714,9 +1750,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.98|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.99|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.98|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.99|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -2228,7 +2264,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.98|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.99|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -4258,6 +4294,118 @@ function pushUniqueProcessTile(tiles,label,value){
   if(!cleanLabel||!cleanValue)return;
   if(!tiles.some(function(tile){return normalise(tile[0])===normalise(cleanLabel)}))tiles.push([cleanLabel,cleanValue]);
 }
+function isFirstCoatPaintJob(job){
+  const variant=normalise(getJobProcessVariant(job)||"");
+  if(variant.indexOf("1st coat")!==-1||variant.indexOf("first coat")!==-1)return true;
+  return !variant&&!isRecoatJob(job)&&!isFrTreatmentStage(job);
+}
+function getCurrentTouchUpLabels(){
+  return Array.isArray(currentJob&&currentJob.touchUpLabels)
+    ? currentJob.touchUpLabels.filter(function(label){return label&&label.active!==false})
+    : [];
+}
+function touchUpLabelsHavePrintHistory(labels){
+  return (labels||[]).some(function(label){
+    const status=normalise(label.printStatus||"");
+    return status==="queued"||status==="printing"||status==="printed";
+  });
+}
+function touchUpLabelStatusText(labels){
+  const statuses=(labels||[]).map(function(label){return normalise(label.printStatus||"")});
+  if(statuses.indexOf("printed")!==-1)return "Printed";
+  if(statuses.indexOf("printing")!==-1)return "Printing";
+  if(statuses.indexOf("queued")!==-1)return "Queued";
+  return "Prepared";
+}
+function buildTouchUpLabelSection(processStage){
+  if(processStage!=="Paint Room"||!isFirstCoatPaintJob(currentJob))return "";
+  const labels=getCurrentTouchUpLabels();
+  if(!labels.length)return "";
+  const status=touchUpLabelStatusText(labels);
+  const statusClass=normalise(status)==="prepared"?"":" queued";
+  const history=touchUpLabelsHavePrintHistory(labels);
+  const buttonText=history
+    ? (labels.length===2?"Reprint both labels":"Reprint label")
+    : (labels.length===2?"Print both labels":"Print label");
+  const rows=labels.map(function(label){
+    const identity=label.labelItem||label.fullCoatingName||"Touch-Up Pot";
+    const secondary=label.fullCoatingName&&label.fullCoatingName!==identity?label.fullCoatingName:"";
+    return '<div class="ttTouchUpLabelItem"><div class="ttTouchUpLabelIdentity"><b>'+escapeHtml(identity)+'</b>'+(secondary?'<small>'+escapeHtml(secondary)+'</small>':"")+'</div><div class="ttTouchUpLabelQty">'+escapeHtml(label.quantityDisplay||"")+'</div></div>';
+  }).join("");
+  return '<div class="processSection ttTouchUpLabelSection">'+
+    '<div class="ttTouchUpLabelHeader"><div class="processSectionTitle">Touch-Up Pot Label'+(labels.length===1?"":"s")+'</div><span class="ttTouchUpLabelState'+statusClass+'">'+escapeHtml(status)+'</span></div>'+
+    '<div class="ttTouchUpLabelItems">'+rows+'</div>'+
+    '<button type="button" id="touchUpLabelPrintBtn" class="ttTouchUpPrintBtn" onclick="queueTouchUpLabelsForCurrentJob()">'+escapeHtml(buttonText)+'</button>'+
+    '<div id="touchUpPrintFeedback" class="ttTouchUpPrintFeedback hidden"></div>'+
+    '<div class="ttTouchUpLabelNote">Printing a label does not confirm that the pot has been filled and labelled.</div>'+
+  '</div>';
+}
+function setTouchUpPrintFeedback(state,text){
+  const feedback=document.getElementById("touchUpPrintFeedback");
+  if(!feedback)return;
+  feedback.className="ttTouchUpPrintFeedback "+state;
+  feedback.innerText=text;
+  feedback.classList.remove("hidden");
+}
+function applyQueuedTouchUpLabelsToJobs(data){
+  const queued={};
+  (data&&data.queuedLabels||[]).forEach(function(label){queued[String(label.preparedLabelId||"")]=label});
+  function updateJob(job){
+    if(!job||String(job.productionUid||"")!==String(currentJob&&currentJob.productionUid||""))return;
+    if(!Array.isArray(job.touchUpLabels))return;
+    job.touchUpLabels=job.touchUpLabels.map(function(label){
+      const result=queued[String(label.preparedLabelId||"")];
+      if(!result)return label;
+      return Object.assign({},label,{printStatus:"Queued",lastPrintJobId:result.printJobId||label.lastPrintJobId||""});
+    });
+  }
+  updateJob(currentJob);
+  if(currentTeamDashboard&&Array.isArray(currentTeamDashboard.jobs)){
+    currentTeamDashboard.jobs.forEach(updateJob);
+    saveTeamDashboardToLocalCache(currentTeam,currentTeamDashboard);
+  }
+}
+function queueTouchUpLabelsForCurrentJob(){
+  if(touchUpLabelPrintInFlight||!currentJob)return;
+  const labels=getCurrentTouchUpLabels();
+  if(!labels.length){
+    showProcessWarning("No prepared touch-up label is available for this job.");
+    return;
+  }
+  if(touchUpLabelsHavePrintHistory(labels)&&!window.confirm("Queue another copy of the touch-up label"+(labels.length===1?"":"s")+" for printing?"))return;
+
+  touchUpLabelPrintInFlight=true;
+  const btn=document.getElementById("touchUpLabelPrintBtn");
+  if(btn)btn.disabled=true;
+  setTouchUpPrintFeedback("pending","Queuing label"+(labels.length===1?"":"s")+" for printing...");
+
+  const requestId="touchup_print_"+getRejectDeviceId()+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,9);
+  const callbackName="pwaTouchUpPrintCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+
+  window[callbackName]=function(data){
+    touchUpLabelPrintInFlight=false;
+    delete window[callbackName];
+    if(!data||!data.ok){
+      if(btn)btn.disabled=false;
+      setTouchUpPrintFeedback("error",data&&data.error?data.error:"The label could not be queued for printing. Try again.");
+      return;
+    }
+    applyQueuedTouchUpLabelsToJobs(data);
+    renderProcessJobCard(currentEntryMode);
+    setTouchUpPrintFeedback("success",data.queuedCount+" label"+(Number(data.queuedCount)===1?"":"s")+" queued for printer "+(data.printerIp||"")+".");
+  };
+
+  const script=document.createElement("script");
+  script.src=REJECT_LOG_WEB_APP_URL+"?action=queueTouchUpLabelPrint&productionUid="+encodeURIComponent(currentJob.productionUid||"")+"&sheetJob="+encodeURIComponent(currentJob.sheetJob||"")+"&requestedBy="+encodeURIComponent(getRejectDeviceId())+"&requestId="+encodeURIComponent(requestId)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
+  script.onerror=function(){
+    touchUpLabelPrintInFlight=false;
+    delete window[callbackName];
+    if(btn)btn.disabled=false;
+    setTouchUpPrintFeedback("error","The label could not be queued for printing. Try again.");
+  };
+  document.body.appendChild(script);
+}
+
 function renderProcessJobCard(mode){
   const card=document.getElementById("processJobCard");
   const title=document.getElementById("processSetupTitle");
@@ -4312,6 +4460,7 @@ function renderProcessJobCard(mode){
   if(processTiles.length){
     html+=activeProcessSection(stageTitle+" Info",'<div class="processExtraFieldsGrid">'+processTiles.map(function(tile){return processTile(tile[0],tile[1])}).join("")+'</div>');
   }
+  html+=buildTouchUpLabelSection(processStage);
   if(isFireTreatmentActive(currentJob)){
     html+=processSection("Fire Treatment",'<div class="frTreatmentLine">FR TREATMENT — '+escapeHtml(getFireTreatmentDisplay(currentJob)||"Fire Treatment")+'</div>');
   }
