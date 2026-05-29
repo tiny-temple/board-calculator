@@ -2172,12 +2172,47 @@ function subscribeToJobSignals(productionUid){
       const uid=payload&&payload.new&&payload.new.production_uid;
       if(!uid||uid!==productionUid)return;
       if(!currentJob||currentJob.productionUid!==productionUid)return;
-      fetchJobSignals(currentEntryMode,function(data){
-        if(data&&data.ok)renderJobSignalsBox(data);
-      },true);
+      fetchJobSignalsFromSupabase(productionUid, (ENTRY_MODES[currentEntryMode]||{}).processStage||'');
     })
     .subscribe();
 }
+
+  function fetchJobSignalsFromSupabase(productionUid, sourceProcess){
+  if(!window._supabaseClient||!productionUid)return;
+  window._supabaseClient
+    .from('reject_events')
+    .select('process_stage,reject_qty,defect_type')
+    .eq('production_uid',productionUid)
+    .neq('defect_type','No Rejects')
+    .then(function(result){
+      if(!result||!result.data)return;
+      const rows=result.data;
+      const processOrder=['Resaw','Moulder','Charring Machine','Sander','Brushing Machine','Paint Room'];
+      const sourceIndex=processOrder.map(function(p){return normalise(p)}).indexOf(normalise(sourceProcess||''));
+      const byProcess={};
+      let total=0;
+      rows.forEach(function(row){
+        const stage=String(row.process_stage||'').trim();
+        const stageIndex=processOrder.map(function(p){return normalise(p)}).indexOf(normalise(stage));
+        if(sourceIndex>=0&&stageIndex>=0&&stageIndex<=sourceIndex)return;
+        if(normalise(stage)==='packing')return;
+        const qty=Number(row.reject_qty||0);
+        if(!qty)return;
+        byProcess[stage]=(byProcess[stage]||0)+qty;
+        total+=qty;
+      });
+      const signals={
+        ok:true,
+        downstreamRejects:{
+          total:total,
+          byProcess:byProcess,
+          byPack:{}
+        }
+      };
+      renderJobSignalsBox(signals);
+    });
+}
+  
 function unsubscribeFromJobSignals(){
   if(realtimeChannel&&window._supabaseClient){
     window._supabaseClient.removeChannel(realtimeChannel);
@@ -2230,6 +2265,7 @@ function applyDownstreamRejectsToVisualiser(total){
 }
 
 function checkSignalsForVisualiser(sourceProcess){
+  fetchJobSignalsFromSupabase(currentJob&&currentJob.productionUid||'', sourceProcess);
   const box=document.getElementById("jobSignalsBox");
   if(box){
     box.innerHTML='<div class="jobSignalsTitle">Checking downstream rejects...</div><div class="jobSignalsMeta">Reading live job signals from the workbook.</div>';
