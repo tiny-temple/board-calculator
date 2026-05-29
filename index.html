@@ -1660,6 +1660,7 @@ let step=0,currentEntryMode="",currentTeam="",currentJob=null,currentTeamDashboa
 let lastProductionTeam="",persistentNavMenuOpen=false,persistentNavigationDirty=false,persistentNavigationOrigin="queue",persistentRefreshRestore=null,processChecksRecoveryInFlight=false,processChecksRecoveryAttemptKey="";
 const REJECT_DRAFT_PREFIX="ttRejectDraft",REJECT_SUBMITTED_PREFIX="ttRejectSubmitted",REJECT_OUTBOX_PREFIX="ttRejectOutbox|",REJECT_DEVICE_ID_KEY="ttRejectDeviceId";
 const REJECT_LOG_WEB_APP_URL="https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
+const REJECT_SUBMIT_URL="https://temple-os-psi.vercel.app/api/reject-events";
 const urlParams=new URLSearchParams(window.location.search);let jobContext={productionUid:urlParams.get("uid")||urlParams.get("productionUid")||"",productionRow:urlParams.get("row")||"",jobNo:urlParams.get("jobNo")||"",sheetJob:urlParams.get("sheetJob")||urlParams.get("job")||"",packId:urlParams.get("packId")||""};
 const ENTRY_MODES={pack_visualiser:{label:"Pack Visualiser",menuLabel:"Pack Visualiser",processStage:"Pre Process",rejectColumn:"preProcess",usesVisualiser:true,reminderKey:"packVisualiserReminder",showSetup:false},resaw_rejects:{label:"Log Resaw Rejects",menuLabel:"Resaw",processStage:"Resaw",rejectColumn:"machine",usesVisualiser:false,reminderKey:"resawReminder",showSetup:true},moulder_rejects:{label:"Log Moulder Rejects",menuLabel:"Moulder",processStage:"Moulder",rejectColumn:"machine",usesVisualiser:false,reminderKey:"moulderReminder",showSetup:true},charring_machine_rejects:{label:"Log Charring Machine Rejects",menuLabel:"Charring Machine",processStage:"Charring Machine",rejectColumn:"machine",usesVisualiser:false,reminderKey:"charringMachineReminder",showSetup:true},sander_rejects:{label:"Log Sander Rejects",menuLabel:"Sander",processStage:"Sander",rejectColumn:"machine",usesVisualiser:false,reminderKey:"sanderReminder",showSetup:true},brushing_machine_rejects:{label:"Log Brushing Machine Rejects",menuLabel:"Brushing Machine",processStage:"Brushing Machine",rejectColumn:"machine",usesVisualiser:false,reminderKey:"brushingMachineReminder",showSetup:true},paint_room_rejects:{label:"Log Paint Room Rejects",menuLabel:"Paint Room",processStage:"Paint Room",rejectColumn:"machine",usesVisualiser:false,reminderKey:"paintRoomReminder",showSetup:true},packing_rejects:{label:"Log Packing Rejects",menuLabel:"Packing",processStage:"Packing",rejectColumn:"machine",usesVisualiser:false,reminderKey:"packingReminder",showSetup:true}};
 const PROCESS_MENU_ORDER=["pack_visualiser","resaw_rejects","moulder_rejects","charring_machine_rejects","sander_rejects","brushing_machine_rejects","paint_room_rejects"];
@@ -5167,7 +5168,7 @@ function sendRejectPayloadInBackground(payload){
   const body=JSON.stringify(payload);
 
   try{
-    fetch(REJECT_LOG_WEB_APP_URL,{
+    fetch(REJECT_SUBMIT_URL,{
       method:"POST",
       mode:"no-cors",
       headers:{"Content-Type":"text/plain;charset=utf-8"},
