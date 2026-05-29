@@ -2239,7 +2239,7 @@ function renderJobSignalsBox(data){
   const processLines=Object.keys(byProcess).map(key=>key+": "+byProcess[key]).join(" | ");
 
   if(!total){
-    box.innerHTML='<div class="jobSignalsTitle">No downstream rejects currently logged</div><div class="jobSignalsMeta">This check excludes Packing because it is too late to compensate.</div>';
+    box.innerHTML='<div class="jobSignalsTitle">No downstream rejects currently logged</div>';
     box.classList.remove("hidden");
     return;
   }
