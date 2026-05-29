@@ -978,7 +978,7 @@ body.packingAccessoriesOpen{overflow:hidden}
 .queuePageTitleLine{display:flex;align-items:baseline;gap:8px}
 .queueVersionMarker{font-size:11px;line-height:1;font-weight:700;letter-spacing:.05em;color:var(--tt-muted);text-transform:lowercase}
 
-/* v1.99 Paint Room prepared touch-up label print queue */
+/* v2.00 Paint Room prepared touch-up label print queue */
 :root{--tt-nav-height:62px;--tt-nav-step-height:49px}
 body{padding-top:calc(var(--tt-nav-height) + 18px)!important}
 body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-nav-step-height) + 20px)!important}
@@ -1506,7 +1506,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
 }
 
 
-/* v1.99 Paint Room touch-up label print control */
+/* v2.00 Paint Room touch-up label print control */
 .ttTouchUpLabelSection{
   border-left:5px solid var(--tt-green)!important;
 }
@@ -1548,7 +1548,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v1.99</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v2.00</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1577,7 +1577,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v1.99</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v2.00</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1756,9 +1756,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v1.99|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v2.00|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v1.99|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v2.00|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -2326,7 +2326,7 @@ function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDa
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
 function isStandalonePackingJob(){return !!(currentJob&&currentJob.packingQueueJob===true&&currentEntryMode==="packing_rejects")}
 function packingValueIsTrue(value){return value===true||String(value||"").trim().toUpperCase()==="TRUE"}
-const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v1.99|";
+const PACKING_QUEUE_CACHE_KEY="ttPackingQueue|v2.00|";
 const PACKING_STATUS_OUTBOX_PREFIX="ttPackingStatusOutbox|v1.76|";
 const ACCESSORY_PICK_OUTBOX_PREFIX="ttAccessoryPickOutbox|v1.82|";
 const PACKING_PROJECT_COMPLETE_OUTBOX_PREFIX="ttPackingProjectCompleteOutbox|v1.86|";
@@ -5250,7 +5250,7 @@ function sendRejectPayloadInBackground(payload){
   updateLocalOutboxStatus();
   return backedUp;
 }
-async function reviewAndSaveBasket(){const status=document.getElementById("saveStatus"),saveBtn=document.getElementById("simpleSaveBtn");if(!currentEntryMode||currentEntryMode==="pack_visualiser"){status.innerText="Choose a process first.";return}if(!jobContext.productionRow){status.innerText="No Production row found. Select a scheduled job first.";return}const config=ENTRY_MODES[currentEntryMode],packId=document.getElementById("simplePackId").value.trim(),rejectLines=getBasketRejectLines();if(!packId){status.innerText="Select the Pack ID before reviewing.";return}if(!rejectLines.length){status.innerText="Tap at least one reject type, or select No Rejects.";return}const totalRejects=rejectLines.reduce((sum,line)=>sum+Number(line.rejectQty||0),0);const rejectNote=getRejectNote();if(basketRequiresNote()&&!rejectNote){status.innerText="Add a reject note before reviewing.";showProcessWarning("Add a reject note before reviewing. This is required for Other or note-required defects.");return}const recapLines=["Review pack reject log","","Team: "+(currentTeam||""),"Job: "+(jobContext.sheetJob||""),"Production Row: "+(jobContext.productionRow||"")];if(currentJob)recapLines.push("Client: "+(currentJob.client||""),"Spec: "+(currentJob.quantity||"")+" | "+(currentJob.length||"")+"m | "+(currentJob.species||"")+" | "+(currentJob.finishedSize||"")+" | "+(currentJob.profile||""));recapLines.push("Process: "+(config.processStage||""),"Pack ID: "+packId,"","Rejects:");rejectLines.forEach(line=>recapLines.push("- "+line.defectType+": "+line.rejectQty));if(rejectNote)recapLines.push("","Reject note: "+rejectNote);recapLines.push("","Total rejects: "+totalRejects,"Logged As: "+(config.rejectColumn==="machine"?"Machine Defect":"Pre Process Reject"));if(!window.confirm(recapLines.join("\n"))){status.innerText="Save cancelled. Continue logging or edit the basket.";return}jobContext.packId=packId;if(currentProcessSetup)currentProcessSetup.packId=packId;const payload={source:"TT Process Logger",team:currentTeam,timestamp:new Date().toISOString(),productionUid:jobContext.productionUid||currentJob&&currentJob.productionUid||"",productionRow:jobContext.productionRow,jobNo:jobContext.jobNo,sheetJob:jobContext.sheetJob,helperSheetName:currentJob&&currentJob.helperSheetName||"",packId:packId,entryMode:currentEntryMode,entryModeLabel:config.label,processStage:config.processStage,processVariant:getJobProcessVariant(currentJob),rejectColumn:config.rejectColumn,quickNoRejects:false,processSetup:currentProcessSetup,jobData:getCurrentJobDataForPayload(),rejectNote:rejectNote,rejects:rejectLines};payload.jobComplete=false;payload.completedByProcess="";payload.completedByOperator="";storeOperatorMemoryForCurrentProcess(currentProcessSetup);saveBtn.disabled=true;
+async function reviewAndSaveBasket(){const status=document.getElementById("saveStatus"),saveBtn=document.getElementById("simpleSaveBtn");if(!currentEntryMode||currentEntryMode==="pack_visualiser"){status.innerText="Choose a process first.";return}if(!jobContext.productionRow){status.innerText="No Production row found. Select a scheduled job first.";return}const config=ENTRY_MODES[currentEntryMode],packId=document.getElementById("simplePackId").value.trim(),rejectLines=getBasketRejectLines();if(!packId){status.innerText="Select the Pack ID before reviewing.";return}if(!rejectLines.length){status.innerText="Tap at least one reject type, or select No Rejects.";return}const totalRejects=rejectLines.reduce((sum,line)=>sum+Number(line.rejectQty||0),0);const rejectNote=getRejectNote();if(basketRequiresNote()&&!rejectNote){status.innerText="Add a reject note before reviewing.";showProcessWarning("Add a reject note before reviewing. This is required for Other or note-required defects.");return};if(currentProcessSetup)currentProcessSetup.packId=packId;const payload={source:"TT Process Logger",team:currentTeam,timestamp:new Date().toISOString(),productionUid:jobContext.productionUid||currentJob&&currentJob.productionUid||"",productionRow:jobContext.productionRow,jobNo:jobContext.jobNo,sheetJob:jobContext.sheetJob,helperSheetName:currentJob&&currentJob.helperSheetName||"",packId:packId,entryMode:currentEntryMode,entryModeLabel:config.label,processStage:config.processStage,processVariant:getJobProcessVariant(currentJob),rejectColumn:config.rejectColumn,quickNoRejects:false,processSetup:currentProcessSetup,jobData:getCurrentJobDataForPayload(),rejectNote:rejectNote,rejects:rejectLines};payload.jobComplete=false;payload.completedByProcess="";payload.completedByOperator="";storeOperatorMemoryForCurrentProcess(currentProcessSetup);saveBtn.disabled=true;
 status.innerText="Submitting...";
 try{
   const archivedOk=archiveSubmittedDraft(payload);
@@ -5278,8 +5278,12 @@ try{
 }
 function getCurrentJobDataForPayload(){if(!currentJob)return{};return{productionUid:currentJob.productionUid||jobContext.productionUid||"",client:currentJob.client||"",species:currentJob.species||"",finishedSize:currentJob.finishedSize||"",profile:currentJob.profile||"",texture:currentJob.texture||"",coating:currentJob.coating||"",coatingStage:currentJob.coatingStage||"",processVariant:currentJob.processVariant||currentJob.coatingStage||"",length:currentJob.length||"",quantity:currentJob.quantity||"",linearMetres:currentJob.linearMetres||"",fireTreatment:currentJob.fireTreatment||"",deliveryType:currentJob.deliveryType||""}}
 
-  function purgeStaleLocalStorage(){
-  const currentVersion=PWA_VERSION.replace(/[^0-9.]/g,'').split('-')[0];
+ 
+  
+document.getElementById("operatorId").addEventListener("change",()=>updateOperatorGuestVisibility());
+document.getElementById("simplePackId").addEventListener("change",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser"){document.getElementById("saveStatus").innerText="";jobContext.packId=this.value;updateJobContextBar();restoreRejectDraft()}});document.getElementById("rejectNote").addEventListener("input",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser")saveRejectDraft()});
+ function purgeStaleLocalStorage(){
+  const currentVersion="2.0";
   const prefixes=['ttTeamQueue','ttJobDetails','ttJobComplete'];
   prefixes.forEach(function(prefix){
     Object.keys(localStorage).forEach(function(k){
@@ -5291,9 +5295,7 @@ function getCurrentJobDataForPayload(){if(!currentJob)return{};return{production
 }
 purgeStaleLocalStorage();
   
-document.getElementById("operatorId").addEventListener("change",()=>updateOperatorGuestVisibility());
-document.getElementById("simplePackId").addEventListener("change",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser"){document.getElementById("saveStatus").innerText="";jobContext.packId=this.value;updateJobContextBar();restoreRejectDraft()}});document.getElementById("rejectNote").addEventListener("input",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser")saveRejectDraft()});
-buildProcessMenu();updateLocalOutboxStatus();updateJobContextBar();fillPackIdFields();updateUI();render();
+  buildProcessMenu();updateLocalOutboxStatus();updateJobContextBar();fillPackIdFields();updateUI();render();
 </script>
 </body>
 </html>
