@@ -2244,7 +2244,7 @@ function renderJobSignalsBox(data){
     return;
   }
 
-  box.innerHTML='<div class="jobSignalsTitle">Downstream rejects currently logged: '+escapeHtml(String(total))+'</div><div class="jobSignalsMeta">'+escapeHtml(processLines||"")+'</div><div class="jobSignalsMeta">Excludes Packing.</div><button type="button" class="jobSignalsAction" onclick="applyDownstreamRejectsToVisualiser('+total+')">Apply '+total+' to visualiser</button>';
+  box.innerHTML='<div class="jobSignalsTitle">Downstream rejects currently logged: '+escapeHtml(String(total))+'</div><div class="jobSignalsMeta">'+escapeHtml(processLines||"")+'</div><button type="button" class="jobSignalsAction" onclick="applyDownstreamRejectsToVisualiser('+total+')">Apply '+total+' to visualiser</button>';
   box.classList.remove("hidden");
 }
 
