@@ -1700,6 +1700,19 @@ function buildProcessMenu(){
     wrap.appendChild(btn);
   });
 }
+  function purgeStaleLocalStorage(){
+  const currentVersion=PWA_VERSION.replace(/[^0-9.]/g,'').split('-')[0];
+  const prefixes=['ttTeamQueue','ttJobDetails','ttJobComplete'];
+  prefixes.forEach(function(prefix){
+    Object.keys(localStorage).forEach(function(k){
+      if(k.startsWith(prefix)&&k.indexOf(currentVersion)===-1){
+        localStorage.removeItem(k);
+      }
+    });
+  });
+}
+purgeStaleLocalStorage();
+  
 function getProcessAvailability(mode){
   if(!currentJob||mode==="pack_visualiser")return{available:true,reason:""};
 
