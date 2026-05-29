@@ -1700,18 +1700,7 @@ function buildProcessMenu(){
     wrap.appendChild(btn);
   });
 }
-  function purgeStaleLocalStorage(){
-  const currentVersion=PWA_VERSION.replace(/[^0-9.]/g,'').split('-')[0];
-  const prefixes=['ttTeamQueue','ttJobDetails','ttJobComplete'];
-  prefixes.forEach(function(prefix){
-    Object.keys(localStorage).forEach(function(k){
-      if(k.startsWith(prefix)&&k.indexOf(currentVersion)===-1){
-        localStorage.removeItem(k);
-      }
-    });
-  });
-}
-purgeStaleLocalStorage();
+  
   
 function getProcessAvailability(mode){
   if(!currentJob||mode==="pack_visualiser")return{available:true,reason:""};
@@ -5288,6 +5277,20 @@ try{
 }
 }
 function getCurrentJobDataForPayload(){if(!currentJob)return{};return{productionUid:currentJob.productionUid||jobContext.productionUid||"",client:currentJob.client||"",species:currentJob.species||"",finishedSize:currentJob.finishedSize||"",profile:currentJob.profile||"",texture:currentJob.texture||"",coating:currentJob.coating||"",coatingStage:currentJob.coatingStage||"",processVariant:currentJob.processVariant||currentJob.coatingStage||"",length:currentJob.length||"",quantity:currentJob.quantity||"",linearMetres:currentJob.linearMetres||"",fireTreatment:currentJob.fireTreatment||"",deliveryType:currentJob.deliveryType||""}}
+
+  function purgeStaleLocalStorage(){
+  const currentVersion=PWA_VERSION.replace(/[^0-9.]/g,'').split('-')[0];
+  const prefixes=['ttTeamQueue','ttJobDetails','ttJobComplete'];
+  prefixes.forEach(function(prefix){
+    Object.keys(localStorage).forEach(function(k){
+      if(k.startsWith(prefix)&&k.indexOf(currentVersion)===-1){
+        localStorage.removeItem(k);
+      }
+    });
+  });
+}
+purgeStaleLocalStorage();
+  
 document.getElementById("operatorId").addEventListener("change",()=>updateOperatorGuestVisibility());
 document.getElementById("simplePackId").addEventListener("change",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser"){document.getElementById("saveStatus").innerText="";jobContext.packId=this.value;updateJobContextBar();restoreRejectDraft()}});document.getElementById("rejectNote").addEventListener("input",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser")saveRejectDraft()});
 buildProcessMenu();updateLocalOutboxStatus();updateJobContextBar();fillPackIdFields();updateUI();render();
