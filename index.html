@@ -2167,9 +2167,10 @@ function subscribeToJobSignals(productionUid){
     .on('postgres_changes',{
       event:'INSERT',
       schema:'public',
-      table:'reject_events',
-      filter:'production_uid=eq.'+productionUid
+      table:'reject_events'
     },function(payload){
+      const uid=payload&&payload.new&&payload.new.production_uid;
+      if(!uid||uid!==productionUid)return;
       if(!currentJob||currentJob.productionUid!==productionUid)return;
       fetchJobSignals(currentEntryMode,function(data){
         if(data&&data.ok)renderJobSignalsBox(data);
