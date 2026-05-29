@@ -2266,19 +2266,6 @@ function applyDownstreamRejectsToVisualiser(total){
 
 function checkSignalsForVisualiser(sourceProcess){
   fetchJobSignalsFromSupabase(currentJob&&currentJob.productionUid||'', sourceProcess);
-  const box=document.getElementById("jobSignalsBox");
-  if(box){
-    box.innerHTML='<div class="jobSignalsTitle">Checking downstream rejects...</div><div class="jobSignalsMeta">Reading live job signals from the workbook.</div>';
-    box.classList.remove("hidden");
-  }
-
-  fetchJobSignals(sourceProcess,function(data){
-    if(data&&data.ok){
-      renderJobSignalsBox(data);
-    }else{
-      hideJobSignalsBox();
-    }
-  },true);
 }
 
 function applyTeamDashboardData(data,fromLocal){
