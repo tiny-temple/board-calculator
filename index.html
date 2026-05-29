@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MrLoggerLogger</title>
 <link rel="manifest" href="./manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <meta name="theme-color" content="#4caf50">
 <style>
 *{box-sizing:border-box}
@@ -1661,6 +1662,8 @@ let lastProductionTeam="",persistentNavMenuOpen=false,persistentNavigationDirty=
 const REJECT_DRAFT_PREFIX="ttRejectDraft",REJECT_SUBMITTED_PREFIX="ttRejectSubmitted",REJECT_OUTBOX_PREFIX="ttRejectOutbox|",REJECT_DEVICE_ID_KEY="ttRejectDeviceId";
 const REJECT_LOG_WEB_APP_URL="https://script.google.com/macros/s/AKfycbw2A9nlUMDoRk4tdpRQIm_qW86527aMnft31fTUrZqM57Nn9OQNACyqRE_fAGqOFAAU/exec";
 const REJECT_SUBMIT_URL="https://temple-os-psi.vercel.app/api/reject-events";
+const SUPABASE_URL="https://lscprasmduuhjhzzfaqo.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_03pdCUl9py28cYvahGJTZg_0Xm8196Q";
 const urlParams=new URLSearchParams(window.location.search);let jobContext={productionUid:urlParams.get("uid")||urlParams.get("productionUid")||"",productionRow:urlParams.get("row")||"",jobNo:urlParams.get("jobNo")||"",sheetJob:urlParams.get("sheetJob")||urlParams.get("job")||"",packId:urlParams.get("packId")||""};
 const ENTRY_MODES={pack_visualiser:{label:"Pack Visualiser",menuLabel:"Pack Visualiser",processStage:"Pre Process",rejectColumn:"preProcess",usesVisualiser:true,reminderKey:"packVisualiserReminder",showSetup:false},resaw_rejects:{label:"Log Resaw Rejects",menuLabel:"Resaw",processStage:"Resaw",rejectColumn:"machine",usesVisualiser:false,reminderKey:"resawReminder",showSetup:true},moulder_rejects:{label:"Log Moulder Rejects",menuLabel:"Moulder",processStage:"Moulder",rejectColumn:"machine",usesVisualiser:false,reminderKey:"moulderReminder",showSetup:true},charring_machine_rejects:{label:"Log Charring Machine Rejects",menuLabel:"Charring Machine",processStage:"Charring Machine",rejectColumn:"machine",usesVisualiser:false,reminderKey:"charringMachineReminder",showSetup:true},sander_rejects:{label:"Log Sander Rejects",menuLabel:"Sander",processStage:"Sander",rejectColumn:"machine",usesVisualiser:false,reminderKey:"sanderReminder",showSetup:true},brushing_machine_rejects:{label:"Log Brushing Machine Rejects",menuLabel:"Brushing Machine",processStage:"Brushing Machine",rejectColumn:"machine",usesVisualiser:false,reminderKey:"brushingMachineReminder",showSetup:true},paint_room_rejects:{label:"Log Paint Room Rejects",menuLabel:"Paint Room",processStage:"Paint Room",rejectColumn:"machine",usesVisualiser:false,reminderKey:"paintRoomReminder",showSetup:true},packing_rejects:{label:"Log Packing Rejects",menuLabel:"Packing",processStage:"Packing",rejectColumn:"machine",usesVisualiser:false,reminderKey:"packingReminder",showSetup:true}};
 const PROCESS_MENU_ORDER=["pack_visualiser","resaw_rejects","moulder_rejects","charring_machine_rejects","sander_rejects","brushing_machine_rejects","paint_room_rejects"];
@@ -2149,6 +2152,38 @@ function fetchTeamJobStatus(onDone){
   if(onDone)onDone({ok:true,completedJobs:{},rejectLoggingOpen:true});
 }
 
+  let realtimeChannel=null;
+function subscribeToJobSignals(productionUid){
+  if(!window.supabase||!productionUid)return;
+  if(realtimeChannel){
+    window._supabaseClient.removeChannel(realtimeChannel);
+    realtimeChannel=null;
+  }
+  if(!window._supabaseClient){
+    window._supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  }
+  realtimeChannel=window._supabaseClient
+    .channel('reject-signals-'+productionUid)
+    .on('postgres_changes',{
+      event:'INSERT',
+      schema:'public',
+      table:'reject_events',
+      filter:'production_uid=eq.'+productionUid
+    },function(payload){
+      if(!currentJob||currentJob.productionUid!==productionUid)return;
+      fetchJobSignals(currentEntryMode,function(data){
+        if(data&&data.ok)renderJobSignalsBox(data);
+      },true);
+    })
+    .subscribe();
+}
+function unsubscribeFromJobSignals(){
+  if(realtimeChannel&&window._supabaseClient){
+    window._supabaseClient.removeChannel(realtimeChannel);
+    realtimeChannel=null;
+  }
+}
+  
 function hideJobSignalsBox(){
   const box=document.getElementById("jobSignalsBox");
   if(box){
@@ -4633,6 +4668,7 @@ function finishSelectQueueJob(job,modeAfterLoad){
   jobContext.sheetJob=job.sheetJob||"";
   jobContext.packId=job.packingQueueJob?"":(job.packs&&job.packs.length?job.packs[0].packId:"");
   hidePostSaveScreen();
+  subscribeToJobSignals(job&&job.productionUid||'');
   hideProcessSetupScreen();
   hideStockPickerScreen();
   hideCoatingOverviewScreen();hidePackingQueueScreen();
@@ -5060,7 +5096,7 @@ document.addEventListener("change",function(event){if(event.target&&event.target
 document.addEventListener("click",function(event){const nav=document.getElementById("persistentNav");if(persistentNavMenuOpen&&nav&&!nav.contains(event.target))closePersistentNavMenu()});
 
 function backToProcessMenu(){hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";buildProcessMenu();updateUI()}
-function backToJobQueue(){if(packingQueueActive||currentTeam==="PACKING"){loadPackingQueue();return}hidePostSaveScreen();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentJob=null;currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];jobContext={productionUid:"",productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";updateJobContextBar();document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");if(currentTeam){const dashboard=getCurrentTeamDashboardOrCache();if(dashboard&&Array.isArray(dashboard.jobs)){renderJobQueue(dashboard.jobs);document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved queue.";setTimeout(refreshStatusThenPrefetchFirstOpen,0)}else loadTeamQueue(currentTeam)}else{document.getElementById("queueStatus").innerText="";document.getElementById("jobQueue").innerHTML=""}}
+function backToJobQueue(){if(packingQueueActive||currentTeam==="PACKING"){loadPackingQueue();return}hidePostSaveScreen();unsubscribeFromJobSignals();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentJob=null;currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];jobContext={productionUid:"",productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";updateJobContextBar();document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");if(currentTeam){const dashboard=getCurrentTeamDashboardOrCache();if(dashboard&&Array.isArray(dashboard.jobs)){renderJobQueue(dashboard.jobs);document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved queue.";setTimeout(refreshStatusThenPrefetchFirstOpen,0)}else loadTeamQueue(currentTeam)}else{document.getElementById("queueStatus").innerText="";document.getElementById("jobQueue").innerHTML=""}}
 
 function state(){return{mode:modeSel.value,boards:+document.getElementById("boards").value||0,metres:+document.getElementById("metres").value||0,boardLength:+document.getElementById("boardLength").value||0,perRow:+perRowSel.value||0,yield:+document.getElementById("yield").value||1,topLoose:looseSel.value===""?null:parseInt(looseSel.value),rejects:+rejectsSel.value||0}}
 function basePieces(s){if(s.mode==="linear"){if(!s.metres||!s.boardLength)return 0;return Math.ceil(s.metres/s.boardLength)}return s.boards}
