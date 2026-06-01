@@ -6027,7 +6027,86 @@ loadPackingQueue = async function(forceFresh, preserveVisibleList) {
 // END TOS-023 patch
 // ============================================================
 
+// ============================================================
+// TOS-014: Mirror status badge — supervisor indicator
+// ============================================================
+(function initMirrorBadge() {
+  const MONITOR_URL    = 'https://tiny-temple.github.io/board-calculator/monitor.html';
+  const STATUS_URL     = 'https://temple-os-psi.vercel.app/api/mirror-status';
+  const CHECK_DELAY_MS = 30  * 1000;   // first check 30s after load
+  const RECHECK_MS     = 5 * 60 * 1000; // then every 5 minutes
 
+  // Inject badge styles
+  const style = document.createElement('style');
+  style.textContent = `
+    #tos014Badge {
+      display: none;
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      z-index: 9999;
+      background: #b91c1c;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 8px 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      cursor: pointer;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, opacity 0.15s;
+      text-decoration: none;
+      line-height: 1;
+    }
+    #tos014Badge:active { transform: scale(0.95); opacity: 0.85; }
+  `;
+  document.head.appendChild(style);
+
+  // Create badge element
+  const badge = document.createElement('a');
+  badge.id     = 'tos014Badge';
+  badge.href   = MONITOR_URL;
+  badge.target = '_blank';
+  badge.rel    = 'noopener';
+  badge.setAttribute('aria-label', 'Mirror sync issues detected — tap to open monitor');
+  badge.setAttribute('role', 'alert');
+  document.body.appendChild(badge);
+
+  function updateBadge(count) {
+    if (count > 0) {
+      badge.innerHTML  = '⚠️ ' + count + ' sync issue' + (count !== 1 ? 's' : '');
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  async function checkMirrorStatus() {
+    try {
+      const res  = await fetch(STATUS_URL + '?_=' + Date.now());
+      const data = await res.json();
+      if (data.ok && data.summary) {
+        updateBadge(data.summary.total_flagged);
+      }
+    } catch (e) {
+      // Silent fail — don't distract operators if monitor is unreachable
+    }
+  }
+
+  // First check after short delay, then on a repeating timer
+  setTimeout(function() {
+    checkMirrorStatus();
+    setInterval(checkMirrorStatus, RECHECK_MS);
+  }, CHECK_DELAY_MS);
+})();
+// ============================================================
+// END TOS-014 patch
+// ============================================================
+  
 </script>
 </body>
 </html>
