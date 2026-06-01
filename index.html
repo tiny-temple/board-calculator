@@ -5487,23 +5487,7 @@ window.decrementReject = function(code) {
   const meta = getDefectMetaForReject(code, code);
   deleteDraftSignal({ signal_key: signalKey, defect_code: meta.defectCode || code });
 };
-  // ----------------------------------------------------------
-// Patch clearRejectBasket — deletes all draft signals for
-// this basket from Supabase so upstream displays reset to zero
-// ----------------------------------------------------------
-const _origClearRejectBasket = clearRejectBasket;
-clearRejectBasket = function(skipConfirm) {
-  const signalKey = getDraftSignalKey();
-  _origClearRejectBasket(skipConfirm);
-  if (!signalKey) return;
-  fetch(DRAFT_SIGNAL_URL, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ signal_key: signalKey, clear_all: true }),
-  }).catch(function(err) {
-    enqueueDraftSignal('DELETE', { signal_key: signalKey, clear_all: true });
-  });
-};
+  
   // ----------------------------------------------------------
 // Patch clearRejectBasket — also clears draft signals from
 // Supabase so upstream displays reset correctly
