@@ -5793,6 +5793,10 @@ function renderDraftSignalsBox(data) {
   if (!total || !stages.length) {
     box.innerHTML = '<div class="jobSignalsTitle">No downstream rejects currently logged</div>';
     box.classList.remove('hidden');
+    // Reset visualiser to zero if step 5 is active
+    if (step === 5) {
+      applyDownstreamRejectsToVisualiser(0);
+    }
     return;
   }
 
