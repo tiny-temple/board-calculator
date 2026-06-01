@@ -5534,8 +5534,7 @@ reviewAndSaveBasket = async function() {
 
   saveBtn.disabled = true;
   status.innerText = 'Committing pack…';
-  console.log('COMMIT DEBUG signal_key:', getDraftSignalKey());
-  console.log('COMMIT DEBUG commitBody will be sent to:', COMMIT_PACK_URL);
+  
 
   const submissionId = createRejectSubmissionId();
   const signalKey    = getDraftSignalKey();
