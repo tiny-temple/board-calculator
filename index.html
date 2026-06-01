@@ -5466,14 +5466,15 @@ function patchRejectGridButtons() {
   });
 }
 
-const _tos022Observer = new MutationObserver(function() {
+const _tos022PatchInterval = setInterval(function() {
+  const grid = document.getElementById('rejectButtonGrid');
+  if (!grid) return;
+  const buttons = grid.querySelectorAll('button');
+  if (!buttons.length) return;
   patchRejectGridButtons();
-});
-
-const _tos022Grid = document.getElementById('rejectButtonGrid');
-if (_tos022Grid) {
-  _tos022Observer.observe(_tos022Grid, { childList: true, subtree: true });
-}
+  const allPatched = Array.from(buttons).every(function(b) { return b._tos022patched; });
+  if (allPatched) clearInterval(_tos022PatchInterval);
+}, 300);
 // ----------------------------------------------------------
 // Patch undoLastReject — DELETE last signal for this basket
 // ----------------------------------------------------------
