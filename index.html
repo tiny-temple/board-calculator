@@ -5297,11 +5297,11 @@ document.getElementById("simplePackId").addEventListener("change",function(){if(
 purgeStaleLocalStorage();
   
   buildProcessMenu();updateLocalOutboxStatus();updateJobContextBar();fillPackIdFields();updateUI();render();
-  // ============================================================
+// ============================================================
 // TOS-022: Per-tap draft reject signals — PWA patch
 //
 // INSERT this block into index.html immediately before the
-// closing script tag (i.e. before the last line).
+// closing </script> tag (i.e. before the last line).
 //
 // This patch:
 //   - Wraps addRejectToBasketFromButton to fire a draft signal
@@ -5325,8 +5325,6 @@ purgeStaleLocalStorage();
 // ----------------------------------------------------------
 // Constants
 // ----------------------------------------------------------
-
-
 const DRAFT_SIGNAL_URL = 'https://temple-os-psi.vercel.app/api/draft-reject-signals';
 const COMMIT_PACK_URL  = 'https://temple-os-psi.vercel.app/api/commit-reject-pack';
 const DRAFT_SIGNAL_QUEUE_KEY = 'ttDraftSignalQueue|v1';
@@ -5450,39 +5448,26 @@ function deleteDraftSignal(body, enqueueOnFail) {
 // Patch addRejectToBasketFromButton
 // Preserves all existing local basket behaviour, adds remote tap
 // ----------------------------------------------------------
-function patchRejectGridButtons() {
-  const grid = document.getElementById('rejectButtonGrid');
-  if (!grid) return;
-  grid.querySelectorAll('button').forEach(function(btn) {
-    if (btn._tos022patched) return;
-    btn._tos022patched = true;
-    const orig = btn.onclick;
-    btn.onclick = function(e) {
-      if (orig) orig.call(this, e);
-      const defectType = btn.dataset.defectType;
-      if (!defectType || defectType === 'No Rejects') return;
-      if (!jobContext.productionUid || !currentEntryMode || currentEntryMode === 'pack_visualiser') return;
-      const defectCode  = btn.dataset.defectCode || defectType;
-      const buttonLabel = btn.dataset.buttonLabel || defectType;
-      fireDraftSignal(buildDraftSignalBody(defectCode, defectType, buttonLabel));
-    };
-  });
-}
+const _origAddRejectToBasketFromButton = addRejectToBasketFromButton;
+window.addRejectToBasketFromButton = function(btn) {
+  _origAddRejectToBasketFromButton(btn);
 
-const _tos022PatchInterval = setInterval(function() {
-  const grid = document.getElementById('rejectButtonGrid');
-  if (!grid) return;
-  const buttons = grid.querySelectorAll('button');
-  if (!buttons.length) return;
-  patchRejectGridButtons();
-  const allPatched = Array.from(buttons).every(function(b) { return b._tos022patched; });
-  if (allPatched) clearInterval(_tos022PatchInterval);
-}, 300);
+  const defectType = btn.dataset.defectType;
+  if (defectType === 'No Rejects') return; // No Rejects is commit-only; don't signal
+
+  const defectCode  = btn.dataset.defectCode || defectType;
+  const buttonLabel = btn.dataset.buttonLabel || defectType;
+
+  if (!jobContext.productionUid || !currentEntryMode || currentEntryMode === 'pack_visualiser') return;
+
+  fireDraftSignal(buildDraftSignalBody(defectCode, defectType, buttonLabel));
+};
+
 // ----------------------------------------------------------
 // Patch undoLastReject — DELETE last signal for this basket
 // ----------------------------------------------------------
 const _origUndoLastReject = undoLastReject;
-undoLastReject = function() {
+window.undoLastReject = function() {
   const signalKey = getDraftSignalKey();
   _origUndoLastReject();
   if (!signalKey) return;
@@ -5494,7 +5479,7 @@ undoLastReject = function() {
 // the specific defect code (basket-row tap)
 // ----------------------------------------------------------
 const _origDecrementReject = decrementReject;
-decrementReject = function(code) {
+window.decrementReject = function(code) {
   const signalKey = getDraftSignalKey();
   _origDecrementReject(code);
   if (!signalKey || !code) return;
@@ -5510,7 +5495,7 @@ decrementReject = function(code) {
 // commit endpoint is unreachable (belt-and-braces)
 // ----------------------------------------------------------
 const _origReviewAndSaveBasket = reviewAndSaveBasket;
-reviewAndSaveBasket = async function() {
+window.reviewAndSaveBasket = async function() {
   const status  = document.getElementById('saveStatus');
   const saveBtn = document.getElementById('simpleSaveBtn');
 
@@ -5535,7 +5520,6 @@ reviewAndSaveBasket = async function() {
 
   saveBtn.disabled = true;
   status.innerText = 'Committing pack…';
-  
 
   const submissionId = createRejectSubmissionId();
   const signalKey    = getDraftSignalKey();
@@ -5553,6 +5537,9 @@ reviewAndSaveBasket = async function() {
     team:            currentTeam || '',
     process_stage:   config.processStage || '',
     operator_label:  (currentProcessSetup || {}).operatorId || '',
+    packId:          packId.trim(),
+    entryMode:       currentEntryMode || '',
+    productionRow:   jobContext.productionRow || '',
     quickNoRejects:  isQuickNoRejects,
     rejectNote:      rejectNote,
     rejectColumn:    config.rejectColumn || '',
@@ -5846,6 +5833,7 @@ drainDraftSignalQueue();
 // ============================================================
 // END TOS-022 patch
 // ============================================================
+
 
 </script>
 </body>
