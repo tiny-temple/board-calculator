@@ -4361,6 +4361,8 @@ function pushUniqueProcessTile(tiles,label,value){
 function isFirstCoatPaintJob(job){
   const variant=normalise(getJobProcessVariant(job)||"");
   if(variant.indexOf("1st coat")!==-1||variant.indexOf("first coat")!==-1)return true;
+  // "all" means no specific variant restriction — treat as first coat eligible
+  if(variant==="all")return !isRecoatJob(job)&&!isFrTreatmentStage(job);
   return !variant&&!isRecoatJob(job)&&!isFrTreatmentStage(job);
 }
 function getCurrentTouchUpLabels(){
