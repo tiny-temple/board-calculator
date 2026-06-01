@@ -5447,24 +5447,16 @@ function deleteDraftSignal(body, enqueueOnFail) {
 // Patch addRejectToBasketFromButton
 // Preserves all existing local basket behaviour, adds remote tap
 // ----------------------------------------------------------
-const _origBuildBasketRejectButtons = buildBasketRejectButtons;
-buildBasketRejectButtons = function(entryMode) {
-  _origBuildBasketRejectButtons(entryMode);
-  const grid = document.getElementById('rejectButtonGrid');
-  if (!grid) return;
-  grid.querySelectorAll('button').forEach(function(btn) {
-    const origOnclick = btn.onclick;
-    btn.onclick = function() {
-      origOnclick.call(btn);
-      const defectType = btn.dataset.defectType;
-      if (defectType === 'No Rejects') return;
-      const defectCode  = btn.dataset.defectCode || defectType;
-      const buttonLabel = btn.dataset.buttonLabel || defectType;
-      if (!jobContext.productionUid || !currentEntryMode || currentEntryMode === 'pack_visualiser') return;
-      fireDraftSignal(buildDraftSignalBody(defectCode, defectType, buttonLabel));
-    };
-  });
-};
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('#rejectButtonGrid button');
+  if (!btn) return;
+  const defectType = btn.dataset.defectType;
+  if (!defectType || defectType === 'No Rejects') return;
+  if (!jobContext.productionUid || !currentEntryMode || currentEntryMode === 'pack_visualiser') return;
+  const defectCode  = btn.dataset.defectCode || defectType;
+  const buttonLabel = btn.dataset.buttonLabel || defectType;
+  fireDraftSignal(buildDraftSignalBody(defectCode, defectType, buttonLabel));
+});
 
 // ----------------------------------------------------------
 // Patch undoLastReject — DELETE last signal for this basket
