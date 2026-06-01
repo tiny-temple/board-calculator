@@ -5448,7 +5448,7 @@ function deleteDraftSignal(body, enqueueOnFail) {
 // Preserves all existing local basket behaviour, adds remote tap
 // ----------------------------------------------------------
 const _origAddRejectToBasketFromButton = addRejectToBasketFromButton;
-window.addRejectToBasketFromButton = function(btn) {
+addRejectToBasketFromButton = function(btn) {
   _origAddRejectToBasketFromButton(btn);
 
   const defectType = btn.dataset.defectType;
@@ -5466,7 +5466,7 @@ window.addRejectToBasketFromButton = function(btn) {
 // Patch undoLastReject — DELETE last signal for this basket
 // ----------------------------------------------------------
 const _origUndoLastReject = undoLastReject;
-window.undoLastReject = function() {
+undoLastReject = function() {
   const signalKey = getDraftSignalKey();
   _origUndoLastReject();
   if (!signalKey) return;
@@ -5478,7 +5478,7 @@ window.undoLastReject = function() {
 // the specific defect code (basket-row tap)
 // ----------------------------------------------------------
 const _origDecrementReject = decrementReject;
-window.decrementReject = function(code) {
+decrementReject = function(code) {
   const signalKey = getDraftSignalKey();
   _origDecrementReject(code);
   if (!signalKey || !code) return;
@@ -5494,7 +5494,7 @@ window.decrementReject = function(code) {
 // commit endpoint is unreachable (belt-and-braces)
 // ----------------------------------------------------------
 const _origReviewAndSaveBasket = reviewAndSaveBasket;
-window.reviewAndSaveBasket = async function() {
+reviewAndSaveBasket = async function() {
   const status  = document.getElementById('saveStatus');
   const saveBtn = document.getElementById('simpleSaveBtn');
 
