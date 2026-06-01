@@ -4399,7 +4399,7 @@ function buildTouchUpLabelSection(processStage){
     return '<div class="ttTouchUpLabelItem"><div class="ttTouchUpLabelIdentity"><b>'+escapeHtml(identity)+'</b>'+(secondary?'<small>'+escapeHtml(secondary)+'</small>':"")+'</div><div class="ttTouchUpLabelQty">'+escapeHtml(label.quantityDisplay||"")+'</div></div>';
   }).join("");
   return '<div class="processSection ttTouchUpLabelSection">'+
-    '<div class="ttTouchUpLabelHeader"><div class="processSectionTitle">Touch-Up Pot Label'+(labels.length===1?"":"s")+'</div><span class="ttTouchUpLabelState'+statusClass+'">'+escapeHtml(status)+'</span></div>'+
+    '<div class="ttTouchUpLabelHeader"><div class="processSectionTitle">Touch-Up Pot Label'+(labels.length===1?"":" ("+labels.length+")")+'</div><span class="ttTouchUpLabelState'+statusClass+'">'+escapeHtml(status)+'</span></div>'+
     '<div class="ttTouchUpLabelItems">'+rows+'</div>'+
     '<button type="button" id="touchUpLabelPrintBtn" class="ttTouchUpPrintBtn" onclick="queueTouchUpLabelsForCurrentJob()">'+escapeHtml(buttonText)+'</button>'+
     '<div id="touchUpPrintFeedback" class="ttTouchUpPrintFeedback hidden"></div>'+
