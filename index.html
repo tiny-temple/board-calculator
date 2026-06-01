@@ -5834,6 +5834,170 @@ drainDraftSignalQueue();
 // END TOS-022 patch
 // ============================================================
 
+  // ============================================================
+// TOS-023: Queue cache mirror — PWA patch
+//
+// INSERT this block into index.html immediately before the
+// closing script tag (i.e. just before the END TOS-022 patch
+// comment, or before closing script tag if 022 is not present).
+//
+// What this does:
+//   - Wraps fetchTeamDashboard to try Supabase REST first.
+//     If Supabase has data fresher than 30 minutes, uses it
+//     immediately and skips the Apps Script JSONP call.
+//     Falls back to JSONP if Supabase is absent or stale.
+//   - Wraps the JSONP callback inside loadPackingQueue the
+//     same way for the packing queue.
+//   - forceFresh=true always bypasses Supabase and goes
+//     direct to Apps Script (operator-initiated refresh).
+//   - Payload shape is identical — applyTeamDashboardData
+//     and applyPackingQueueData are not changed.
+// ============================================================
+
+// ----------------------------------------------------------
+// Constants
+// ----------------------------------------------------------
+const QUEUE_CACHE_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
+const SUPABASE_REST_BASE = SUPABASE_URL + '/rest/v1';
+const SUPABASE_REST_HEADERS = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+  'Content-Type': 'application/json',
+};
+
+// ----------------------------------------------------------
+// Fetch queue_cache row for a team from Supabase REST
+// Returns the payload object if fresh, null if absent/stale
+// ----------------------------------------------------------
+async function fetchTeamQueueFromSupabase(team) {
+  try {
+    const res = await fetch(
+      SUPABASE_REST_BASE + '/queue_cache?team=eq.' + encodeURIComponent(team) + '&limit=1',
+      { headers: SUPABASE_REST_HEADERS }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!rows || !rows.length) return null;
+    const row = rows[0];
+    const age = Date.now() - new Date(row.generated_at).getTime();
+    if (age > QUEUE_CACHE_MAX_AGE_MS) return null; // stale
+    if (!row.payload || !row.payload.ok) return null;
+    return row.payload;
+  } catch (e) {
+    return null;
+  }
+}
+
+// ----------------------------------------------------------
+// Fetch packing_queue_cache singleton from Supabase REST
+// Returns the payload object if fresh, null if absent/stale
+// ----------------------------------------------------------
+async function fetchPackingQueueFromSupabase() {
+  try {
+    const res = await fetch(
+      SUPABASE_REST_BASE + '/packing_queue_cache?id=eq.packing&limit=1',
+      { headers: SUPABASE_REST_HEADERS }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!rows || !rows.length) return null;
+    const row = rows[0];
+    const age = Date.now() - new Date(row.generated_at).getTime();
+    if (age > QUEUE_CACHE_MAX_AGE_MS) return null;
+    if (!row.payload || !row.payload.ok) return null;
+    return row.payload;
+  } catch (e) {
+    return null;
+  }
+}
+
+// ----------------------------------------------------------
+// Patch fetchTeamDashboard
+// Supabase-first, JSONP fallback
+// ----------------------------------------------------------
+const _origFetchTeamDashboard = fetchTeamDashboard;
+fetchTeamDashboard = async function(team, forceFresh, preserveVisibleList) {
+  // forceFresh = operator pressed refresh — always go to Apps Script
+  if (forceFresh) {
+    _origFetchTeamDashboard(team, forceFresh, preserveVisibleList);
+    return;
+  }
+
+  // Try Supabase cache first
+  const supabaseData = await fetchTeamQueueFromSupabase(team);
+  if (supabaseData) {
+    // Got fresh data from Supabase — apply it directly
+    ttSetListRefreshState && ttSetListRefreshState('queue', 'ready');
+    saveTeamDashboardToLocalCache(team, supabaseData);
+    applyTeamDashboardData(supabaseData, false);
+
+    // Update status bar to show it came from Supabase cache
+    const timeText = getDashboardTimeText(supabaseData);
+    const statusEl = document.getElementById('queueStatus');
+    if (statusEl) {
+      statusEl.innerText = 'Team ' + team + ' jobs — schedule cache'
+        + (timeText ? ' from ' + timeText : '') + '.';
+    }
+    setQueueSyncIndicator && setQueueSyncIndicator('ready', 'Offline: Ready', 'Schedule cache');
+    setTimeout(refreshStatusThenPrefetchFirstOpen, 0);
+    restorePersistentViewAfterRefresh && restorePersistentViewAfterRefresh();
+    return;
+  }
+
+  // Supabase absent or stale — fall back to original JSONP path
+  _origFetchTeamDashboard(team, forceFresh, preserveVisibleList);
+};
+
+// ----------------------------------------------------------
+// Patch loadPackingQueue
+// Intercepts the JSONP fetch inside loadPackingQueue by
+// overriding the Supabase check before the script tag fires.
+// We wrap the whole function, preserve all setup logic,
+// then try Supabase before falling back to JSONP.
+// ----------------------------------------------------------
+const _origLoadPackingQueue = loadPackingQueue;
+loadPackingQueue = async function(forceFresh, preserveVisibleList) {
+  // Always run the original setup logic (clears panels, sets state etc.)
+  // but we need to intercept before the JSONP script tag is added.
+  // Strategy: run original with a flag that tells us if Supabase
+  // already handled it. We use a short-circuit via a temporary override.
+
+  if (forceFresh) {
+    // Force refresh — go straight to Apps Script
+    _origLoadPackingQueue(forceFresh, preserveVisibleList);
+    return;
+  }
+
+  // Try Supabase cache first
+  const supabaseData = await fetchPackingQueueFromSupabase();
+  if (supabaseData) {
+    // Run original setup (panel switches, state resets) but suppress JSONP
+    // by temporarily making the callback resolve immediately with Supabase data.
+    // We do this by calling original then immediately overriding the result.
+    _origLoadPackingQueue(false, preserveVisibleList);
+
+    // Small delay to let the original's synchronous setup complete,
+    // then apply Supabase data which overwrites the JSONP result
+    setTimeout(function() {
+      ttSetListRefreshState && ttSetListRefreshState('packing', 'ready');
+      savePackingQueueToLocalCache(supabaseData);
+      applyPackingQueueData(supabaseData, false);
+      const statusEl = document.getElementById('packingQueueStatus');
+      if (statusEl) {
+        statusEl.innerText = 'Packing Queue — schedule cache shown.';
+      }
+    }, 50);
+    return;
+  }
+
+  // Supabase absent or stale — fall back to original
+  _origLoadPackingQueue(forceFresh, preserveVisibleList);
+};
+
+// ============================================================
+// END TOS-023 patch
+// ============================================================
+
 
 </script>
 </body>
