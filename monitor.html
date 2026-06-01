@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a1a2e">
+<title>TOS Monitor — Mirror Status</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green:  #1a7a4a;
+    --amber:  #b36200;
+    --red:    #b91c1c;
+    --bg-green:  #d1fae5;
+    --bg-amber:  #fef3c7;
+    --bg-red:    #fee2e2;
+    --surface:   #ffffff;
+    --border:    #e2e8f0;
+    --text:      #1e293b;
+    --muted:     #64748b;
+    --radius:    12px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  body {
+    font-family: var(--font);
+    background: #f1f5f9;
+    color: var(--text);
+    min-height: 100dvh;
+    padding: 16px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  header p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .logo {
+    width: 44px;
+    height: 44px;
+    background: #1e293b;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 22px;
+  }
+
+  /* Status banner */
+  .status-banner {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: background 0.3s;
+  }
+  .status-banner.ok    { background: var(--bg-green); border: 2px solid var(--green); }
+  .status-banner.warn  { background: var(--bg-amber); border: 2px solid var(--amber); }
+  .status-banner.error { background: var(--bg-red);   border: 2px solid var(--red);   }
+
+  .status-icon { font-size: 32px; flex-shrink: 0; line-height: 1; }
+
+  .status-text h2 {
+    font-size: clamp(16px, 3.5vw, 20px);
+    font-weight: 700;
+  }
+  .status-banner.ok    .status-text h2 { color: var(--green); }
+  .status-banner.warn  .status-text h2 { color: var(--amber); }
+  .status-banner.error .status-text h2 { color: var(--red);   }
+
+  .status-text p { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+  /* Cards row */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-align: center;
+  }
+
+  .card .num {
+    font-size: clamp(28px, 6vw, 40px);
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .card .num.bad { color: var(--red); }
+  .card .num.ok  { color: var(--green); }
+
+  .card .label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  /* Actions bar */
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  button {
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:active { transform: scale(0.97); opacity: 0.85; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .btn-retry {
+    background: #1e293b;
+    color: #fff;
+    flex: 1;
+    justify-content: center;
+    min-width: 160px;
+  }
+
+  .btn-refresh {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  /* Flagged rows table */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(13px, 2.5vw, 15px);
+  }
+
+  th {
+    background: #f8fafc;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-red    { background: var(--bg-red);   color: var(--red);   }
+  .badge-amber  { background: var(--bg-amber); color: var(--amber); }
+
+  .empty-state {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .empty-state span { display: block; font-size: 36px; margin-bottom: 10px; }
+
+  /* Footer */
+  .footer {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  /* Retry result toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 99;
+  }
+  .toast.show { opacity: 1; }
+
+  .spin { display: inline-block; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🪵</div>
+  <div>
+    <h1>Mirror Monitor</h1>
+    <p>Tiny Temple Cladding — TempleOS TOS-014</p>
+  </div>
+</header>
+
+<!-- Status banner -->
+<div class="status-banner ok" id="statusBanner" role="status" aria-live="polite">
+  <div class="status-icon" id="statusIcon">⏳</div>
+  <div class="status-text">
+    <h2 id="statusHeading">Checking…</h2>
+    <p id="statusSub">Querying Supabase now</p>
+  </div>
+</div>
+
+<!-- Count cards -->
+<div class="cards">
+  <div class="card">
+    <div class="num ok" id="cardFailed">—</div>
+    <div class="label">Failed mirrors</div>
+  </div>
+  <div class="card">
+    <div class="num ok" id="cardStale">—</div>
+    <div class="label">Stale pending (&gt;10 min)</div>
+  </div>
+  <div class="card">
+    <div class="num ok" id="cardTotal">—</div>
+    <div class="label">Total flagged</div>
+  </div>
+</div>
+
+<!-- Actions -->
+<div class="actions">
+  <button class="btn-retry" id="retryBtn" onclick="runRetry()" aria-label="Retry all failed mirror rows now">
+    ↺ Retry Now
+  </button>
+  <button class="btn-refresh" id="refreshBtn" onclick="loadStatus()" aria-label="Refresh status">
+    ⟳ Refresh
+  </button>
+</div>
+
+<!-- Retry log -->
+<div class="section-title">Last retry run</div>
+<div class="table-wrap" style="margin-bottom:20px;">
+  <div class="empty-state" id="retryLogNote">
+    <span>📋</span>Retry history not yet available
+  </div>
+</div>
+
+<!-- Flagged rows -->
+<div class="section-title">Flagged rows</div>
+<div class="table-wrap">
+  <div class="empty-state" id="emptyState">
+    <span>⏳</span>Loading…
+  </div>
+  <table id="flaggedTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Job / Pack</th>
+        <th>Process</th>
+        <th>Submitted</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="flaggedBody"></tbody>
+  </table>
+</div>
+
+<div class="footer" id="footer">Checked: —</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const API_BASE    = 'https://temple-os-psi.vercel.app';
+  const STATUS_URL  = API_BASE + '/api/mirror-status';
+  const RETRY_URL   = API_BASE + '/api/retry-mirror';
+
+  let autoRefreshTimer = null;
+
+  // ── Load status ──────────────────────────────────────────
+  async function loadStatus() {
+    const btn = document.getElementById('refreshBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin">⟳</span> Refreshing';
+
+    try {
+      const res  = await fetch(STATUS_URL + '?_=' + Date.now());
+      const data = await res.json();
+      renderStatus(data);
+    } catch (err) {
+      renderError('Could not reach monitor endpoint: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '⟳ Refresh';
+      scheduleAutoRefresh();
+    }
+  }
+
+  // ── Render status data ───────────────────────────────────
+  function renderStatus(data) {
+    if (!data.ok) { renderError(data.error || 'Unknown error'); return; }
+
+    const { failed_count, stale_pending_count, total_flagged, checked_at } = data.summary;
+
+    // Cards
+    setCard('cardFailed', failed_count);
+    setCard('cardStale',  stale_pending_count);
+    setCard('cardTotal',  total_flagged);
+
+    // Banner
+    const banner  = document.getElementById('statusBanner');
+    const icon    = document.getElementById('statusIcon');
+    const heading = document.getElementById('statusHeading');
+    const sub     = document.getElementById('statusSub');
+
+    banner.className = 'status-banner ' + (total_flagged === 0 ? 'ok' : total_flagged < 5 ? 'warn' : 'error');
+
+    if (total_flagged === 0) {
+      icon.textContent    = '✅';
+      heading.textContent = 'All clear — no mirror issues';
+      sub.textContent     = 'Every reject event has mirrored to Google Sheets successfully.';
+    } else {
+      icon.textContent    = total_flagged < 5 ? '⚠️' : '🚨';
+      heading.textContent = total_flagged + ' row' + (total_flagged !== 1 ? 's' : '') + ' need attention';
+      sub.textContent     = 'Tap Retry Now to attempt re-mirroring to Google Sheets.';
+    }
+
+    // Flagged rows table
+    const rows = data.rows || [];
+    renderTable(rows);
+
+    // Retry log
+    renderRetryLog(data.retry_log, data.retry_log_note);
+
+    // Footer
+    document.getElementById('footer').textContent =
+      'Last checked: ' + formatTime(checked_at) + ' · Auto-refreshes every 2 min';
+  }
+
+  function setCard(id, count) {
+    const el = document.getElementById(id);
+    el.textContent = count;
+    el.className   = 'num ' + (count > 0 ? 'bad' : 'ok');
+  }
+
+  function renderTable(rows) {
+    const table = document.getElementById('flaggedTable');
+    const empty = document.getElementById('emptyState');
+    const tbody = document.getElementById('flaggedBody');
+
+    if (!rows.length) {
+      table.style.display = 'none';
+      empty.innerHTML = '<span>✅</span>No flagged rows — mirror is healthy';
+      return;
+    }
+
+    empty.style.display = 'none';
+    table.style.display = '';
+    tbody.innerHTML = '';
+
+    rows.forEach(function(row) {
+      const tr = document.createElement('tr');
+      const jobLabel = [row.production_uid, row.pack_id].filter(Boolean).join(' / ') || '—';
+      const process  = row.process_stage || row.process || '—';
+      const time     = formatTime(row.created_at);
+      const flag     = row._flag === 'failed' ? 'failed' : 'stale pending';
+      const badgeCls = row._flag === 'failed' ? 'badge-red' : 'badge-amber';
+
+      tr.innerHTML =
+        '<td>' + esc(jobLabel) + '</td>' +
+        '<td>' + esc(process)  + '</td>' +
+        '<td>' + esc(time)     + '</td>' +
+        '<td><span class="badge ' + badgeCls + '">' + flag + '</span></td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderRetryLog(log, note) {
+    const el = document.getElementById('retryLogNote');
+    if (!log) {
+      el.innerHTML = '<span>📋</span>' + esc(note || 'No retry history yet');
+      return;
+    }
+    // When mirror_retry_log table exists, this will render properly
+    el.innerHTML = '<span>✅</span>Last run: ' + esc(formatTime(log.ran_at)) +
+      ' — fixed ' + (log.fixed_count || 0) + ' row(s)';
+  }
+
+  function renderError(msg) {
+    const banner  = document.getElementById('statusBanner');
+    banner.className = 'status-banner error';
+    document.getElementById('statusIcon').textContent    = '🚨';
+    document.getElementById('statusHeading').textContent = 'Monitor error';
+    document.getElementById('statusSub').textContent     = msg;
+  }
+
+  // ── Retry ────────────────────────────────────────────────
+  async function runRetry() {
+    const btn = document.getElementById('retryBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin">↺</span> Retrying…';
+
+    try {
+      const res  = await fetch(RETRY_URL, { method: 'POST' });
+      const data = await res.json();
+
+      const fixed = data.fixed ?? data.retriedCount ?? data.count ?? '?';
+      showToast('✅ Retry complete — ' + fixed + ' row(s) processed');
+      setTimeout(loadStatus, 1500); // re-check after short delay
+    } catch (err) {
+      showToast('❌ Retry failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '↺ Retry Now';
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────
+  function formatTime(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString('en-GB', {
+        day: '2-digit', month: 'short',
+        hour: '2-digit', minute: '2-digit',
+      });
+    } catch { return iso; }
+  }
+
+  function esc(str) {
+    return String(str ?? '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 3500);
+  }
+
+  function scheduleAutoRefresh() {
+    clearTimeout(autoRefreshTimer);
+    autoRefreshTimer = setTimeout(loadStatus, 2 * 60 * 1000);
+  }
+
+  // ── Boot ─────────────────────────────────────────────────
+  loadStatus();
+</script>
+</body>
+</html>
