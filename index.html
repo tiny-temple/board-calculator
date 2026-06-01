@@ -5766,6 +5766,11 @@ function renderDraftSignalsBox(data) {
   const byProcess = data && data.byProcess ? data.byProcess : {};
   const stages    = Object.keys(byProcess);
 
+  // Auto-apply to visualiser if step 5 is active (visualiser fully set up)
+  if (step === 5 && total > 0) {
+    applyDownstreamRejectsToVisualiser(total);
+  }
+  
   if (!total || !stages.length) {
     box.innerHTML = '<div class="jobSignalsTitle">No downstream rejects currently logged</div>';
     box.classList.remove('hidden');
