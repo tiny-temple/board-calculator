@@ -5300,7 +5300,7 @@ purgeStaleLocalStorage();
 // TOS-022: Per-tap draft reject signals — PWA patch
 //
 // INSERT this block into index.html immediately before the
-// closing </script> tag (i.e. before the last line).
+// closing script tag (i.e. before the last line).
 //
 // This patch:
 //   - Wraps addRejectToBasketFromButton to fire a draft signal
@@ -5324,6 +5324,8 @@ purgeStaleLocalStorage();
 // ----------------------------------------------------------
 // Constants
 // ----------------------------------------------------------
+
+console.log('TOS-022 patch starting');
 const DRAFT_SIGNAL_URL = 'https://temple-os-psi.vercel.app/api/draft-reject-signals';
 const COMMIT_PACK_URL  = 'https://temple-os-psi.vercel.app/api/commit-reject-pack';
 const DRAFT_SIGNAL_QUEUE_KEY = 'ttDraftSignalQueue|v1';
