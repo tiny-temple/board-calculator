@@ -5296,6 +5296,540 @@ document.getElementById("simplePackId").addEventListener("change",function(){if(
 purgeStaleLocalStorage();
   
   buildProcessMenu();updateLocalOutboxStatus();updateJobContextBar();fillPackIdFields();updateUI();render();
+  // ============================================================
+// TOS-022: Per-tap draft reject signals — PWA patch
+//
+// INSERT this block into index.html immediately before the
+// closing </script> tag (i.e. before the last line).
+//
+// This patch:
+//   - Wraps addRejectToBasketFromButton to fire a draft signal
+//     to Supabase on every tap (fire-and-forget, non-blocking)
+//   - Wraps undoLastReject and decrementReject to DELETE the
+//     matching draft signal from Supabase
+//   - Adds a draft signal offline queue (localStorage) so taps
+//     during connectivity loss are drained on reconnect
+//   - Replaces subscribeToJobSignals to also listen to
+//     draft_reject_signals for live upstream basket display
+//   - Replaces renderJobSignalsBox to show grouped process
+//     subheadings (Post Moulder: 2nd head rough: 3 | ...)
+//   - Rewires reviewAndSaveBasket to call /api/commit-reject-pack
+//     instead of /api/reject-events directly
+//
+// DOES NOT change: rejectBasket, rejectHistory, saveRejectDraft,
+// renderRejectBasket, the visualiser, or the post-save screen.
+// All existing local-only behaviour is preserved as fallback.
+// ============================================================
+
+// ----------------------------------------------------------
+// Constants
+// ----------------------------------------------------------
+const DRAFT_SIGNAL_URL = 'https://temple-os-psi.vercel.app/api/draft-reject-signals';
+const COMMIT_PACK_URL  = 'https://temple-os-psi.vercel.app/api/commit-reject-pack';
+const DRAFT_SIGNAL_QUEUE_KEY = 'ttDraftSignalQueue|v1';
+
+// ----------------------------------------------------------
+// Signal key — scopes all drafts to device + job + process
+// Mirrors the server-side logic in api_draft-reject-signals.ts
+// ----------------------------------------------------------
+function getDraftSignalKey() {
+  const deviceId      = getRejectDeviceId();
+  const productionUid = jobContext.productionUid || '';
+  const processStage  = (ENTRY_MODES[currentEntryMode] || {}).processStage || currentEntryMode || '';
+  if (!deviceId || !productionUid || !processStage) return '';
+  return deviceId + '::' + productionUid + '::' + processStage;
+}
+
+// ----------------------------------------------------------
+// Offline queue helpers
+// Pending signals are stored as an array of {action, body}
+// objects and drained when connectivity returns.
+// ----------------------------------------------------------
+function getDraftSignalQueue() {
+  try {
+    return JSON.parse(localStorage.getItem(DRAFT_SIGNAL_QUEUE_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveDraftSignalQueue(queue) {
+  try {
+    localStorage.setItem(DRAFT_SIGNAL_QUEUE_KEY, JSON.stringify(queue));
+  } catch (e) {}
+}
+
+function enqueueDraftSignal(action, body) {
+  const queue = getDraftSignalQueue();
+  queue.push({ action, body, queuedAt: new Date().toISOString() });
+  saveDraftSignalQueue(queue);
+}
+
+function drainDraftSignalQueue() {
+  const queue = getDraftSignalQueue();
+  if (!queue.length) return;
+  saveDraftSignalQueue([]); // optimistic clear; failures re-enqueue
+  queue.forEach(function(item) {
+    if (item.action === 'POST') {
+      fireDraftSignal(item.body, false);
+    } else if (item.action === 'DELETE') {
+      deleteDraftSignal(item.body, false);
+    }
+  });
+}
+
+// Drain queue whenever the browser reports online
+window.addEventListener('online', function() {
+  drainDraftSignalQueue();
+});
+
+// ----------------------------------------------------------
+// Core signal fire (non-blocking, fire-and-forget)
+// ----------------------------------------------------------
+function buildDraftSignalBody(defectCode, defectType, buttonLabel) {
+  const config      = ENTRY_MODES[currentEntryMode] || {};
+  const processStage = config.processStage || currentEntryMode || '';
+  const jobData     = getCurrentJobDataForPayload ? getCurrentJobDataForPayload() : {};
+  const setup       = currentProcessSetup || {};
+
+  return {
+    device_id:      getRejectDeviceId(),
+    production_uid: jobContext.productionUid || '',
+    job_no:         jobContext.jobNo || '',
+    sheet_job:      jobContext.sheetJob || '',
+    team:           currentTeam || '',
+    process_stage:  processStage,
+    defect_code:    defectCode,
+    defect_type:    defectType,
+    button_label:   buttonLabel || defectType,
+    operator_label: setup.operatorId || '',
+    species:        jobData.species || '',
+    finished_size:  jobData.finishedSize || '',
+    profile:        jobData.profile || '',
+    texture:        jobData.texture || '',
+    coating:        jobData.coating || '',
+    length_m:       jobData.length ? Number(String(jobData.length).replace(/[^0-9.]/g, '')) || null : null,
+    planned_qty:    jobData.quantity ? Number(String(jobData.quantity).replace(/[^0-9]/g, '')) || null : null,
+    linear_metres:  jobData.linearMetres ? Number(String(jobData.linearMetres).replace(/[^0-9.]/g, '')) || null : null,
+  };
+}
+
+function fireDraftSignal(body, enqueueOnFail) {
+  if (enqueueOnFail === undefined) enqueueOnFail = true;
+  if (!body.production_uid || !body.process_stage || !body.defect_code) return;
+
+  fetch(DRAFT_SIGNAL_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body),
+  }).catch(function(err) {
+    if (enqueueOnFail) {
+      enqueueDraftSignal('POST', body);
+    }
+  });
+}
+
+function deleteDraftSignal(body, enqueueOnFail) {
+  if (enqueueOnFail === undefined) enqueueOnFail = true;
+
+  fetch(DRAFT_SIGNAL_URL, {
+    method:  'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body),
+  }).catch(function(err) {
+    if (enqueueOnFail) {
+      enqueueDraftSignal('DELETE', body);
+    }
+  });
+}
+
+// ----------------------------------------------------------
+// Patch addRejectToBasketFromButton
+// Preserves all existing local basket behaviour, adds remote tap
+// ----------------------------------------------------------
+const _origAddRejectToBasketFromButton = addRejectToBasketFromButton;
+window.addRejectToBasketFromButton = function(btn) {
+  _origAddRejectToBasketFromButton(btn);
+
+  const defectType = btn.dataset.defectType;
+  if (defectType === 'No Rejects') return; // No Rejects is commit-only; don't signal
+
+  const defectCode  = btn.dataset.defectCode || defectType;
+  const buttonLabel = btn.dataset.buttonLabel || defectType;
+
+  if (!jobContext.productionUid || !currentEntryMode || currentEntryMode === 'pack_visualiser') return;
+
+  fireDraftSignal(buildDraftSignalBody(defectCode, defectType, buttonLabel));
+};
+
+// ----------------------------------------------------------
+// Patch undoLastReject — DELETE last signal for this basket
+// ----------------------------------------------------------
+const _origUndoLastReject = undoLastReject;
+window.undoLastReject = function() {
+  const signalKey = getDraftSignalKey();
+  _origUndoLastReject();
+  if (!signalKey) return;
+  deleteDraftSignal({ signal_key: signalKey });
+};
+
+// ----------------------------------------------------------
+// Patch decrementReject — DELETE most recent signal for
+// the specific defect code (basket-row tap)
+// ----------------------------------------------------------
+const _origDecrementReject = decrementReject;
+window.decrementReject = function(code) {
+  const signalKey = getDraftSignalKey();
+  _origDecrementReject(code);
+  if (!signalKey || !code) return;
+  // Find the defect meta to get the full defect_code
+  const meta = getDefectMetaForReject(code, code);
+  deleteDraftSignal({ signal_key: signalKey, defect_code: meta.defectCode || code });
+};
+
+// ----------------------------------------------------------
+// Patch reviewAndSaveBasket → becomes commit path
+// Calls /api/commit-reject-pack instead of /api/reject-events
+// Falls back to original sendRejectPayloadInBackground if
+// commit endpoint is unreachable (belt-and-braces)
+// ----------------------------------------------------------
+const _origReviewAndSaveBasket = reviewAndSaveBasket;
+window.reviewAndSaveBasket = async function() {
+  const status  = document.getElementById('saveStatus');
+  const saveBtn = document.getElementById('simpleSaveBtn');
+
+  // Gate checks (mirrors original)
+  if (!currentEntryMode || currentEntryMode === 'pack_visualiser') {
+    status.innerText = 'Choose a process first.'; return;
+  }
+  if (!jobContext.productionRow) {
+    status.innerText = 'No Production row found. Select a scheduled job first.'; return;
+  }
+  const packId     = (document.getElementById('simplePackId') || {}).value || '';
+  const rejectLines = getBasketRejectLines();
+  if (!packId.trim()) { status.innerText = 'Select the Pack ID before reviewing.'; return; }
+  if (!rejectLines.length) { status.innerText = 'Tap at least one reject type, or select No Rejects.'; return; }
+  const rejectNote = getRejectNote();
+  if (basketRequiresNote && basketRequiresNote() && !rejectNote) {
+    status.innerText = 'Add a reject note before reviewing.'; return;
+  }
+
+  if (currentProcessSetup) currentProcessSetup.packId = packId.trim();
+  storeOperatorMemoryForCurrentProcess && storeOperatorMemoryForCurrentProcess(currentProcessSetup);
+
+  saveBtn.disabled = true;
+  status.innerText = 'Committing pack…';
+
+  const submissionId = createRejectSubmissionId();
+  const signalKey    = getDraftSignalKey();
+  const config       = ENTRY_MODES[currentEntryMode] || {};
+  const totalRejects = rejectLines.reduce(function(sum, l) { return sum + Number(l.rejectQty || 0); }, 0);
+  const isQuickNoRejects = rejectLines.length === 1 && rejectLines[0].defectType === 'No Rejects';
+
+  const commitBody = {
+    signal_key:      signalKey,
+    submission_id:   submissionId,
+    device_id:       getRejectDeviceId(),
+    production_uid:  jobContext.productionUid || '',
+    job_no:          jobContext.jobNo || '',
+    sheet_job:       jobContext.sheetJob || '',
+    team:            currentTeam || '',
+    process_stage:   config.processStage || '',
+    operator_label:  (currentProcessSetup || {}).operatorId || '',
+    quickNoRejects:  isQuickNoRejects,
+    rejectNote:      rejectNote,
+    rejectColumn:    config.rejectColumn || '',
+    processVariant:  getJobProcessVariant ? getJobProcessVariant(currentJob) : '',
+    processSetup:    currentProcessSetup || {},
+    client:          currentJob && currentJob.client || '',
+    jobData:         getCurrentJobDataForPayload ? getCurrentJobDataForPayload() : {},
+  };
+
+  // Also build the legacy payload for local outbox fallback
+  const legacyPayload = {
+    source:        'TT Process Logger',
+    team:          currentTeam,
+    timestamp:     new Date().toISOString(),
+    productionUid: jobContext.productionUid || '',
+    productionRow: jobContext.productionRow,
+    jobNo:         jobContext.jobNo,
+    sheetJob:      jobContext.sheetJob,
+    packId:        packId.trim(),
+    entryMode:     currentEntryMode,
+    entryModeLabel: config.label,
+    processStage:  config.processStage,
+    processVariant: getJobProcessVariant ? getJobProcessVariant(currentJob) : '',
+    rejectColumn:  config.rejectColumn,
+    quickNoRejects: isQuickNoRejects,
+    processSetup:  currentProcessSetup,
+    jobData:       getCurrentJobDataForPayload ? getCurrentJobDataForPayload() : {},
+    rejectNote:    rejectNote,
+    rejects:       rejectLines,
+    submissionId:  submissionId,
+  };
+
+  try {
+    archiveSubmittedDraft && archiveSubmittedDraft(legacyPayload);
+    try { clearRejectDraft && clearRejectDraft(); } catch(e) {}
+    rejectBasket = {};
+    rejectHistory = [];
+    renderRejectBasket();
+    persistentNavigationDirty = false;
+
+    // Attempt commit endpoint
+    let commitOk = false;
+    try {
+      const res = await fetch(COMMIT_PACK_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(commitBody),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        commitOk = result.ok === true;
+        if (result.mirrorStatus === 'failed') {
+          console.warn('TOS-022: Apps Script mirror failed — will be retried by /api/retry-mirror');
+        }
+      }
+    } catch (fetchErr) {
+      console.warn('TOS-022: commit endpoint unreachable, falling back to legacy path', fetchErr.message);
+    }
+
+    if (!commitOk) {
+      // Fallback: use original fire-and-forget path so data is never lost
+      sendRejectPayloadInBackground(legacyPayload);
+    }
+
+    status.innerText = '';
+    showPostSaveScreen && showPostSaveScreen(legacyPayload, totalRejects);
+    confirmRejectSubmissionWritten && confirmRejectSubmissionWritten(legacyPayload, totalRejects, 0);
+
+  } catch (err) {
+    status.innerText = 'Commit failed: ' + (err.message || err) + '. Check Reject Log and local backups.';
+    showProcessWarning && showProcessWarning('Commit error: ' + (err.message || err));
+  } finally {
+    saveBtn.disabled = false;
+  }
+};
+
+// ----------------------------------------------------------
+// Replace subscribeToJobSignals to listen to BOTH tables:
+//   1. draft_reject_signals — live taps (new behaviour)
+//   2. reject_events        — committed packs (existing behaviour)
+// Both update the upstream signals display.
+// ----------------------------------------------------------
+let draftSignalChannel  = null;
+let committedEventChannel = null;
+
+function subscribeToJobSignals(productionUid) {
+  if (!window.supabase || !productionUid) return;
+
+  if (!window._supabaseClient) {
+    window._supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+
+  // Clean up existing channels
+  if (draftSignalChannel) {
+    window._supabaseClient.removeChannel(draftSignalChannel);
+    draftSignalChannel = null;
+  }
+  if (committedEventChannel) {
+    window._supabaseClient.removeChannel(committedEventChannel);
+    committedEventChannel = null;
+  }
+
+  const sourceProcess = (ENTRY_MODES[currentEntryMode] || {}).processStage || '';
+
+  // Channel 1: draft_reject_signals — fires on every tap
+  draftSignalChannel = window._supabaseClient
+    .channel('draft-signals-' + productionUid)
+    .on('postgres_changes', {
+      event:  'INSERT',
+      schema: 'public',
+      table:  'draft_reject_signals',
+      filter: 'production_uid=eq.' + productionUid,
+    }, function(payload) {
+      if (!currentJob || currentJob.productionUid !== productionUid) return;
+      fetchDraftSignalsFromSupabase(productionUid, sourceProcess);
+    })
+    .on('postgres_changes', {
+      event:  'DELETE',
+      schema: 'public',
+      table:  'draft_reject_signals',
+    }, function(payload) {
+      if (!currentJob || currentJob.productionUid !== productionUid) return;
+      fetchDraftSignalsFromSupabase(productionUid, sourceProcess);
+    })
+    .subscribe();
+
+  // Channel 2: reject_events — fires on commit (existing behaviour preserved)
+  committedEventChannel = window._supabaseClient
+    .channel('committed-events-' + productionUid)
+    .on('postgres_changes', {
+      event:  'INSERT',
+      schema: 'public',
+      table:  'reject_events',
+    }, function(payload) {
+      const uid = payload && payload.new && payload.new.production_uid;
+      if (!uid || uid !== productionUid) return;
+      if (!currentJob || currentJob.productionUid !== productionUid) return;
+      fetchDraftSignalsFromSupabase(productionUid, sourceProcess);
+    })
+    .subscribe();
+}
+
+function unsubscribeFromJobSignals() {
+  if (window._supabaseClient) {
+    if (draftSignalChannel) {
+      window._supabaseClient.removeChannel(draftSignalChannel);
+      draftSignalChannel = null;
+    }
+    if (committedEventChannel) {
+      window._supabaseClient.removeChannel(committedEventChannel);
+      committedEventChannel = null;
+    }
+  }
+  // Maintain backward compat with old realtimeChannel reference
+  realtimeChannel = null;
+}
+
+// ----------------------------------------------------------
+// fetchDraftSignalsFromSupabase
+// Reads UNCOMMITTED draft_reject_signals for the job, grouped
+// by process_stage then defect_type. Renders grouped basket
+// display on upstream screens.
+// ----------------------------------------------------------
+function fetchDraftSignalsFromSupabase(productionUid, sourceProcess) {
+  if (!window._supabaseClient || !productionUid) return;
+
+  // Fetch draft signals (live taps, not yet committed)
+  window._supabaseClient
+    .from('draft_reject_signals')
+    .select('process_stage, defect_type, button_label, reject_qty')
+    .eq('production_uid', productionUid)
+    .is('committed_at', null) // uncommitted only
+    .then(function(result) {
+      if (!result || !result.data) return;
+
+      const processOrder = ['Resaw','Moulder','Charring Machine','Sander','Brushing Machine','Paint Room'];
+      const sourceIndex  = processOrder.map(function(p) { return normalise(p); })
+                                       .indexOf(normalise(sourceProcess || ''));
+
+      // Group by process_stage → defect_type
+      const byProcess = {};
+      let grandTotal  = 0;
+
+      result.data.forEach(function(row) {
+        const stage = String(row.process_stage || '').trim();
+        const stageIndex = processOrder.map(function(p) { return normalise(p); })
+                                       .indexOf(normalise(stage));
+
+        // Exclude stages at or upstream of the current observer
+        if (sourceIndex >= 0 && stageIndex >= 0 && stageIndex <= sourceIndex) return;
+        if (normalise(stage) === 'packing') return;
+
+        const type = String(row.button_label || row.defect_type || '').trim();
+        const qty  = Number(row.reject_qty || 0);
+        if (!qty || !type) return;
+
+        if (!byProcess[stage]) byProcess[stage] = {};
+        byProcess[stage][type] = (byProcess[stage][type] || 0) + qty;
+        grandTotal += qty;
+      });
+
+      renderDraftSignalsBox({
+        total:     grandTotal,
+        byProcess: byProcess,
+      });
+    });
+}
+
+// ----------------------------------------------------------
+// renderDraftSignalsBox
+// Renders the upstream basket display with process subheadings.
+// Example output:
+//   Post Moulder defects
+//     2nd head rough: 3
+//     Roller marks: 1
+//   Sander
+//     Wrong settings: 1
+// ----------------------------------------------------------
+function renderDraftSignalsBox(data) {
+  const box = document.getElementById('jobSignalsBox');
+  if (!box) return;
+
+  const total     = data && data.total ? Number(data.total) : 0;
+  const byProcess = data && data.byProcess ? data.byProcess : {};
+  const stages    = Object.keys(byProcess);
+
+  if (!total || !stages.length) {
+    box.innerHTML = '<div class="jobSignalsTitle">No downstream rejects currently logged</div>';
+    box.classList.remove('hidden');
+    return;
+  }
+
+  // Build grouped display
+  let html = '<div class="jobSignalsTitle">Downstream rejects: ' + total + '</div>';
+
+  stages.forEach(function(stage) {
+    const defects = byProcess[stage];
+    const stageTotal = Object.values(defects).reduce(function(s, v) { return s + v; }, 0);
+    html += '<div class="jobSignalsGroup">';
+    html += '<div class="jobSignalsSubhead">' + escapeHtml(stage) + ' defects (' + stageTotal + ')</div>';
+    Object.keys(defects).forEach(function(defectType) {
+      html += '<div class="jobSignalsLine">' +
+              escapeHtml(defectType) + ': ' + defects[defectType] +
+              '</div>';
+    });
+    html += '</div>';
+  });
+
+  html += '<button type="button" class="jobSignalsAction" onclick="applyDownstreamRejectsToVisualiser(' + total + ')">' +
+          'Apply ' + total + ' to visualiser</button>';
+
+  box.innerHTML = html;
+  box.classList.remove('hidden');
+}
+
+// Override the old renderJobSignalsBox so both call paths
+// (Realtime update and manual check) use the new renderer
+window.renderJobSignalsBox = renderDraftSignalsBox;
+
+// Override checkSignalsForVisualiser to use the new fetcher
+window.checkSignalsForVisualiser = function(sourceProcess) {
+  fetchDraftSignalsFromSupabase(
+    currentJob && currentJob.productionUid || '',
+    sourceProcess
+  );
+};
+
+// ----------------------------------------------------------
+// CSS additions for grouped basket display
+// Injected at runtime so no HTML file changes are needed
+// beyond the script block itself.
+// ----------------------------------------------------------
+(function injectDraftSignalStyles() {
+  const style = document.createElement('style');
+  style.textContent = [
+    '.jobSignalsGroup { margin: 6px 0 10px 0; }',
+    '.jobSignalsSubhead { font-weight: 600; font-size: clamp(15px, 1.4vw, 19px);',
+    '  margin-bottom: 4px; color: #111; border-bottom: 1px solid rgba(0,0,0,.12);',
+    '  padding-bottom: 3px; }',
+    '.jobSignalsLine { font-size: clamp(14px, 1.3vw, 18px); padding: 2px 0 2px 10px;',
+    '  color: #333; }',
+  ].join('\n');
+  document.head.appendChild(style);
+})();
+
+// ----------------------------------------------------------
+// Drain any queued signals on load (handles previous offline taps)
+// ----------------------------------------------------------
+drainDraftSignalQueue();
+
+// ============================================================
+// END TOS-022 patch
+// ============================================================
+
 </script>
 </body>
 </html>
