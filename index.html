@@ -5110,6 +5110,7 @@ function persistentRefreshCurrentView(){
   if(isElementVisible("stockPickerPanel")){fetchStockPickerDashboardDirect(currentTeam,true,true);return}
   if(currentJob){persistentRefreshRestore={view:"job",job:currentJob,mode:currentEntryMode,origin:persistentNavigationOrigin};refreshCurrentTeamDashboard();return}
   fetchTeamDashboard(currentTeam,true,true);
+  fetch(REJECT_LOG_WEB_APP_URL+"?action=prepareTouchUpLabels&_="+Date.now()).catch(function(){});
 }
 function restorePersistentViewAfterRefresh(){
   const restore=persistentRefreshRestore;if(!restore)return;
