@@ -5110,7 +5110,7 @@ function persistentRefreshCurrentView(){
   if(isElementVisible("stockPickerPanel")){fetchStockPickerDashboardDirect(currentTeam,true,true);return}
   if(currentJob){persistentRefreshRestore={view:"job",job:currentJob,mode:currentEntryMode,origin:persistentNavigationOrigin};refreshCurrentTeamDashboard();return}
   fetchTeamDashboard(currentTeam,true,true);
-  fetch(REJECT_LOG_WEB_APP_URL+"?action=prepareTouchUpLabels&_="+Date.now()).catch(function(){});
+  (function(){var s=document.createElement("script");s.src=REJECT_LOG_WEB_APP_URL+"?action=prepareTouchUpLabels&_="+Date.now();s.onerror=function(){document.body.removeChild(s)};s.onload=function(){document.body.removeChild(s)};document.body.appendChild(s);})();
 }
 function restorePersistentViewAfterRefresh(){
   const restore=persistentRefreshRestore;if(!restore)return;
