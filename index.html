@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 <meta
@@ -6110,6 +6110,92 @@ loadPackingQueue = async function(forceFresh, preserveVisibleList) {
 // END TOS-014 patch
 // ============================================================
   
+
+// ============================================================
+// TOS-058 - Schedule-ordered queue overlay (3B-4, gate 3a)
+// Reads schedule_slots for the local date, filters to the
+// current production team (team===currentTeam or "All"),
+// orders by slot_position, renders the queue in that order.
+// Fallback is loud, not silent. Passes original job references
+// (no clone, no mutation of currentTeamDashboard.jobs).
+// Per-slot coat-stage cards and duplicate Run/Coat handling
+// are deferred to gate 3b.
+// ============================================================
+const SCHEDULE_SLOTS_URL = "https://temple-os-psi.vercel.app/api/get-schedule-slots";
+
+function ttLocalDateStr(){
+  const d = new Date();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return d.getFullYear() + "-" + m + "-" + day;
+}
+
+async function fetchScheduleSlotsForToday(){
+  try {
+    const res = await fetch(SCHEDULE_SLOTS_URL + "?date=" + ttLocalDateStr(), { cache:"no-store" });
+    if (!res.ok) return null;
+    const body = await res.json();
+    if (!body || !body.ok || !Array.isArray(body.slots)) return null;
+    return body.slots;
+  } catch (e) { return null; }
+}
+
+function buildScheduledQueue(team, jobs, slots){
+  const mine = slots
+    .filter(function(s){ return s && (s.team === team || s.team === "All"); })
+    .sort(function(a,b){ return Number(a.slot_position||0) - Number(b.slot_position||0); });
+  const byUid = {};
+  (jobs||[]).forEach(function(j){ const u = String(j.productionUid||"").trim(); if (u) byUid[u] = j; });
+  const ordered = [], missing = [];
+  mine.forEach(function(slot){
+    const uid = String(slot.production_uid||"").trim();
+    const job = byUid[uid];
+    if (!job) { missing.push(uid + " (" + (slot.process_variant||"") + ")"); return; }
+    ordered.push(job);
+  });
+  return { ordered: ordered, missing: missing, scheduledCount: mine.length };
+}
+
+async function applyScheduleOverlay(team){
+  if (team !== "A" && team !== "B") return;
+  const dash = currentTeamDashboard;
+  if (!dash || !Array.isArray(dash.jobs)) return;
+  const teamAtFetch = team;
+
+  const slots = await fetchScheduleSlotsForToday();
+  const statusEl = document.getElementById("queueStatus");
+  if (slots === null) {
+    if (statusEl) statusEl.innerText += "  (schedule unavailable - showing saved order)";
+    return;
+  }
+  if (currentTeam !== teamAtFetch) return;
+
+  const result = buildScheduledQueue(team, dash.jobs, slots);
+  if (!result.scheduledCount) {
+    if (statusEl) statusEl.innerText = "Team " + team + " - nothing scheduled today; showing saved queue.";
+    return;
+  }
+
+  const scheduledUids = {};
+  result.ordered.forEach(function(j){ scheduledUids[String(j.productionUid||"").trim()] = true; });
+  const unscheduled = (dash.jobs||[]).filter(function(j){ return !scheduledUids[String(j.productionUid||"").trim()]; }).length;
+
+  renderJobQueue(result.ordered);
+
+  if (statusEl) {
+    let msg = "Team " + team + " - schedule order (" + result.ordered.length + " slot" + (result.ordered.length===1?"":"s") + ").";
+    if (result.missing.length) msg += "  " + result.missing.length + " scheduled not yet in feed: " + result.missing.join(", ") + ".";
+    if (unscheduled) msg += "  " + unscheduled + " feed job" + (unscheduled===1?"":"s") + " not scheduled today.";
+    statusEl.innerText = msg;
+  }
+}
+
+const _ttOrigApplyTeamDashboardData = applyTeamDashboardData;
+applyTeamDashboardData = function(data, fromLocal){
+  _ttOrigApplyTeamDashboardData(data, fromLocal);
+  applyScheduleOverlay(currentTeam);
+};
+
 </script>
 </body>
 </html>
