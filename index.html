@@ -6156,7 +6156,9 @@ function buildScheduledQueue(team, jobs, slots){
   return { ordered: ordered, missing: missing, scheduledCount: mine.length };
 }
 
+const SCHEDULE_OVERLAY_ENABLED = false; // TOS-059: PWA stays on Sheet feed until native scheduler is stabilised
 async function applyScheduleOverlay(team){
+  if (!SCHEDULE_OVERLAY_ENABLED) return;
   if (team !== "A" && team !== "B") return;
   const dash = currentTeamDashboard;
   if (!dash || !Array.isArray(dash.jobs)) return;
