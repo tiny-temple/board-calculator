@@ -1,19 +1,14 @@
-const CACHE_NAME = "board-calculator-v9";
-
-const ASSETS = [
-  "./",
-  "./index.html",
-  "./manifest.json"
-];
-
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
+﻿// Kill-switch worker — supersedes board-calculator-v9 cache-first worker.
+// Unregisters itself, deletes all caches, reloads open clients.
+self.addEventListener('install', event => {
+  self.skipWaiting();
 });
-
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request).then(res => res || fetch(event.request))
-  );
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    await self.registration.unregister();
+    const clients = await self.clients.matchAll({ type: 'window' });
+    clients.forEach(c => c.navigate(c.url));
+  })());
 });
