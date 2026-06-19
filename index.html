@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta
@@ -3302,9 +3302,8 @@ function isFireTreatmentActive(jobOrValue){
 
   if(!norm)return false;
   if(/^(no|none|no fire treatment|no fire treated|not fire treated)$/.test(norm))return false;
-  if(/^(yes|y|true)$/.test(norm))return true;
 
-  return /(fire|fr|euroclass|class b|nordtreat)/i.test(text);
+  return true;
 }
 function getFireTreatmentDisplay(job){
   const raw=String(job&&job.fireTreatment||"").trim();
