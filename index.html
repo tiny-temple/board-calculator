@@ -3273,6 +3273,15 @@ function renderJobQueue(jobs){
     }else{
       metaRows='<div class="queueMetaRow"><span class="queueMetaItem"><b>Qty</b><span>'+escapeHtml(job.quantity||"")+'</span></span><span class="queueMetaItem"><b>Length</b><span>'+escapeHtml(job.length||"")+'m</span></span><span class="queueMetaItem"><b>Species</b><span>'+escapeHtml(job.species||"")+'</span></span><span class="queueMetaItem"><b>Size</b><span>'+escapeHtml(job.finishedSize||"")+'</span></span></div>'+
         '<div class="queueMetaRow"><span class="queueMetaItem"><b>Profile</b><span>'+escapeHtml(job.profile||"")+'</span></span></div>';
+      // Run-variant paint jobs (1st coats) need paint qty + coating visible too.
+      // The recoat branch surfaces these; this mirrors them for Run.
+      if (isPaintRoomRelevantJob(job)) {
+        const paintCell = job.paintQty ? '<span class="queueMetaItem"><b>Paint</b><span>'+escapeHtml(job.paintQty)+'</span></span>' : '';
+        const coatingCell = job.coating ? '<span class="queueMetaItem"><b>Coating</b><span>'+escapeHtml(job.coating)+'</span></span>' : '';
+        if (paintCell || coatingCell) {
+          metaRows += '<div class="queueMetaRow">'+paintCell+coatingCell+'</div>';
+        }
+      }
     }
     if(packText){
       metaRows+='<div class="queueMetaRow"><span class="queueMetaItem wide"><b>Packs</b><span>'+escapeHtml(packText)+'</span></span></div>';
