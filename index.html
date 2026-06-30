@@ -6235,6 +6235,15 @@ async function applyScheduleOverlay(team){
     const base = sheetJob ? JSON.parse(JSON.stringify(sheetJob)) : {};
     base.productionUid = uid;
     base.processVariant = slot.process_variant || base.processVariant || "";
+    // TOS-193 Gate 2b followup: bridge schedule_slots vocabulary to Sheet vocabulary
+    // for paint-room jobs so configureProcessChecks finds matching Sheet rows.
+    // Schedule says "Run" / "2nd Coat" / "3rd Coat"; Sheet uses "1st Coat" / "Recoat".
+    // Without this translation, paint-room cards show "No setup checks configured".
+    if (isPaintRoomRelevantJob(base)) {
+      const sv = (base.processVariant || "").toLowerCase().trim();
+      if (sv === "run") base.processVariant = "1st Coat";
+      else if (sv === "2nd coat" || sv === "3rd coat") base.processVariant = "Recoat";
+    }
     base.preProductionWarning = slot.pre_production_warning || "OK";
     base.packs = mappedPacks;
     // Override card-displayed metadata with endpoint values (canonical from jobs table)
