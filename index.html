@@ -3260,7 +3260,8 @@ function renderJobQueue(jobs){
     const frActive=isFireTreatmentActive(job);
     const frBadge=frActive?'<span class="frTreatmentBadge">FR TREATMENT</span>':"";
     const variantBadge=variant?(recoat?'<span class="recoatBadge">RECOAT</span>':(normalise(variant).indexOf("fr treatment")!==-1?'<span class="frTreatmentBadge">FR TREATMENT</span>':'<span class="queueVariantBadge">'+escapeHtml(variant.toUpperCase())+'</span>')):"";
-    const badges=variantBadge+(frActive&&normalise(variant).indexOf("fr treatment")===-1?frBadge:"")+(completed?'<span class="jobCompleteBadge">PAINT LOGGED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");
+    const noCoverBadge=(job.preProductionWarning&&job.preProductionWarning!=="OK")?'<span style="background:#b00020;color:#fff;font-weight:700;padding:3px 8px;border-radius:4px;font-size:12px;letter-spacing:.05em;text-transform:uppercase">'+escapeHtml(job.preProductionWarning==="NO_COVER"?"NO STOCK COVER":job.preProductionWarning)+'</span>':"";
+    const badges=noCoverBadge+variantBadge+(frActive&&normalise(variant).indexOf("fr treatment")===-1?frBadge:"")+(completed?'<span class="jobCompleteBadge">PAINT LOGGED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");
     const numberText=escapeHtml(job.jobNo||String(index+1));
     let metaRows="";
     if(isFrTreatmentStage(job)){
@@ -6155,38 +6156,104 @@ function buildScheduledQueue(team, jobs, slots){
   return { ordered: ordered, missing: missing, scheduledCount: mine.length };
 }
 
-const SCHEDULE_OVERLAY_ENABLED = true; // TOS-059: PWA stays on Sheet feed until native scheduler is stabilised 29.06.2026 TOS-059: flip schedule overlay to true
+const SCHEDULE_OVERLAY_ENABLED = true; // TOS-193 Gate 2b: PWA queue from Supabase via /api/get-team-queue (replaces Sheet-driven overlay)
+const TEAM_QUEUE_API_BASE = "https://temple-os-psi.vercel.app/api/get-team-queue";
+
+function _ttIsoDateLocal(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y+"-"+m+"-"+day;
+}
+
 async function applyScheduleOverlay(team){
   if (!SCHEDULE_OVERLAY_ENABLED) return;
   if (team !== "A" && team !== "B") return;
   const dash = currentTeamDashboard;
   if (!dash || !Array.isArray(dash.jobs)) return;
   const teamAtFetch = team;
-
-  const slots = await fetchScheduleSlotsForToday();
   const statusEl = document.getElementById("queueStatus");
-  if (slots === null) {
-    if (statusEl) statusEl.innerText += "  (schedule unavailable - showing saved order)";
+  const dateStr = _ttIsoDateLocal();
+
+  let endpointJobs = null;
+  try {
+    const resp = await fetch(TEAM_QUEUE_API_BASE + "?team=" + encodeURIComponent(team) + "&date=" + encodeURIComponent(dateStr));
+    if (resp.ok) {
+      const payload = await resp.json();
+      if (payload && payload.ok && Array.isArray(payload.jobs)) endpointJobs = payload.jobs;
+    }
+  } catch (e) {
+    if (statusEl) statusEl.innerText += "  (queue endpoint failed - showing saved order)";
+    return;
+  }
+  if (endpointJobs === null) {
+    if (statusEl) statusEl.innerText += "  (queue endpoint unavailable - showing saved order)";
     return;
   }
   if (currentTeam !== teamAtFetch) return;
 
-  const result = buildScheduledQueue(team, dash.jobs, slots);
-  if (!result.scheduledCount) {
+  if (!endpointJobs.length){
     if (statusEl) statusEl.innerText = "Team " + team + " - nothing scheduled today; showing saved queue.";
     return;
   }
 
-  const scheduledUids = {};
-  result.ordered.forEach(function(j){ scheduledUids[String(j.productionUid||"").trim()] = true; });
-  const unscheduled = (dash.jobs||[]).filter(function(j){ return !scheduledUids[String(j.productionUid||"").trim()]; }).length;
+  // Build PUID -> Sheet job lookup so we can merge rich metadata (defectConfig, processFieldValues, fireTreatment).
+  const sheetByPuid = {};
+  (dash.jobs || []).forEach(function(j){
+    const uid = String(j.productionUid || "").trim();
+    if (uid) sheetByPuid[uid] = j;
+  });
 
-  renderJobQueue(result.ordered);
+  const merged = [];
+  const missingFromSheet = [];
+  let noCoverCount = 0;
+
+  endpointJobs.forEach(function(slot, i){
+    const uid = String(slot.production_uid || "").trim();
+    const sheetJob = sheetByPuid[uid] || null;
+    if (!sheetJob) missingFromSheet.push(uid + " (" + (slot.process_variant || "Run") + ")");
+    const mappedPacks = (slot.packs || []).map(function(p){
+      return {
+        packId: p.pack_id,
+        location: p.location || "",
+        rawKey: "",
+        packKey: "",
+        packOrder: 1,
+        stockCheck: p.reservation_status === "RESERVED_FULL" ? "OK" : (p.reservation_status || "UNKNOWN")
+      };
+    });
+    const base = sheetJob ? JSON.parse(JSON.stringify(sheetJob)) : {};
+    base.productionUid = uid;
+    base.processVariant = slot.process_variant || base.processVariant || "";
+    base.preProductionWarning = slot.pre_production_warning || "OK";
+    base.packs = mappedPacks;
+    // Override card-displayed metadata with endpoint values (canonical from jobs table)
+    if (slot.client) base.client = slot.client;
+    if (slot.species) base.species = slot.species;
+    if (slot.finished_size) base.finishedSize = slot.finished_size;
+    if (slot.raw_length != null) base.length = String(slot.raw_length);
+    if (slot.finished_qty != null) base.quantity = String(slot.finished_qty);
+    if (slot.profile) base.profile = slot.profile;
+    if (slot.coating) base.coating = slot.coating;
+    if (slot.linear_metres != null) base.linearMetres = String(slot.linear_metres);
+    base.jobNo = String(i+1);
+    if (!base.sheetJob) base.sheetJob = String(i+1) + " " + (slot.team === "All" ? "All" : "Team " + slot.team);
+    if (base.preProductionWarning === "NO_COVER") noCoverCount++;
+    merged.push(base);
+  });
+
+  const scheduledUids = {};
+  endpointJobs.forEach(function(s){ scheduledUids[String(s.production_uid||"").trim()] = true; });
+  const unscheduled = (dash.jobs || []).filter(function(j){ return !scheduledUids[String(j.productionUid||"").trim()]; }).length;
+
+  renderJobQueue(merged);
 
   if (statusEl) {
-    let msg = "Team " + team + " - schedule order (" + result.ordered.length + " slot" + (result.ordered.length===1?"":"s") + ").";
-    if (result.missing.length) msg += "  " + result.missing.length + " scheduled not yet in feed: " + result.missing.join(", ") + ".";
+    let msg = "Team " + team + " - " + merged.length + " slot" + (merged.length===1?"":"s") + " from Supabase schedule.";
+    if (missingFromSheet.length) msg += "  " + missingFromSheet.length + " scheduled PUID" + (missingFromSheet.length===1?"":"s") + " not in Sheet feed: " + missingFromSheet.join(", ") + ".";
     if (unscheduled) msg += "  " + unscheduled + " feed job" + (unscheduled===1?"":"s") + " not scheduled today.";
+    if (noCoverCount) msg += "  " + noCoverCount + " NO STOCK COVER - resolve in Allocation Manager before production.";
     statusEl.innerText = msg;
   }
 }
