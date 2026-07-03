@@ -1666,6 +1666,195 @@ const REJECT_LOG_WEB_APP_URL="https://script.google.com/macros/s/AKfycbw2A9nlUMD
 const REJECT_SUBMIT_URL="https://temple-os-psi.vercel.app/api/reject-events";
 const SUPABASE_URL="https://lscprasmduuhjhzzfaqo.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_03pdCUl9py28cYvahGJTZg_0Xm8196Q";
+
+// ============================================================================
+// TOS-227: Supabase-first read path with Apps Script fallback.
+//
+// The PWA's three read actions (getQueue, getJobDetails, getPackingQueue) now
+// try the temple-os Supabase-backed endpoints first, falling back to the legacy
+// Apps Script Web App on any failure. This removes the stale-sheet data problem
+// (e.g. pack IDs showing "NO FULL ALLOCATION" when Supabase has the real pack)
+// and the multi-second Apps Script latency, while keeping Apps Script as a safety
+// net during the parallel-run period.
+//
+// Fallback triggers (Q2=c, most defensive):
+//   1. HTTP error (non-200 response)
+//   2. Network failure
+//   3. Timeout (Vercel doesn't respond within PWA_FETCH_TIMEOUT_MS)
+//   4. Malformed response (missing ok:true)
+// Any of these → fall through to the known-good Apps Script JSONP path.
+//
+// Observability: every request logs which path served it (vercel | appsscript |
+// appsscript-fallback) plus timing, so the parallel-run phase can be monitored
+// from the browser console. Search console for "[TOS-227]".
+//
+// This is an interim bridge. The PWA will be rebuilt inside temple-os; this
+// wrapper and the board-calculator repo are legacy artifacts.
+// ============================================================================
+
+const TEMPLE_OS_API = "https://temple-os-psi.vercel.app/api";
+const PWA_FETCH_TIMEOUT_MS = 5000;
+
+// Map a legacy Apps Script action + params to a temple-os endpoint URL.
+// Returns null if the action has no Supabase endpoint yet (caller then uses
+// Apps Script directly — e.g. write actions, getSubmissionStatus).
+function templeOsEndpointFor(action, params) {
+  const p = params || {};
+  switch (action) {
+    case "getQueue": {
+      const team = encodeURIComponent(p.team || "");
+      return `${TEMPLE_OS_API}/pwa-team-queue?team=${team}`;
+    }
+    case "getJobDetails": {
+      // The Supabase endpoint keys on production_uid (sheetJob resolution was
+      // intentionally not carried over — the cutover retires sheetJob).
+      const uid = encodeURIComponent(p.production_uid || "");
+      if (!uid) return null; // no production_uid → cannot use Supabase path
+      return `${TEMPLE_OS_API}/pwa-job-detail?production_uid=${uid}`;
+    }
+    case "getPackingQueue":
+      return `${TEMPLE_OS_API}/pwa-packing-queue`;
+    default:
+      return null; // action has no Supabase endpoint — use Apps Script
+  }
+}
+
+// Build the legacy Apps Script JSONP URL for an action + params.
+// Mirrors the existing script.src construction used throughout the PWA.
+function appsScriptUrlFor(action, params, callbackName) {
+  const p = params || {};
+  let url = `${REJECT_LOG_WEB_APP_URL}?action=${encodeURIComponent(action)}`;
+  // Append known params in the same order/shape the PWA used before.
+  if (p.team != null) url += `&team=${encodeURIComponent(p.team)}`;
+  if (p.sheetJob != null) url += `&sheetJob=${encodeURIComponent(p.sheetJob)}`;
+  if (p.fresh) url += `&fresh=1`;
+  url += `&callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
+  return url;
+}
+
+// Execute the Apps Script JSONP call, returning a Promise that resolves with the
+// parsed response object (or rejects on script load error).
+function appsScriptJsonp(action, params) {
+  return new Promise((resolve, reject) => {
+    const callbackName =
+      "pwaFallbackCb_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
+    let settled = false;
+
+    window[callbackName] = function (data) {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(data);
+    };
+
+    const script = document.createElement("script");
+    script.src = appsScriptUrlFor(action, params, callbackName);
+    script.onerror = function () {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error("Apps Script JSONP load failed"));
+    };
+
+    function cleanup() {
+      try {
+        delete window[callbackName];
+      } catch (e) {
+        window[callbackName] = undefined;
+      }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    document.body.appendChild(script);
+  });
+}
+
+// Attempt the temple-os fetch with a timeout. Resolves with parsed JSON on a
+// valid ok:true response; rejects on HTTP error, network failure, timeout, or
+// malformed body (so the caller falls back to Apps Script).
+function templeOsFetch(url) {
+  return new Promise((resolve, reject) => {
+    const controller =
+      typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = setTimeout(() => {
+      if (controller) controller.abort();
+      reject(new Error("temple-os fetch timeout"));
+    }, PWA_FETCH_TIMEOUT_MS);
+
+    fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller ? controller.signal : undefined,
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("temple-os HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        clearTimeout(timer);
+        if (!data || data.ok !== true) {
+          throw new Error("temple-os malformed response");
+        }
+        resolve(data);
+      })
+      .catch(function (err) {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Public entry point.
+//
+// pwaFetchWithFallback(action, params) → Promise<responseObject>
+//
+// Tries temple-os first (if the action has a Supabase endpoint), falls back to
+// Apps Script on any failure. Logs which path served the request.
+//
+// The returned object is the same shape the PWA already consumes:
+//   getQueue / getPackingQueue → { ok, jobs: [...] }
+//   getJobDetails              → { ok, job: {...} }
+// Callers destructure .jobs or .job exactly as before.
+// ---------------------------------------------------------------------------
+function pwaFetchWithFallback(action, params) {
+  const started = Date.now();
+  const templeUrl = templeOsEndpointFor(action, params);
+
+  // No Supabase endpoint for this action → straight to Apps Script.
+  if (!templeUrl) {
+    return appsScriptJsonp(action, params).then(function (data) {
+      console.log(
+        `[TOS-227] ${action} served by appsscript (no supabase endpoint) in ${
+          Date.now() - started
+        }ms`,
+      );
+      return data;
+    });
+  }
+
+  return templeOsFetch(templeUrl)
+    .then(function (data) {
+      console.log(
+        `[TOS-227] ${action} served by vercel in ${Date.now() - started}ms`,
+      );
+      return data;
+    })
+    .catch(function (vercelErr) {
+      console.warn(
+        `[TOS-227] ${action} vercel failed (${vercelErr.message}) — falling back to appsscript`,
+      );
+      return appsScriptJsonp(action, params).then(function (data) {
+        console.log(
+          `[TOS-227] ${action} served by appsscript-fallback in ${
+            Date.now() - started
+          }ms`,
+        );
+        return data;
+      });
+    });
+}
+
 const urlParams=new URLSearchParams(window.location.search);let jobContext={productionUid:urlParams.get("uid")||urlParams.get("productionUid")||"",productionRow:urlParams.get("row")||"",jobNo:urlParams.get("jobNo")||"",sheetJob:urlParams.get("sheetJob")||urlParams.get("job")||"",packId:urlParams.get("packId")||""};
 const ENTRY_MODES={pack_visualiser:{label:"Pack Visualiser",menuLabel:"Pack Visualiser",processStage:"Pre Process",rejectColumn:"preProcess",usesVisualiser:true,reminderKey:"packVisualiserReminder",showSetup:false},resaw_rejects:{label:"Log Resaw Rejects",menuLabel:"Resaw",processStage:"Resaw",rejectColumn:"machine",usesVisualiser:false,reminderKey:"resawReminder",showSetup:true},moulder_rejects:{label:"Log Moulder Rejects",menuLabel:"Moulder",processStage:"Moulder",rejectColumn:"machine",usesVisualiser:false,reminderKey:"moulderReminder",showSetup:true},charring_machine_rejects:{label:"Log Charring Machine Rejects",menuLabel:"Charring Machine",processStage:"Charring Machine",rejectColumn:"machine",usesVisualiser:false,reminderKey:"charringMachineReminder",showSetup:true},sander_rejects:{label:"Log Sander Rejects",menuLabel:"Sander",processStage:"Sander",rejectColumn:"machine",usesVisualiser:false,reminderKey:"sanderReminder",showSetup:true},brushing_machine_rejects:{label:"Log Brushing Machine Rejects",menuLabel:"Brushing Machine",processStage:"Brushing Machine",rejectColumn:"machine",usesVisualiser:false,reminderKey:"brushingMachineReminder",showSetup:true},paint_room_rejects:{label:"Log Paint Room Rejects",menuLabel:"Paint Room",processStage:"Paint Room",rejectColumn:"machine",usesVisualiser:false,reminderKey:"paintRoomReminder",showSetup:true},packing_rejects:{label:"Log Packing Rejects",menuLabel:"Packing",processStage:"Packing",rejectColumn:"machine",usesVisualiser:false,reminderKey:"packingReminder",showSetup:true}};
 const PROCESS_MENU_ORDER=["pack_visualiser","resaw_rejects","moulder_rejects","charring_machine_rejects","sander_rejects","brushing_machine_rejects","paint_room_rejects"];
@@ -1927,12 +2116,9 @@ function fetchJobDetailsForCache(job,onDone,silent,forceLive){
 
   jobDetailRequests[cacheKey]=onDone?[onDone]:[];
 
-  const callbackName="pwaJobDetailsCacheCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
-  window[callbackName]=function(data){
+  const handleData=function(data){
     const callbacks=jobDetailRequests[cacheKey]||[];
     delete jobDetailRequests[cacheKey];
-    delete window[callbackName];
-
     if(data&&data.ok&&data.job){
       saveJobDetailsToLocalCache(job,data);
       const merged=mergeJobDetails(job,data.job);
@@ -1940,19 +2126,15 @@ function fetchJobDetailsForCache(job,onDone,silent,forceLive){
       callbacks.forEach(cb=>{if(cb)cb(data)});
       return;
     }
-
     callbacks.forEach(cb=>{if(cb)cb(null)});
   };
 
-  const script=document.createElement("script");
-  script.src=REJECT_LOG_WEB_APP_URL+"?action=getJobDetails&team="+encodeURIComponent(currentTeam||"")+"&sheetJob="+encodeURIComponent(sheetJob)+(forceLive?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
-  script.onerror=function(){
-    const callbacks=jobDetailRequests[cacheKey]||[];
-    delete jobDetailRequests[cacheKey];
-    delete window[callbackName];
-    callbacks.forEach(cb=>{if(cb)cb(null)});
-  };
-  document.body.appendChild(script);
+  pwaFetchWithFallback("getJobDetails",{
+    production_uid:job&&job.productionUid||"",
+    sheetJob:sheetJob,
+    team:currentTeam||"",
+    fresh:forceLive?1:0
+  }).then(handleData).catch(function(){handleData(null)});
 }
 
 function getQueueJobIndex(job){
@@ -2297,9 +2479,8 @@ function fetchTeamDashboard(team,forceFresh,preserveVisibleList){
   if(retainShown)ttSetListRefreshState("queue","refreshing");
   document.getElementById("queueStatus").innerText=retainShown?"Refreshing Team "+team+" queue — current jobs are not confirmed current.":(forceFresh?"Refreshing Team "+team+" queue from workbook. Please wait...":"Loading Team "+team+" queue...");
   setQueueSyncIndicator("loading",forceFresh?"Refreshing":"Loading","Team "+team+" queue");
-  const callbackName="pwaQueueCallback_"+Date.now();
-  window[callbackName]=function(data){
-    delete window[callbackName];
+  // TOS-227: route through Supabase-first wrapper (falls back to Apps Script).
+  const handleQueueData=function(data){
     if(!data||!data.ok){
       if(retainShown)ttSetListRefreshState("queue","failed");
       document.getElementById("queueStatus").innerText=retainShown?"Refresh failed — shown jobs are stale. Tap refresh to retry.":"Could not load queue.";
@@ -2310,15 +2491,9 @@ function fetchTeamDashboard(team,forceFresh,preserveVisibleList){
     saveTeamDashboardToLocalCache(team,data);
     applyTeamDashboardData(data,false);
   };
-  const script=document.createElement("script");
-  script.src=REJECT_LOG_WEB_APP_URL+"?action=getQueue&team="+encodeURIComponent(team)+(forceFresh?"&fresh=1":"")+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
-  script.onerror=function(){
-    if(retainShown)ttSetListRefreshState("queue","failed");
-    document.getElementById("queueStatus").innerText=retainShown?"Refresh failed — shown jobs are stale. Tap refresh to retry.":"Queue load failed.";
-    setQueueSyncIndicator("error","Load failed","Try refresh");
-    delete window[callbackName];
-  };
-  document.body.appendChild(script);
+  pwaFetchWithFallback("getQueue",{team:team,fresh:forceFresh?1:0})
+    .then(handleQueueData)
+    .catch(function(){handleQueueData(null)});
 }
 
 function refreshCurrentTeamDashboard(){hidePreloadPopup();hideJobSignalsBox();if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;try{localStorage.removeItem(getTeamDashboardCacheKey(currentTeam));clearJobDetailCacheForTeam(currentTeam)}catch(err){}clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerButtonWrap").classList.add("hidden");document.getElementById("jobQueue").innerHTML="";document.getElementById("queueStatus").innerText="Cleared saved Team "+currentTeam+" queue. Refreshing from workbook...";updateJobContextBar();fetchTeamDashboard(currentTeam,true)}
@@ -2775,9 +2950,8 @@ function loadPackingQueue(forceFresh,preserveVisibleList){
     document.getElementById("packingQueueStatus").innerText=forceFresh?"Refreshing Packing Queue...":"Loading Packing Queue...";
   }
   updateJobContextBar();updateUI();updatePackingStatusOutboxUi();retryPackingStatusOutbox(true);retryAccessoryPickOutbox(true);
-  const callbackName="pwaPackingQueueCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
-  window[callbackName]=function(data){
-    delete window[callbackName];
+  // TOS-227: route through Supabase-first wrapper (falls back to Apps Script).
+  const handlePackingData=function(data){
     if(!data||!data.ok){
       if(retainShown)ttSetListRefreshState("packing","failed");
       document.getElementById("packingQueueStatus").innerText=retainShown?"Refresh failed — shown project packs are stale. Tap refresh to retry.":(cached?"Saved Packing Queue shown — live refresh failed.":(data&&data.error?"Could not load Packing Queue: "+data.error:"Could not load Packing Queue."));
@@ -2787,10 +2961,9 @@ function loadPackingQueue(forceFresh,preserveVisibleList){
     savePackingQueueToLocalCache(data);
     applyPackingQueueData(data,false);
   };
-  const script=document.createElement("script");
-  script.src=REJECT_LOG_WEB_APP_URL+"?action=getPackingQueue&fresh=1&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
-  script.onerror=function(){delete window[callbackName];if(retainShown)ttSetListRefreshState("packing","failed");document.getElementById("packingQueueStatus").innerText=retainShown?"Refresh failed — shown project packs are stale. Tap refresh to retry.":(cached?"Saved Packing Queue shown — live refresh failed.":"Packing Queue load failed.");};
-  document.body.appendChild(script);
+  pwaFetchWithFallback("getPackingQueue",{fresh:1})
+    .then(handlePackingData)
+    .catch(function(){handlePackingData(null)});
 }
 function packingStatusIsSatisfied(status){
   const value=normalise(status||"");
