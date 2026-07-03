@@ -6441,11 +6441,14 @@ async function applyScheduleOverlay(team){
   renderJobQueue(merged);
 
   if (statusEl) {
-    let msg = "Team " + team + " - " + merged.length + " slot" + (merged.length===1?"":"s") + " from Supabase schedule.";
-    if (missingFromSheet.length) msg += "  " + missingFromSheet.length + " scheduled PUID" + (missingFromSheet.length===1?"":"s") + " not in Sheet feed: " + missingFromSheet.join(", ") + ".";
-    if (unscheduled) msg += "  " + unscheduled + " feed job" + (unscheduled===1?"":"s") + " not scheduled today.";
-    if (noCoverCount) msg += "  " + noCoverCount + " NO STOCK COVER - resolve in Allocation Manager before production.";
-    statusEl.innerText = msg;
+    // TOS-227 cleanup: suppress developer diagnostics (slot counts, raw PUID
+    // lists, feed reconciliation) on the operator-facing screen. Keep only the
+    // actionable NO STOCK COVER alert; show nothing when there is no issue.
+    if (noCoverCount) {
+      statusEl.innerText = noCoverCount + " NO STOCK COVER - resolve in Allocation Manager before production.";
+    } else {
+      statusEl.innerText = "";
+    }
   }
 }
 
