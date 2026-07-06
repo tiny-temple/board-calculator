@@ -4070,7 +4070,16 @@ function findJobFromOverviewRow(row){
   const rowSheet=String(row.sheetJob||"").trim();
   const rowJobNo=String(row.jobNo||"").trim();
 
-  let job=jobs.find(j=>String(j.sheetJob||"").trim()===rowSheet);
+  // TOS-233 Step 3: match on productionUid FIRST. Supabase-migrated jobs have an
+  // empty sheetJob, so matching sheetJob==="" matched EVERY migrated job and
+  // returned the first (all overview cards opened the first job). productionUid is
+  // the Supabase-side identity and is carried on the row.
+  const rowUid=String(row.productionUid||"").trim();
+  if(rowUid){
+    const jobByUid=jobs.find(j=>String(j.productionUid||"").trim()===rowUid);
+    if(jobByUid)return jobByUid;
+  }
+  let job=rowSheet?jobs.find(j=>String(j.sheetJob||"").trim()===rowSheet):null;
   if(job)return job;
 
   job=jobs.find(j=>String(j.helperSheetName||"").trim()===rowSheet);
