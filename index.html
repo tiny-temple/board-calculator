@@ -3636,6 +3636,21 @@ function findCoatingRackRule(job){
   return sizeRules.find(rule=>coatingRuleNorm(rule.coatingMatch)==="*")||null;
 }
 function getCoatingRackInfo(job){
+  // TOS-233 Step 3: prefer the server-computed shelf/rack values (width-banded
+  // function, handles custom sizes, authoritative per TOS-104). The endpoint
+  // returns piecesPerShelf/shelvesRequired/racksRequired on the job; use them
+  // directly and skip the legacy client-side rule-table lookup (which returned
+  // "No rack rule found" for sizes it didn't list). Fall back to the client rule
+  // only when the server values are absent (offline / legacy feed).
+  if(job&&(job.piecesPerShelf!==""&&job.piecesPerShelf!=null)){
+    return {
+      hasRule:true,
+      piecesPerShelf:job.piecesPerShelf,
+      shelvesRequired:job.shelvesRequired,
+      racksRequired:job.racksRequired,
+      ruleNote:""
+    };
+  }
   const rule=findCoatingRackRule(job);
   const qty=Number(String(job.quantity||"").replace(/[^0-9.]/g,""))||0;
 
