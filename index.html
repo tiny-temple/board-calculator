@@ -2017,6 +2017,11 @@ function getJobDetailsCacheKey(team,job){
 }
 
 function getJobDetailsFromLocalCache(job){
+  // TOS-233: job detail is no longer cached to localStorage (always-fresh from
+  // Supabase; mill wifi is reliable). Return null so callers fetch fresh, never
+  // serve a stale-shaped cached detail. Signature kept so callers are unchanged.
+  return null;
+  /* eslint-disable no-unreachable */
   const key=getJobDetailsCacheKey(currentTeam,job);
   if(!key)return null;
   try{
@@ -2031,10 +2036,9 @@ function getJobDetailsFromLocalCache(job){
 }
 
 function saveJobDetailsToLocalCache(job,data){
-  if(!data||!data.ok||!data.job)return;
-  try{
-    localStorage.setItem(getJobDetailsCacheKey(currentTeam,job),JSON.stringify({savedAt:new Date().toISOString(),data:data}));
-  }catch(err){}
+  // TOS-233: job detail is no longer cached to localStorage (always-fresh). No-op
+  // kept so callers are unchanged; nothing is written, so nothing goes stale.
+  return;
 }
 
 function clearJobDetailCacheForTeam(team){
@@ -2269,7 +2273,7 @@ function markJobCompleteIfFinalProcess(payload){
   return false;
 }
 
-function saveTeamDashboardToLocalCache(team,data){if(!team||!data||!data.ok)return;try{applyCompletedStateToDashboard(data);localStorage.setItem(getTeamDashboardCacheKey(team),JSON.stringify({savedAt:new Date().toISOString(),data:data}))}catch(err){}}
+function saveTeamDashboardToLocalCache(team,data){if(!team||!data||!data.ok)return;try{applyCompletedStateToDashboard(data)}catch(err){}}/* TOS-233: queue is no longer cached to localStorage (mill wifi is reliable, Supabase is fast — always fetch fresh, eliminating the stale-cache bug class). Completion overlay retained. */
 
 function getTeamDashboardFromLocalCache(team){try{const raw=localStorage.getItem(getTeamDashboardCacheKey(team));if(!raw)return null;const item=JSON.parse(raw);if(!item||!item.data||!item.data.ok)return null;return item}catch(err){return null}}
 function getDashboardTimeText(dataOrItem){const stamp=(dataOrItem&&dataOrItem.savedAt)||(dataOrItem&&dataOrItem.generatedAt)||(dataOrItem&&dataOrItem.data&&dataOrItem.data.generatedAt)||"";if(!stamp)return"";const d=new Date(stamp);if(isNaN(d.getTime()))return stamp;return d.toLocaleString()}
@@ -2511,7 +2515,7 @@ function fetchTeamDashboard(team,forceFresh,preserveVisibleList){
 }
 
 function refreshCurrentTeamDashboard(){hidePreloadPopup();hideJobSignalsBox();if(!currentTeam){showProcessWarning("Select Team A or Team B first.");return}hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentJob=null;currentEntryMode="";currentProcessSetup={};currentTeamDashboard=null;step=0;try{localStorage.removeItem(getTeamDashboardCacheKey(currentTeam));clearJobDetailCacheForTeam(currentTeam)}catch(err){}clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");document.getElementById("stockPickerButtonWrap").classList.add("hidden");document.getElementById("jobQueue").innerHTML="";document.getElementById("queueStatus").innerText="Cleared saved Team "+currentTeam+" queue. Refreshing from workbook...";updateJobContextBar();fetchTeamDashboard(currentTeam,true)}
-function getCurrentTeamDashboardOrCache(){if(currentTeamDashboard&&currentTeamDashboard.ok){applyCompletedStateToDashboard(currentTeamDashboard);return currentTeamDashboard}const cached=getTeamDashboardFromLocalCache(currentTeam);if(cached&&cached.data){currentTeamDashboard=cached.data;applyCompletedStateToDashboard(currentTeamDashboard);return cached.data}return null}
+function getCurrentTeamDashboardOrCache(){/* TOS-233: in-memory dashboard only — no localStorage fallback (always-fresh; null forces a re-fetch rather than serving stale data). */if(currentTeamDashboard&&currentTeamDashboard.ok){applyCompletedStateToDashboard(currentTeamDashboard);return currentTeamDashboard}return null}
 
 
 function hidePackingQueueScreen(){const panel=document.getElementById("packingQueuePanel");if(panel)panel.classList.add("hidden")}
@@ -5517,9 +5521,17 @@ document.getElementById("simplePackId").addEventListener("change",function(){if(
   // completion state is unchanged so stays v1.76. A single global version check
   // would wrongly wipe whichever caches don't share that version. When bumping a
   // cache tag, update its entry here in lockstep.
+  // TOS-233: queue and job-detail are no longer cached to localStorage (always-
+  // fresh from Supabase; reliable mill wifi). Purge ANY existing ttTeamQueue /
+  // ttJobDetails keys unconditionally — a one-time cleanup of stale data already in
+  // operators' browsers. Completion state (ttJobComplete) is still local operator
+  // state, so keep it on its own version check.
+  ['ttTeamQueue','ttJobDetails'].forEach(function(prefix){
+    Object.keys(localStorage).forEach(function(k){
+      if(k.startsWith(prefix))localStorage.removeItem(k);
+    });
+  });
   const currentByPrefix={
-    'ttTeamQueue':'v2.10',
-    'ttJobDetails':'v2.10',
     'ttJobComplete':'v1.76'
   };
   Object.keys(currentByPrefix).forEach(function(prefix){
