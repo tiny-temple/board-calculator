@@ -1940,7 +1940,11 @@ function getProcessAvailability(mode){
   }
 
   if(mode==="paint_room_rejects"){
-    if(!coating||coating==="uncoated"||coating==="no coating"||coating==="none"){
+    // TOS-227 FR unblock: FR-treated jobs (e.g. HR Prof) go through the paint room
+    // for FR passes but carry coating="Uncoated" — recognise fireTreatment so the
+    // Paint Room tile enables for them, while still disabling for genuinely
+    // uncoated non-FR jobs.
+    if((!coating||coating==="uncoated"||coating==="no coating"||coating==="none")&&!fire){
       return{available:false,reason:"No coating shown"};
     }
   }
