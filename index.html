@@ -1947,9 +1947,9 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v2.00|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v2.10|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
-const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v2.00|";
+const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v2.10|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
 
 function completionUidSheetKeyForParts(team,productionUid,sheetJob){
@@ -5470,11 +5470,20 @@ function getCurrentJobDataForPayload(){if(!currentJob)return{};return{production
 document.getElementById("operatorId").addEventListener("change",()=>updateOperatorGuestVisibility());
 document.getElementById("simplePackId").addEventListener("change",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser"){document.getElementById("saveStatus").innerText="";jobContext.packId=this.value;updateJobContextBar();restoreRejectDraft()}});document.getElementById("rejectNote").addEventListener("input",function(){if(currentEntryMode&&currentEntryMode!=="pack_visualiser")saveRejectDraft()});
  function purgeStaleLocalStorage(){
-  const currentVersion="2.0";
-  const prefixes=['ttTeamQueue','ttJobDetails','ttJobComplete'];
-  prefixes.forEach(function(prefix){
+  // TOS-227: per-prefix version matching. Each cache versions independently —
+  // queue and job-detail changed shape (coating pass-cards) so bumped to v2.10;
+  // completion state is unchanged so stays v1.76. A single global version check
+  // would wrongly wipe whichever caches don't share that version. When bumping a
+  // cache tag, update its entry here in lockstep.
+  const currentByPrefix={
+    'ttTeamQueue':'v2.10',
+    'ttJobDetails':'v2.10',
+    'ttJobComplete':'v1.76'
+  };
+  Object.keys(currentByPrefix).forEach(function(prefix){
+    const ver=currentByPrefix[prefix];
     Object.keys(localStorage).forEach(function(k){
-      if(k.startsWith(prefix)&&k.indexOf(currentVersion)===-1){
+      if(k.startsWith(prefix)&&k.indexOf(ver)===-1){
         localStorage.removeItem(k);
       }
     });
