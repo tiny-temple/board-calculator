@@ -4236,8 +4236,12 @@ function shouldShowPackMaterialForProcess(processStage){
   return setting.showPackMaterial!==false;
 }
 function shouldShowRackingInfoForProcess(processStage){
+  // TOS-233 Step 3: racking info (pieces/shelf, shelves, racks) is now computed
+  // server-side and correct for all sizes, so default it ON for Paint Room — matching
+  // the showPackMaterial pattern (default-on, admin can disable with an explicit
+  // false). Previously default-off (===true), which suppressed the correct data.
   const setting=getProcessSettingForStage(processStage);
-  return setting.showRackingInfo===true;
+  return setting.showRackingInfo!==false;
 }
 function displayNotYetSet(value){
   const text=String(value||"").trim();
