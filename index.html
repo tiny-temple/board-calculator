@@ -2101,7 +2101,11 @@ function applyJobDetailResponse(data){
 
 function fetchJobDetailsForCache(job,onDone,silent,forceLive){
   const sheetJob=job&&String(job.helperSheetName||job.sheetJob||"").trim();
-  if(!sheetJob){
+  // TOS-227: Supabase-served jobs carry production_uid but empty sheetJob (legacy
+  // sheet identifiers were retired). Proceed if we have EITHER a sheetJob or a
+  // production_uid — the wrapper's getJobDetails path keys on production_uid.
+  const puid=job&&String(job.productionUid||"").trim();
+  if(!sheetJob&&!puid){
     if(onDone)onDone(null);
     return;
   }
@@ -2194,6 +2198,12 @@ function prefetchFirstAvailableJobDetails(){
       }
       prefetchQueueJobDetailsFrom(firstIndex+1,2);
       showPreloadPopup("Next open job ready","The job details are cached locally.",1600);
+    }else{
+      // TOS-227: a failed/non-ok background preload must NOT leave the "Preloading
+      // next open job details..." banner stuck on screen. Always clear it when the
+      // preload settles, regardless of outcome.
+      hidePreloadPopup();
+      document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs.";
     }
   },true);
 }
