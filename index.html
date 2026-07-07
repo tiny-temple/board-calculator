@@ -4612,7 +4612,11 @@ function touchUpLabelStatusText(labels){
   return "Prepared";
 }
 function buildTouchUpLabelSection(processStage){
-  if(processStage!=="Paint Room"||!isFirstCoatPaintJob(currentJob))return "";
+  // Gate on Paint Room only; the labels-existence check below is the real gate — if the
+  // resolver produced a touch-up pot for this job (any coating, incl. FR), show it. The
+  // old isFirstCoatPaintJob check excluded FR treatment stages, which now wrongly hid the
+  // section for FR jobs that DO get a pot (e.g. HR Prof, Nordtreat).
+  if(processStage!=="Paint Room")return "";
   const labels=getCurrentTouchUpLabels();
   if(!labels.length)return "";
   const status=touchUpLabelStatusText(labels);
