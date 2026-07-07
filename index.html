@@ -4663,41 +4663,59 @@ function queueTouchUpLabelsForCurrentJob(){
   if(touchUpLabelPrintInFlight||!currentJob)return;
   const labels=getCurrentTouchUpLabels();
   if(!labels.length){
-    showProcessWarning("No prepared touch-up label is available for this job.");
+    showProcessWarning("No touch-up label is available for this job.");
     return;
   }
-  if(touchUpLabelsHavePrintHistory(labels)&&!window.confirm("Queue another copy of the touch-up label"+(labels.length===1?"":"s")+" for printing?"))return;
+  if(touchUpLabelsHavePrintHistory(labels)&&!window.confirm("Print another copy of the touch-up label"+(labels.length===1?"":"s")+"?"))return;
 
   touchUpLabelPrintInFlight=true;
   const btn=document.getElementById("touchUpLabelPrintBtn");
   if(btn)btn.disabled=true;
-  setTouchUpPrintFeedback("pending","Queuing label"+(labels.length===1?"":"s")+" for printing...");
+  setTouchUpPrintFeedback("pending","Sending label"+(labels.length===1?"":"s")+" to the printer...");
 
   const requestId="touchup_print_"+getRejectDeviceId()+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,9);
-  const callbackName="pwaTouchUpPrintCallback_"+Date.now()+"_"+Math.floor(Math.random()*100000);
+  const clientName=String(currentJob&&currentJob.client||"").trim()||"Client not set";
+  const pots=labels.map(function(label){
+    return {
+      templateId:label.templateId||"",
+      labelTitle:label.labelTitle||"",
+      clientName:clientName,
+      coating:label.fullCoatingName||"",
+      labelItem:label.labelItem||"",
+      quantityDisplay:label.quantityDisplay||"",
+      instructionText:label.instructionText||"",
+      footerText:label.footerText||"",
+      tinyTempleLogoUrl:label.tinyTempleLogoUrl||"",
+      coatingLogoUrl:label.coatingLogoUrl||"",
+      copies:label.copies||1
+    };
+  });
 
-  window[callbackName]=function(data){
+  fetch(TEMPLE_OS_API+"/label-print-queue/add",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      requestId:requestId,
+      productionUid:currentJob.productionUid||"",
+      requestedBy:getRejectDeviceId(),
+      pots:pots
+    })
+  }).then(function(resp){return resp.json();}).then(function(data){
     touchUpLabelPrintInFlight=false;
-    delete window[callbackName];
     if(!data||!data.ok){
       if(btn)btn.disabled=false;
-      setTouchUpPrintFeedback("error",data&&data.error?data.error:"The label could not be queued for printing. Try again.");
+      setTouchUpPrintFeedback("error",data&&data.error?data.error:"The label could not be sent to the printer. Try again.");
       return;
     }
-    applyQueuedTouchUpLabelsToJobs(data);
+    labels.forEach(function(label){label.printStatus="queued";});
     renderProcessJobCard(currentEntryMode);
-    setTouchUpPrintFeedback("success",data.queuedCount+" label"+(Number(data.queuedCount)===1?"":"s")+" queued for printer "+(data.printerIp||"")+".");
-  };
-
-  const script=document.createElement("script");
-  script.src=REJECT_LOG_WEB_APP_URL+"?action=queueTouchUpLabelPrint&productionUid="+encodeURIComponent(currentJob.productionUid||"")+"&sheetJob="+encodeURIComponent(currentJob.sheetJob||"")+"&requestedBy="+encodeURIComponent(getRejectDeviceId())+"&requestId="+encodeURIComponent(requestId)+"&callback="+encodeURIComponent(callbackName)+"&_="+Date.now();
-  script.onerror=function(){
+    const n=Number(data.queued||pots.length);
+    setTouchUpPrintFeedback("success",n+" label"+(n===1?"":"s")+" sent to the printer.");
+  }).catch(function(){
     touchUpLabelPrintInFlight=false;
-    delete window[callbackName];
     if(btn)btn.disabled=false;
-    setTouchUpPrintFeedback("error","The label could not be queued for printing. Try again.");
-  };
-  document.body.appendChild(script);
+    setTouchUpPrintFeedback("error","The label could not be sent to the printer. Try again.");
+  });
 }
 
 function renderProcessJobCard(mode){
@@ -6524,4 +6542,3 @@ applyTeamDashboardData = function(data, fromLocal){
 </script>
 </body>
 </html>
-
