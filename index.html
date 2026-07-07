@@ -1804,6 +1804,38 @@ function templeOsFetch(url) {
   });
 }
 
+// ============================================================================
+// TOS-235 Gate 5: process-execution config served from Supabase (soak mode).
+//
+// One unfiltered fetch of /api/process-config at boot populates the same three
+// globals the Apps Script feed carries (processChecks / defectConfig.rows /
+// processSettings). On success processConfigSource = "supabase" and the four
+// Apps Script assignment sites stand down (guarded); on any failure it stays
+// "", the Apps Script payloads continue exactly as today, and DEFAULT_DEFECTS
+// remains the last-resort fallback. Search console for "[TOS-235]".
+// processFields is served by the endpoint but not consumed by this PWA yet.
+// ============================================================================
+let processConfigSource = "";
+const PROCESS_CONFIG_URL = "https://temple-os-psi.vercel.app/api/process-config";
+
+function fetchProcessConfigFromSupabase() {
+  const started = Date.now();
+  templeOsFetch(PROCESS_CONFIG_URL)
+    .then(function (data) {
+      currentBackendProcessChecks = Array.isArray(data.processChecks) ? data.processChecks : [];
+      currentBackendProcessSettings = Array.isArray(data.processSettings) ? data.processSettings : [];
+      currentDefectConfigRows = data.defectConfig && Array.isArray(data.defectConfig.rows) ? data.defectConfig.rows : [];
+      processConfigSource = "supabase";
+      console.info("[TOS-235] process config served by vercel in " + (Date.now() - started) + "ms (" +
+        currentBackendProcessChecks.length + " checks / " + currentDefectConfigRows.length + " defects / " +
+        currentBackendProcessSettings.length + " settings)");
+    })
+    .catch(function (err) {
+      console.warn("[TOS-235] process config vercel failed (" + err.message + ") - staying on appsscript payloads");
+    });
+}
+fetchProcessConfigFromSupabase();
+
 // ---------------------------------------------------------------------------
 // Public entry point.
 //
@@ -2098,9 +2130,11 @@ function updateCurrentDashboardJob(job){
 function applyJobDetailResponse(data){
   if(!data||!data.ok)return;
   currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
-  currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:currentBackendProcessChecks;
-  currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:currentBackendProcessSettings;
-  currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:currentDefectConfigRows;
+  if (processConfigSource !== "supabase") { // TOS-235: stands down when Supabase config is live
+    currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:currentBackendProcessChecks;
+    currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:currentBackendProcessSettings;
+    currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:currentDefectConfigRows;
+  }
 }
 
 function fetchJobDetailsForCache(job,onDone,silent,forceLive){
@@ -2476,9 +2510,11 @@ function applyTeamDashboardData(data,fromLocal){
   currentTeamDashboard=data||null;
   applyCompletedStateToDashboard(currentTeamDashboard);
   currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
-  currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
-  currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
-  currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
+  if (processConfigSource !== "supabase") { // TOS-235: stands down when Supabase config is live
+    currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
+    currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
+    currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
+  }
   renderJobQueue(data.jobs||[]);
   const timeText=getDashboardTimeText(data);
   if(fromLocal){
@@ -2942,9 +2978,11 @@ function ttHasRenderedList(view){
 function applyPackingQueueData(data,fromLocal){
   currentPackingQueue=data;
   currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
-  currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
-  currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
-  currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
+  if (processConfigSource !== "supabase") { // TOS-235: stands down when Supabase config is live
+    currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
+    currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
+    currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
+  }
   updatePackingStatusOutboxUi();
   renderPackingQueue(applyPendingPackingStatusUpdates(data.jobs||[]),fromLocal===true);
 }
@@ -5337,9 +5375,11 @@ function refreshVisibleCoatingOverview(){
     currentTeamDashboard=data;
     applyCompletedStateToDashboard(currentTeamDashboard);
     currentOperators=Array.isArray(data.operators)&&data.operators.length?data.operators:currentOperators;
-    currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
-    currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
-    currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
+    if (processConfigSource !== "supabase") { // TOS-235: stands down when Supabase config is live
+      currentBackendProcessChecks=Array.isArray(data.processChecks)?data.processChecks:[];
+      currentBackendProcessSettings=Array.isArray(data.processSettings)?data.processSettings:[];
+      currentDefectConfigRows=data.defectConfig&&Array.isArray(data.defectConfig.rows)?data.defectConfig.rows:[];
+    }
     const overview=buildCoatingOverviewFromJobs(data.jobs||[]);
     updateCoatingOverviewButtons(data.jobs||[]);
     renderCoatingOverview(overview.summary,overview.rows);
