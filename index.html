@@ -3757,6 +3757,8 @@ function buildCoatingOverviewFromJobs(jobs){
       coatingStageRaw:stageRaw,
       coatingStageUpper:isFr?"FR TREATMENT":String(displayCoatStage).toUpperCase(),
       displayCoatStage:displayCoatStage,
+      isFrPass:isFr,
+      groupLabel:isFr?"FR Treatment":displayCoatStage,
       coatOccurrence:coatOccurrence,
       fireTreatment:getFireTreatmentDisplay(job),
       isFrTreatment:isFireTreatmentActive(job)?"YES":"NO",
@@ -4117,7 +4119,7 @@ function openPaintRoomFromCoatingOverview(row){
 }
 function renderCoatingPassCard(row,inStageGroup){
   const card=document.createElement("div");
-  const isFr=row.displayCoatStage==="FR Treatment";
+  const isFr=row.isFrPass===true;
   const isRecoat=Number(row.coatOccurrence||0)>1||isLaterPaintCoatVariant(row.coatingStage||"");
   const coatClass=isFr?" fr":(row.coatOccurrence===1?" firstCoat":(row.coatOccurrence===2?" secondCoat":(row.coatOccurrence===3?" thirdCoat":" laterCoat")));
   card.className="ttCoatingPassCard"+(isRecoat&&!isFr?" recoat":"")+coatClass+(row.completed?" logged":"");
@@ -4195,7 +4197,7 @@ function renderCoatingOverview(summary,rows){
   const grouped={};
   const groupOrder=[];
   rows.forEach(function(row){
-    const label=row.displayCoatStage||"Paint Room";
+    const label=row.groupLabel||row.displayCoatStage||"Paint Room";
     if(!grouped[label]){
       grouped[label]=[];
       groupOrder.push(label);
