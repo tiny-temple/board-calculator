@@ -4963,9 +4963,15 @@ function finishSelectQueueJob(job,modeAfterLoad){
 }
 function loadJobDetailsAndSelect(job,modeAfterLoad){
   const sheetJob=job.helperSheetName||job.sheetJob||"";
+  const puid=job&&String(job.productionUid||"").trim();
   const processLabel=modeAfterLoad&&ENTRY_MODES[modeAfterLoad]?ENTRY_MODES[modeAfterLoad].processStage:"job";
 
-  if(!sheetJob){
+  // TOS-233: Supabase jobs carry production_uid but empty sheetJob. Only short-circuit
+  // (skip the detail fetch) when there is NEITHER identifier — otherwise a Supabase job
+  // would open with just the base queue data and no detail fields (touchUpLabels, etc.),
+  // so the touch-up section + Print button never appear. With a production_uid, fall
+  // through to fetchJobDetailsForCache, which keys on production_uid.
+  if(!sheetJob&&!puid){
     showPreloadPopup("Opening job","Loading "+processLabel+" details...");
     finishSelectQueueJob(job,modeAfterLoad);
     return;
