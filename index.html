@@ -3734,14 +3734,14 @@ function buildCoatingOverviewFromJobs(jobs){
     const stageRaw=getCoatingStageLabel(job);
     const isFr=isFrTreatmentStage(job);
     const identityKey=getCoatingIdentityKey(job,index);
-    let displayCoatStage="FR Treatment";
-    let coatOccurrence=0;
-
-    if(!isFr){
-      coatOccurrences[identityKey]=(coatOccurrences[identityKey]||0)+1;
-      coatOccurrence=coatOccurrences[identityKey];
-      displayCoatStage=ordinalCoatLabel(coatOccurrence);
-    }
+    // TOS-233: number EVERY pass as an ordinal coat, FR included. FR passes are identical
+    // repeated treatment passes, so numbering them 1st/2nd/3rd/4th Coat (via the same
+    // occurrence counter as decorative coats) tells the operator which pass they are on,
+    // instead of a repeated "FR Treatment" in the sequence. The FR grouping/badge stays
+    // "FR TREATMENT" via coatingStageUpper below — only the per-pass sequence label numbers.
+    coatOccurrences[identityKey]=(coatOccurrences[identityKey]||0)+1;
+    const coatOccurrence=coatOccurrences[identityKey];
+    const displayCoatStage=ordinalCoatLabel(coatOccurrence);
 
     const row={
       queueIndex:index+1,
