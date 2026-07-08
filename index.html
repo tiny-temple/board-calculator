@@ -6328,18 +6328,12 @@ function renderDraftSignalsBox(data) {
   const byProcess = data && data.byProcess ? data.byProcess : {};
   const stages    = Object.keys(byProcess);
 
-  // Auto-apply to visualiser if step 5 is active (visualiser fully set up)
-  if (step === 5 && total > 0) {
-    applyDownstreamRejectsToVisualiser(total);
-  }
+  // TOS-237 Gate 2 r2: legacy step-5 auto-apply stripped (provisional must never enter rejectsSel).
   
   if (!total || !stages.length) {
     box.innerHTML = '<div class="jobSignalsTitle">No downstream rejects currently logged</div>';
     box.classList.remove('hidden');
-    // Reset visualiser to zero if step 5 is active
-    if (step === 5) {
-      applyDownstreamRejectsToVisualiser(0);
-    }
+    // TOS-237 Gate 2 r2: legacy step-5 zero-reset stripped.
     return;
   }
 
@@ -6366,17 +6360,12 @@ function renderDraftSignalsBox(data) {
   box.classList.remove('hidden');
 }
 
-// Override the old renderJobSignalsBox so both call paths
-// (Realtime update and manual check) use the new renderer
-window.renderJobSignalsBox = renderDraftSignalsBox;
-
-// Override checkSignalsForVisualiser to use the new fetcher
-window.checkSignalsForVisualiser = function(sourceProcess) {
-  fetchDraftSignalsFromSupabase(
-    currentJob && currentJob.productionUid || '',
-    sourceProcess
-  );
-};
+// TOS-237 Gate 2 r2: legacy runtime overrides REMOVED. The window.checkSignalsForVisualiser
+// reassignment here was hijacking the patched declaration and firing the legacy
+// fetch -> renderDraftSignalsBox -> step-5 auto-apply chain, which pushed the
+// PROVISIONAL total into rejectsSel and rendered uncommitted rejects as committed
+// red. The combined committed/provisional path (refreshDownstreamSignals) is the
+// single live route now.
 
 // ----------------------------------------------------------
 // CSS additions for grouped basket display
