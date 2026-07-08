@@ -32,7 +32,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .cell,.empty{flex:1 1 0;min-width:0;aspect-ratio:3/1;box-sizing:border-box}
 .cell{border:1px solid rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:11px;border-radius:3px;background:#8b5a2b;color:#fff}
 .empty{border:1px dashed rgba(0,0,0,.1)}
-.reject{background:#f4a300!important}
+.reject{background:#d9534f!important}
+.provisional{background:#f4a300!important;outline:2px dashed #b45309;outline-offset:-2px}
 .loose .cell{background:#a06a3a}
 .rowNum{font-size:11px;color:#666;padding-left:8px;min-width:20px;flex:0 0 auto}
 #jobContextBar{font-size:13px;line-height:1.35;background:#f6f6f6;border:1px solid rgba(0,0,0,.12);border-radius:8px;padding:8px 10px;margin:0 auto 10px auto;color:#333;width:100%;max-width:1200px;min-width:0;overflow-x:hidden}
@@ -2503,7 +2504,9 @@ function applyDownstreamRejectsToVisualiser(total){
 }
 
 function checkSignalsForVisualiser(sourceProcess){
-  fetchJobSignalsFromSupabase(currentJob&&currentJob.productionUid||'', sourceProcess);
+  // TOS-237: visualiser subscribes and uses the combined committed+provisional path.
+  subscribeToJobSignals(currentJob&&currentJob.productionUid||'');
+  refreshDownstreamSignals();
 }
 
 function applyTeamDashboardData(data,fromLocal){
@@ -4410,7 +4413,11 @@ function openPreloadedVisualiserFromProcess(){
   rejectsSel.value="";
 
   fillPackIdFields();
-  document.getElementById("saveStatus").innerText="Pack Visualiser preloaded with "+qty+" boards from "+(currentJob.sheetJob||"this job")+".";
+  if(restoreVisualiserDraft()){
+    document.getElementById("saveStatus").innerText="Pack Visualiser session restored.";
+  }else{
+    document.getElementById("saveStatus").innerText="Pack Visualiser preloaded with "+qty+" boards from "+(currentJob.sheetJob||"this job")+".";
+  }
   updateUI();
   render();
   checkSignalsForVisualiser(sourceProcess);
@@ -5080,7 +5087,7 @@ function updateJobContextBar(){const bar=document.getElementById("jobContextBar"
 function getPackOptions(){if(currentJob&&Array.isArray(currentJob.packs)&&currentJob.packs.length){return currentJob.packs.filter(p=>p.packId).map(p=>({packId:p.packId,label:"Pack "+p.packOrder+": "+p.packId+(p.location?" ("+p.location+")":"")+(p.stockCheck&&p.stockCheck!=="OK"?" ("+p.stockCheck+")":"")}))}if(jobContext.packId)return[{packId:jobContext.packId,label:jobContext.packId}];return[]}
 function populatePackSelect(selectEl,selectedPackId){const packs=getPackOptions();selectEl.innerHTML="";const ph=document.createElement("option");ph.value="";ph.textContent="Select Pack ID";ph.disabled=true;ph.selected=true;selectEl.appendChild(ph);packs.forEach(p=>{const o=document.createElement("option");o.value=p.packId;o.textContent=p.label;selectEl.appendChild(o)});if(selectedPackId&&packs.some(p=>p.packId===selectedPackId))selectEl.value=selectedPackId;else if(packs.length===1)selectEl.value=packs[0].packId;else selectEl.value=""}
 function fillPackIdFields(){populatePackSelect(document.getElementById("simplePackId"),jobContext.packId||"");populatePackSelect(document.getElementById("setupPackId"),jobContext.packId||"")}
-function setEntryMode(mode){persistentNavigationDirty=false;currentEntryMode=mode;currentProcessSetup={};if(mode!=="pack_visualiser")visualiserSourceProcess="";hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();document.getElementById("saveStatus").innerText="";if(mode==="pack_visualiser"){visualiserSourceProcess="";step=1}else{step=0;document.getElementById("simpleLoggerTitle").innerText=ENTRY_MODES[mode].label;buildBasketRejectButtons(mode);if((ENTRY_MODES[mode]||{}).showSetup)showProcessSetupScreen(mode);else restoreRejectDraft()}fillPackIdFields();updateUI();render()}
+function setEntryMode(mode){persistentNavigationDirty=false;currentEntryMode=mode;currentProcessSetup={};if(mode!=="pack_visualiser")visualiserSourceProcess="";hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();document.getElementById("saveStatus").innerText="";if(mode==="pack_visualiser"){visualiserSourceProcess="";step=1;restoreVisualiserDraft();checkSignalsForVisualiser("")}else{step=0;document.getElementById("simpleLoggerTitle").innerText=ENTRY_MODES[mode].label;buildBasketRejectButtons(mode);if((ENTRY_MODES[mode]||{}).showSetup)showProcessSetupScreen(mode);else restoreRejectDraft()}fillPackIdFields();updateUI();render()}
 function returnToMenu(){hidePostSaveScreen();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentProcessSetup={};step=0;clearRejectBasket(true);document.getElementById("saveStatus").innerText="";clearGrid();document.getElementById("summary").innerText="";updateUI()}
 let currentPostSaveSubmissionId="";
 function setPostSaveSyncState(state,text){
@@ -5446,18 +5453,18 @@ document.addEventListener("change",function(event){if(event.target&&event.target
 document.addEventListener("click",function(event){const nav=document.getElementById("persistentNav");if(persistentNavMenuOpen&&nav&&!nav.contains(event.target))closePersistentNavMenu()});
 
 function backToProcessMenu(){hidePostSaveScreen();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";buildProcessMenu();updateUI()}
-function backToJobQueue(){if(packingQueueActive||currentTeam==="PACKING"){loadPackingQueue();return}hidePostSaveScreen();unsubscribeFromJobSignals();hideJobSignalsBox();hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentJob=null;currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];jobContext={productionUid:"",productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";updateJobContextBar();document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");if(currentTeam){const dashboard=getCurrentTeamDashboardOrCache();if(dashboard&&Array.isArray(dashboard.jobs)){renderJobQueue(dashboard.jobs);document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved queue.";setTimeout(refreshStatusThenPrefetchFirstOpen,0)}else loadTeamQueue(currentTeam)}else{document.getElementById("queueStatus").innerText="";document.getElementById("jobQueue").innerHTML=""}}
+function backToJobQueue(){if(packingQueueActive||currentTeam==="PACKING"){loadPackingQueue();return}hidePostSaveScreen();unsubscribeFromJobSignals();hideJobSignalsBox();clearVisualiserDraft();window._tt237Provisional=0;hideProcessSetupScreen();hideStockPickerScreen();hideCoatingOverviewScreen();hidePackingQueueScreen();currentEntryMode="";currentJob=null;currentProcessSetup={};step=0;rejectBasket={};rejectHistory=[];jobContext={productionUid:"",productionRow:"",jobNo:"",sheetJob:"",packId:""};clearGrid();document.getElementById("summary").innerText="";document.getElementById("saveStatus").innerText="";updateJobContextBar();document.getElementById("teamQueueBlock").classList.remove("hidden");document.getElementById("step0_entry").classList.add("hidden");document.getElementById("simpleLogger").classList.add("hidden");document.querySelector(".btnRow").classList.add("hidden");if(currentTeam){const dashboard=getCurrentTeamDashboardOrCache();if(dashboard&&Array.isArray(dashboard.jobs)){renderJobQueue(dashboard.jobs);document.getElementById("queueStatus").innerText="Team "+currentTeam+" jobs — showing saved queue.";setTimeout(refreshStatusThenPrefetchFirstOpen,0)}else loadTeamQueue(currentTeam)}else{document.getElementById("queueStatus").innerText="";document.getElementById("jobQueue").innerHTML=""}}
 
 function state(){return{mode:modeSel.value,boards:+document.getElementById("boards").value||0,metres:+document.getElementById("metres").value||0,boardLength:+document.getElementById("boardLength").value||0,perRow:+perRowSel.value||0,yield:+document.getElementById("yield").value||1,topLoose:looseSel.value===""?null:parseInt(looseSel.value),rejects:+rejectsSel.value||0}}
 function basePieces(s){if(s.mode==="linear"){if(!s.metres||!s.boardLength)return 0;return Math.ceil(s.metres/s.boardLength)}return s.boards}
-function calculationResult(){const s=state(),base=basePieces(s),total=base+s.rejects,physicalBoards=Math.ceil(total/s.yield),basePhysicalBoards=Math.ceil(base/s.yield);let rows=[],rem=physicalBoards;if(s.topLoose!==null){const t=Math.min(s.topLoose,rem);rows.push(t);rem-=t}while(rem>0){const c=Math.min(s.perRow,rem);rows.push(c);rem-=c}return{mode:s.mode,inputBoards:s.boards,inputMetres:s.metres,boardLength:s.boardLength,yield:s.yield,topLoose:s.topLoose,rows:rows.length,baseBoards:base,basePhysicalBoards,perRow:s.perRow,rejects:s.rejects,total,physicalBoards}}
+function calculationResult(){const s=state(),base=basePieces(s),total=base+s.rejects,physicalBoards=Math.ceil(total/s.yield),basePhysicalBoards=Math.ceil(base/s.yield);let rows=[],rem=physicalBoards;if(s.topLoose!==null&&s.topLoose>0){const t=Math.min(s.topLoose,s.perRow,rem);rows.push(t);rem-=t}while(rem>0){const c=Math.min(s.perRow,rem);rows.push(c);rem-=c}return{mode:s.mode,inputBoards:s.boards,inputMetres:s.metres,boardLength:s.boardLength,yield:s.yield,topLoose:s.topLoose,rows:rows.length,baseBoards:base,basePhysicalBoards,perRow:s.perRow,rejects:s.rejects,total,physicalBoards}}
 function canProceed(){const s=state();if(currentEntryMode!=="pack_visualiser")return false;if(step===1)return s.mode==="boards"?s.boards>0:(s.metres>0&&s.boardLength>0);if(step===2)return s.perRow>0;if(step===4)return s.topLoose!==null;return true}
-function updateUI(){const isMenu=currentEntryMode==="",isVisualiser=currentEntryMode==="pack_visualiser",isSimpleLogger=currentEntryMode&&currentEntryMode!=="pack_visualiser",inStep5=isVisualiser&&step===5,postSaveVisible=!document.getElementById("postSavePanel").classList.contains("hidden"),processSetupVisible=!document.getElementById("processSetupPanel").classList.contains("hidden"),stockPickerVisible=!document.getElementById("stockPickerPanel").classList.contains("hidden"),coatingOverviewVisible=!document.getElementById("coatingOverviewPanel").classList.contains("hidden"),packingQueueVisible=!document.getElementById("packingQueuePanel").classList.contains("hidden");document.getElementById("teamQueueBlock").classList.toggle("hidden",currentJob!==null||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("step0_entry").classList.toggle("hidden",!isMenu||currentJob===null||postSaveVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("simpleLogger").classList.toggle("hidden",!isSimpleLogger||postSaveVisible||processSetupVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("modeBlock").classList.toggle("hidden",!isVisualiser||inStep5||postSaveVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("boardsWrap").classList.toggle("hidden",modeSel.value!=="boards");document.getElementById("linearWrap").classList.toggle("hidden",modeSel.value!=="linear");document.querySelectorAll(".step").forEach(el=>el.classList.add("hidden"));if(isVisualiser&&!stockPickerVisible&&!coatingOverviewVisible&&!packingQueueVisible){if(step===1)document.getElementById("step1_boards").classList.remove("hidden");if(step===2)document.getElementById("step2_perRow").classList.remove("hidden");if(step===3)document.getElementById("step3_yield").classList.remove("hidden");if(step===4)document.getElementById("step4_loose").classList.remove("hidden");if(step===5)document.getElementById("step5_rejects").classList.remove("hidden")}document.getElementById("nextBtn").disabled=!canProceed();document.getElementById("nextBtn").classList.toggle("hidden",!isVisualiser||inStep5);document.getElementById("backBtn").classList.toggle("hidden",!isVisualiser||step<=1||postSaveVisible);document.querySelector(".btnRow").classList.toggle("hidden",!isVisualiser||inStep5||postSaveVisible||processSetupVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);updateLooseOptions();updatePersistentNav()}
+function updateUI(){const isMenu=currentEntryMode==="",isVisualiser=currentEntryMode==="pack_visualiser",isSimpleLogger=currentEntryMode&&currentEntryMode!=="pack_visualiser",inStep5=isVisualiser&&step===5,postSaveVisible=!document.getElementById("postSavePanel").classList.contains("hidden"),processSetupVisible=!document.getElementById("processSetupPanel").classList.contains("hidden"),stockPickerVisible=!document.getElementById("stockPickerPanel").classList.contains("hidden"),coatingOverviewVisible=!document.getElementById("coatingOverviewPanel").classList.contains("hidden"),packingQueueVisible=!document.getElementById("packingQueuePanel").classList.contains("hidden");document.getElementById("teamQueueBlock").classList.toggle("hidden",currentJob!==null||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("step0_entry").classList.toggle("hidden",!isMenu||currentJob===null||postSaveVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("simpleLogger").classList.toggle("hidden",!isSimpleLogger||postSaveVisible||processSetupVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("modeBlock").classList.toggle("hidden",!isVisualiser||inStep5||postSaveVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);document.getElementById("boardsWrap").classList.toggle("hidden",modeSel.value!=="boards");document.getElementById("linearWrap").classList.toggle("hidden",modeSel.value!=="linear");document.querySelectorAll(".step").forEach(el=>el.classList.add("hidden"));if(isVisualiser&&!stockPickerVisible&&!coatingOverviewVisible&&!packingQueueVisible){if(step===1)document.getElementById("step1_boards").classList.remove("hidden");if(step===2)document.getElementById("step2_perRow").classList.remove("hidden");if(step===3)document.getElementById("step3_yield").classList.remove("hidden");if(step===4)document.getElementById("step4_loose").classList.remove("hidden");if(step===5)document.getElementById("step5_rejects").classList.remove("hidden")}document.getElementById("nextBtn").disabled=!canProceed();document.getElementById("nextBtn").classList.toggle("hidden",!isVisualiser||inStep5);document.getElementById("backBtn").classList.toggle("hidden",!isVisualiser||step<=1||postSaveVisible);document.querySelector(".btnRow").classList.toggle("hidden",!isVisualiser||inStep5||postSaveVisible||processSetupVisible||stockPickerVisible||coatingOverviewVisible||packingQueueVisible);updateLooseOptions();updatePersistentNav();saveVisualiserDraft()}
 function nextStep(){if(canProceed()){if(step===2&&visualiserSourceProcess==="moulder_rejects")step=4;else if(step===3)step=4;else step++}updateUI();render()}
 function prevStep(){if(step===4&&visualiserSourceProcess==="moulder_rejects")step=2;else if(step>1)step--;updateUI();render()}
 function clearGrid(){document.getElementById("grid").innerHTML=""}
-function render(){if(currentEntryMode!=="pack_visualiser"){clearGrid();document.getElementById("summary").innerText="";return}const s=state();clearGrid();const base=basePieces(s),total=base+s.rejects,phys=Math.ceil(total/s.yield),basePhys=Math.ceil(base/s.yield);if(!s.perRow){document.getElementById("summary").innerText="";return}let rows=[],rem=phys;if(s.topLoose!==null){const t=Math.min(s.topLoose,rem);rows.push(t);rem-=t}while(rem>0){const c=Math.min(s.perRow,rem);rows.push(c);rem-=c}let count=1;rows.forEach((cap,r)=>{const row=document.createElement("div");row.className="row"+(r===0?" loose":"");let cells=[];for(let c=0;c<s.perRow;c++){const d=document.createElement("div"),ok=c<cap&&count<=phys;if(ok){d.className="cell"+(count>basePhys?" reject":"");d.innerText=count++}else d.className="empty";cells.push(d)}cells.reverse().forEach(x=>row.appendChild(x));const rn=document.createElement("div");rn.className="rowNum";rn.innerText=r+1;row.appendChild(rn);document.getElementById("grid").appendChild(row)});document.getElementById("summary").innerText=`Rows: ${rows.length} | Base Boards: ${base} | Per Row: ${s.perRow} | Downstream Rejects: ${s.rejects} | Total: ${total}`}
-function resetAll(){hideJobSignalsBox();step=currentEntryMode==="pack_visualiser"?1:0;document.getElementById("boards").value="";document.getElementById("metres").value="";modeSel.value="boards";bl.value="";yieldSel.value=1;perRowSel.value="";looseSel.value="";rejectsSel.value="";clearRejectBasket();fillPackIdFields();document.getElementById("saveStatus").innerText="";clearGrid();updateUI();render()}
+function render(){if(currentEntryMode!=="pack_visualiser"){clearGrid();document.getElementById("summary").innerText="";return}const s=state();clearGrid();const prov=Math.max(0,Math.round(Number(window._tt237Provisional||0)));const base=basePieces(s),committedTotal=base+s.rejects,total=committedTotal+prov,phys=Math.ceil(total/s.yield),basePhys=Math.ceil(base/s.yield),committedPhys=Math.ceil(committedTotal/s.yield);if(!s.perRow){document.getElementById("summary").innerText="";return}let rows=[],rem=phys;if(s.topLoose!==null&&s.topLoose>0){const t=Math.min(s.topLoose,s.perRow,rem);rows.push(t);rem-=t}while(rem>0){const c=Math.min(s.perRow,rem);rows.push(c);rem-=c}let count=1;rows.forEach((cap,r)=>{const row=document.createElement("div");row.className="row"+(r===0&&s.topLoose!==null&&s.topLoose>0?" loose":"");let cells=[];for(let c=0;c<s.perRow;c++){const d=document.createElement("div"),ok=c<cap&&count<=phys;if(ok){d.className="cell"+(count>committedPhys?" provisional":count>basePhys?" reject":"");d.innerText=count++}else d.className="empty";cells.push(d)}cells.reverse().forEach(x=>row.appendChild(x));const rn=document.createElement("div");rn.className="rowNum";rn.innerText=r+1;row.appendChild(rn);document.getElementById("grid").appendChild(row)});let summaryText=`Rows: ${rows.length} | Base Boards: ${base} | Per Row: ${s.perRow} | Downstream Rejects: ${s.rejects} committed`+(prov?` + ${prov} provisional`:"")+` | Total: ${total}`;if((s.rejects+prov)>0&&phys===basePhys)summaryText+=" (absorbed - no extra boards needed)";document.getElementById("summary").innerText=summaryText}
+function resetAll(){hideJobSignalsBox();clearVisualiserDraft();window._tt237Provisional=0;step=currentEntryMode==="pack_visualiser"?1:0;document.getElementById("boards").value="";document.getElementById("metres").value="";modeSel.value="boards";bl.value="";yieldSel.value=1;perRowSel.value="";looseSel.value="";rejectsSel.value="";clearRejectBasket();fillPackIdFields();document.getElementById("saveStatus").innerText="";clearGrid();updateUI();render()}
 function updateLooseOptions(){const s=state(),sel=looseSel,prev=sel.value;sel.innerHTML="";const ph=document.createElement("option");ph.value="";ph.textContent="How many loose boards on the pack?";ph.disabled=true;ph.selected=true;sel.appendChild(ph);const max=s.perRow?Math.max(0,s.perRow-1):0;for(let i=0;i<=max;i++){const o=document.createElement("option");o.value=i;o.textContent=i;sel.appendChild(o)}if(prev!==""&&Number(prev)<=max)sel.value=prev;else sel.value=""}
 modeSel.addEventListener("change",()=>{step=1;updateUI();render()});document.querySelectorAll("input,select").forEach(el=>{el.addEventListener("input",()=>{updateUI();render()});el.addEventListener("change",()=>{updateUI();render()})});
 function getCurrentDraftPackId(){if(!currentEntryMode||currentEntryMode==="pack_visualiser")return"";const packSelect=document.getElementById("simplePackId");return packSelect?String(packSelect.value||"").trim():""}
@@ -5984,6 +5991,187 @@ window.reviewAndSaveBasket = async function() {
 let draftSignalChannel  = null;
 let committedEventChannel = null;
 
+// ============================================================================
+// TOS-237 Gate 2: live downstream rejects on the Pack Visualiser.
+// Committed (reject_events) and provisional (uncommitted draft_reject_signals)
+// fetch together, stay SEPARATE, render distinctly in the signals box, and in
+// pack_visualiser mode drive the grid directly: committed extras are .reject
+// (red), provisional extras .provisional (amber dashed) and withdraw
+// automatically when downstream baskets shrink. Source process resolves AT
+// FETCH TIME: in visualiser mode the stage is "Pre Process" (index -1) so
+// NOTHING downstream is excluded - deliberate, the infeed operator must see
+// post-Moulder rejects (TOS-237 floor workflow). Provisional rows older than
+// 12h are display-filtered (Gate 1 TTL). Search console for "[TOS-237]".
+// ============================================================================
+let downstreamCommitted = { total: 0, byProcess: {} };
+let downstreamProvisional = { total: 0, byProcess: {} };
+let signalsPollTimer = null;
+let signalsChannelHealthy = false;
+
+const SIGNALS_PROCESS_ORDER = ['Resaw','Moulder','Charring Machine','Sander','Brushing Machine','Paint Room'];
+
+function currentSignalsSourceProcess(){
+  return (ENTRY_MODES[currentEntryMode] || {}).processStage || '';
+}
+
+function signalsStageIncluded(stage, sourceProcess){
+  const order = SIGNALS_PROCESS_ORDER.map(function(p){ return normalise(p); });
+  const sourceIndex = order.indexOf(normalise(sourceProcess || ''));
+  const stageIndex = order.indexOf(normalise(String(stage || '').trim()));
+  if (normalise(String(stage || '')) === 'packing') return false;
+  if (sourceIndex >= 0 && stageIndex >= 0 && stageIndex <= sourceIndex) return false;
+  return true;
+}
+
+function refreshDownstreamSignals(){
+  const uid = currentJob && currentJob.productionUid || '';
+  if (!uid || !window._supabaseClient) return;
+  const sourceProcess = currentSignalsSourceProcess();
+  const committedQ = window._supabaseClient
+    .from('reject_events')
+    .select('process_stage, reject_qty, defect_type')
+    .eq('production_uid', uid);
+  const draftQ = window._supabaseClient
+    .from('draft_reject_signals')
+    .select('process_stage, defect_type, button_label, reject_qty, created_at')
+    .eq('production_uid', uid)
+    .is('committed_at', null);
+  Promise.all([committedQ, draftQ]).then(function(results){
+    const committedRows = (results[0] && results[0].data) || [];
+    const draftRows = (results[1] && results[1].data) || [];
+    const cutoff = Date.now() - 12 * 60 * 60 * 1000;
+    const c = { total: 0, byProcess: {} };
+    committedRows.forEach(function(row){
+      const stage = String(row.process_stage || '').trim();
+      if (!signalsStageIncluded(stage, sourceProcess)) return;
+      if (normalise(String(row.defect_type || '')) === 'no rejects') return;
+      const qty = Number(row.reject_qty || 0); if (!qty) return;
+      c.byProcess[stage] = (c.byProcess[stage] || 0) + qty; c.total += qty;
+    });
+    const p = { total: 0, byProcess: {} };
+    draftRows.forEach(function(row){
+      const stage = String(row.process_stage || '').trim();
+      if (!signalsStageIncluded(stage, sourceProcess)) return;
+      const ts = Date.parse(row.created_at || ''); if (isFinite(ts) && ts < cutoff) return;
+      const type = String(row.button_label || row.defect_type || '').trim();
+      if (normalise(type) === 'no rejects') return;
+      const qty = Number(row.reject_qty || 0); if (!qty || !type) return;
+      if (!p.byProcess[stage]) p.byProcess[stage] = {};
+      p.byProcess[stage][type] = (p.byProcess[stage][type] || 0) + qty; p.total += qty;
+    });
+    downstreamCommitted = c;
+    downstreamProvisional = p;
+    renderCombinedSignalsBox();
+    syncVisualiserToSignals();
+  });
+}
+
+function renderCombinedSignalsBox(){
+  const box = document.getElementById('jobSignalsBox');
+  if (!box) return;
+  const c = downstreamCommitted, p = downstreamProvisional;
+  const isVis = currentEntryMode === 'pack_visualiser';
+  if (!c.total && !p.total){
+    box.innerHTML = '<div class="jobSignalsTitle">No downstream rejects currently logged</div>';
+    box.classList.remove('hidden');
+    return;
+  }
+  let html = '<div class="jobSignalsTitle">Downstream rejects: ' + (c.total + p.total) +
+    (isVis ? ' <span class="jobSignalsMeta">(live - applied to the grid automatically)</span>' : '') + '</div>';
+  if (c.total){
+    const lines = Object.keys(c.byProcess).map(function(k){ return escapeHtml(k) + ': ' + c.byProcess[k]; }).join(' | ');
+    html += '<div class="jobSignalsGroup"><div class="jobSignalsSubhead">Committed (' + c.total + ')</div><div class="jobSignalsLine">' + lines + '</div></div>';
+  }
+  if (p.total){
+    html += '<div class="jobSignalsGroup"><div class="jobSignalsSubhead">Provisional - baskets in progress (' + p.total + ')</div>';
+    Object.keys(p.byProcess).forEach(function(stage){
+      const defects = p.byProcess[stage];
+      const stageTotal = Object.values(defects).reduce(function(a, v){ return a + v; }, 0);
+      html += '<div class="jobSignalsSubhead">' + escapeHtml(stage) + ' (' + stageTotal + ')</div>';
+      Object.keys(defects).forEach(function(t){ html += '<div class="jobSignalsLine">' + escapeHtml(t) + ': ' + defects[t] + '</div>'; });
+    });
+    html += '</div>';
+  }
+  if (!isVis){
+    const total = c.total + p.total;
+    html += '<button type="button" class="jobSignalsAction" onclick="applyDownstreamRejectsToVisualiser(' + total + ')">Apply ' + total + ' to visualiser</button>';
+  }
+  box.innerHTML = html; box.classList.remove('hidden');
+}
+
+function syncVisualiserToSignals(){
+  if (currentEntryMode !== 'pack_visualiser') return;
+  const cTotal = downstreamCommitted.total, pTotal = downstreamProvisional.total;
+  if (rejectsSel){
+    const v = Math.max(0, Math.round(cTotal));
+    if (!Array.from(rejectsSel.options).some(function(o){ return Number(o.value) === v; })){
+      const o = document.createElement('option'); o.value = String(v); o.textContent = String(v); rejectsSel.appendChild(o);
+    }
+    rejectsSel.value = String(v);
+  }
+  window._tt237Provisional = pTotal;
+  console.info('[TOS-237] grid sync: ' + cTotal + ' committed + ' + pTotal + ' provisional');
+  saveVisualiserDraft();
+  render();
+}
+
+function visualiserDraftKey(){
+  return 'ttVisualiserDraft|' + (currentTeam || '') + '|' + (jobContext && jobContext.productionUid || '') + '|' + (jobContext && jobContext.packId || '');
+}
+
+function saveVisualiserDraft(){
+  if (currentEntryMode !== 'pack_visualiser') return;
+  try {
+    const st = state();
+    localStorage.setItem(visualiserDraftKey(), JSON.stringify({
+      step: step,
+      mode: st.mode,
+      boards: document.getElementById('boards').value,
+      metres: document.getElementById('metres').value,
+      boardLength: document.getElementById('boardLength').value,
+      perRow: perRowSel.value,
+      yield: document.getElementById('yield').value,
+      topLoose: looseSel.value,
+      rejects: rejectsSel.value,
+      visualiserSourceProcess: visualiserSourceProcess,
+      savedAt: Date.now()
+    }));
+  } catch (e) {}
+}
+
+function clearVisualiserDraft(){
+  try { localStorage.removeItem(visualiserDraftKey()); } catch (e) {}
+}
+
+function restoreVisualiserDraft(){
+  if (currentEntryMode !== 'pack_visualiser') return false;
+  let raw = null;
+  try { raw = localStorage.getItem(visualiserDraftKey()); } catch (e) {}
+  if (!raw) return false;
+  try {
+    const d = JSON.parse(raw);
+    modeSel.value = d.mode || 'boards';
+    document.getElementById('boards').value = d.boards || '';
+    document.getElementById('metres').value = d.metres || '';
+    document.getElementById('boardLength').value = d.boardLength || '';
+    perRowSel.value = d.perRow || '';
+    document.getElementById('yield').value = d.yield || 1;
+    updateLooseOptions();
+    looseSel.value = d.topLoose || '';
+    if (rejectsSel){
+      const rv = String(d.rejects || '0');
+      if (!Array.from(rejectsSel.options).some(function(o){ return o.value === rv; })){
+        const o = document.createElement('option'); o.value = rv; o.textContent = rv; rejectsSel.appendChild(o);
+      }
+      rejectsSel.value = rv;
+    }
+    if (d.visualiserSourceProcess) visualiserSourceProcess = d.visualiserSourceProcess;
+    step = Number(d.step) || 2;
+    console.info('[TOS-237] visualiser session restored');
+    return true;
+  } catch (e) { return false; }
+}
+
 function subscribeToJobSignals(productionUid) {
   if (!window.supabase || !productionUid) return;
 
@@ -6001,9 +6189,9 @@ function subscribeToJobSignals(productionUid) {
     committedEventChannel = null;
   }
 
-  const sourceProcess = (ENTRY_MODES[currentEntryMode] || {}).processStage || '';
+  if (signalsPollTimer) { clearInterval(signalsPollTimer); signalsPollTimer = null; }
 
-  // Channel 1: draft_reject_signals — fires on every tap
+  // TOS-237: source process resolves at FETCH time - never frozen here.
   draftSignalChannel = window._supabaseClient
     .channel('draft-signals-' + productionUid)
     .on('postgres_changes', {
@@ -6013,7 +6201,7 @@ function subscribeToJobSignals(productionUid) {
       filter: 'production_uid=eq.' + productionUid,
     }, function(payload) {
       if (!currentJob || currentJob.productionUid !== productionUid) return;
-      fetchDraftSignalsFromSupabase(productionUid, sourceProcess);
+      refreshDownstreamSignals();
     })
     .on('postgres_changes', {
       event:  'DELETE',
@@ -6021,9 +6209,22 @@ function subscribeToJobSignals(productionUid) {
       table:  'draft_reject_signals',
     }, function(payload) {
       if (!currentJob || currentJob.productionUid !== productionUid) return;
-      fetchDraftSignalsFromSupabase(productionUid, sourceProcess);
+      refreshDownstreamSignals();
     })
-    .subscribe();
+    .subscribe(function(status) {
+      if (status === 'SUBSCRIBED') {
+        signalsChannelHealthy = true;
+        if (signalsPollTimer) { clearInterval(signalsPollTimer); signalsPollTimer = null; }
+        console.info('[TOS-237] signals channel live');
+        refreshDownstreamSignals();
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        signalsChannelHealthy = false;
+        if (!signalsPollTimer) {
+          console.warn('[TOS-237] signals channel ' + status + ' - falling back to 20s polling');
+          signalsPollTimer = setInterval(refreshDownstreamSignals, 20000);
+        }
+      }
+    });
 
   // Channel 2: reject_events — fires on commit (existing behaviour preserved)
   committedEventChannel = window._supabaseClient
@@ -6036,7 +6237,7 @@ function subscribeToJobSignals(productionUid) {
       const uid = payload && payload.new && payload.new.production_uid;
       if (!uid || uid !== productionUid) return;
       if (!currentJob || currentJob.productionUid !== productionUid) return;
-      fetchDraftSignalsFromSupabase(productionUid, sourceProcess);
+      refreshDownstreamSignals();
     })
     .subscribe();
 }
@@ -6052,6 +6253,8 @@ function unsubscribeFromJobSignals() {
       committedEventChannel = null;
     }
   }
+  if (signalsPollTimer) { clearInterval(signalsPollTimer); signalsPollTimer = null; }
+  signalsChannelHealthy = false;
   // Maintain backward compat with old realtimeChannel reference
   realtimeChannel = null;
 }
