@@ -3342,6 +3342,21 @@ function cleanProcessVariant(value){
   if(normalise(text)==="standard")return "";
   return text;
 }
+function resolveCheckVariant(rawVariant,job){
+  // The paint check-config (TOS-235) keys rows to the specific coat class: "1st Coat",
+  // "Recoat", "FR Treatment". A paint job carries the generic "coat" as its variant, which
+  // matches none of those. When the variant is generic (blank / "coat" / "coating"),
+  // resolve it from the job's coat context so the correctly keyed checks match. Any other
+  // (already-specific) variant passes through untouched.
+  const v=cleanProcessVariant(rawVariant);
+  const n=normalise(v);
+  if(n===""||n==="coat"||n==="coating"){
+    if(typeof isFrTreatmentStage==="function"&&isFrTreatmentStage(job))return "FR Treatment";
+    if(typeof isRecoatJob==="function"&&isRecoatJob(job))return "Recoat";
+    return "1st Coat";
+  }
+  return v;
+}
 function getJobProcessVariant(job){
   return cleanProcessVariant(job&&((job.processVariant||job.coatingStage)||""));
 }
@@ -4512,7 +4527,13 @@ function packingCheckMatchesJob(item,job){
 }
 function configureProcessChecks(mode){
   const processStage=(ENTRY_MODES[mode]||{}).processStage||"";
-  const jobVariant=getJobProcessVariant(currentJob);
+  const rawJobVariant=getJobProcessVariant(currentJob);
+  // TOS-235: check rows are keyed to the specific coat class (1st Coat / Recoat / FR
+  // Treatment), but a paint job carries the generic "coat" as its processVariant. Resolve
+  // the generic value to the specific class the check-config expects, so the correctly
+  // keyed checks match without flattening every check to "Any variant" (which would lose
+  // the 1st-Coat vs Recoat distinction). Non-generic variants pass through unchanged.
+  const jobVariant=resolveCheckVariant(rawJobVariant,currentJob);
   const recoveryKey=[
     currentTeam||"",
     currentJob&&currentJob.productionUid||currentJob&&currentJob.productionRow||currentJob&&currentJob.sheetJob||"",
