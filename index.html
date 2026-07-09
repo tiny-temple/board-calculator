@@ -2569,6 +2569,7 @@ const PROCESS_OPERATOR_MEMORY_PREFIX="ttProcessOperatorMemory|v1.76|";
 const JOB_OPERATOR_MEMORY_PREFIX="ttJobProcessOperatorMemory|v1.76|";
 let packingStatusRequests={};
 let pendingQuickPaintNoReject=false;
+let pendingQuickPaintStage="";
 function savePackingQueueToLocalCache(data){try{if(data&&data.ok)localStorage.setItem(PACKING_QUEUE_CACHE_KEY,JSON.stringify({savedAt:new Date().toISOString(),data:data}))}catch(err){}}
 function getPackingQueueFromLocalCache(){try{const raw=localStorage.getItem(PACKING_QUEUE_CACHE_KEY);if(!raw)return null;const item=JSON.parse(raw);return item&&item.data&&item.data.ok?item:null}catch(err){return null}}
 function clearPackingQueueLocalCache(){try{localStorage.removeItem(PACKING_QUEUE_CACHE_KEY)}catch(err){}}
@@ -4938,6 +4939,8 @@ function quickLogNoRejectsFromCoatingOverview(row,event){
     showProcessWarning("Could not find this job in the saved queue. Tap Force Refresh Schedule and try again.");
     return;
   }
+  // TOS-253 Leg A: the card KNOWS its coat stage - carry it instead of dropping it.
+  pendingQuickPaintStage=String(row.displayCoatStage||row.coatingStage||"");
   pendingQuickPaintNoReject=true;
   selectQueueJob(job,"paint_room_rejects");
 }
@@ -4946,7 +4949,12 @@ function submitNoRejectsForCurrentPaintPass(fromOverview){
     showProcessWarning("Open a Paint Room recoat before recording no rejects.");
     return;
   }
-  if(!isRecoatJob(currentJob)){
+  // TOS-253 Leg A: prefer the carried card stage - the job-level variant is often the
+  // generic server "coat", which falsely reads as First Coat on recoat cards.
+  const carriedStage=String(pendingQuickPaintStage||"");
+  pendingQuickPaintStage="";
+  const stageIsRecoat=carriedStage?isLaterPaintCoatVariant(carriedStage):isRecoatJob(currentJob);
+  if(!stageIsRecoat){
     showProcessWarning("First Coat requires the full Paint Room setup checks. Use Start logging rejects, then record No Rejects.");
     return;
   }
@@ -4957,7 +4965,7 @@ function submitNoRejectsForCurrentPaintPass(fromOverview){
     return;
   }
   const config=ENTRY_MODES[currentEntryMode];
-  const variant=getJobProcessVariant(currentJob);
+  const variant=carriedStage||getJobProcessVariant(currentJob);
   const label=variant?"Paint Room — "+variant:"Paint Room";
   if(!window.confirm("Record no rejects for "+label+"?"))return;
   currentProcessSetup=setup;
