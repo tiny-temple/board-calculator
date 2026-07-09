@@ -3844,6 +3844,7 @@ function buildCoatingOverviewFromJobs(jobs){
         totalLitres:0,
         totalShelves:0,
         jobRackTotal:0,
+        seenRackJobs:{},
         jobCount:0,
         completedCount:0,
         frCount:0,
@@ -3854,8 +3855,15 @@ function buildCoatingOverviewFromJobs(jobs){
 
     const summary=summaryMap[key];
     summary.totalLitres+=litres;
-    summary.totalShelves+=Number(row.shelvesRequired||0);
-    summary.jobRackTotal+=Number(row.racksRequired||0);
+    // TOS-249 fix: shelves/racks are a PER-JOB physical footprint - the boards sit
+    // on the same racks across all coats. Summing per pass row multiplied a 3-coat
+    // job's racks x3 in the overview tiles. Litres stay per-pass (each coat drinks).
+    const rackJobKey=String(job.productionUid||job.sheetJob||"")+"|"+String(row.client||"")+"|"+String(row.finishedSize||"")+"|"+String(row.quantity||"");
+    if(!summary.seenRackJobs[rackJobKey]){
+      summary.seenRackJobs[rackJobKey]=true;
+      summary.totalShelves+=Number(row.shelvesRequired||0);
+      summary.jobRackTotal+=Number(row.racksRequired||0);
+    }
     summary.jobCount+=1;
     if(row.completed)summary.completedCount+=1;
     if(isFr)summary.frCount+=1;
