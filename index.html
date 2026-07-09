@@ -5478,7 +5478,14 @@ modeSel.addEventListener("change",()=>{step=1;updateUI();render()});document.que
 function getCurrentDraftPackId(){if(!currentEntryMode||currentEntryMode==="pack_visualiser")return"";const packSelect=document.getElementById("simplePackId");return packSelect?String(packSelect.value||"").trim():""}
 function getRejectDraftKey(){const packId=getCurrentDraftPackId(),jobId=jobContext.productionUid||jobContext.productionRow;if(!currentTeam||!jobId||!currentEntryMode||currentEntryMode==="pack_visualiser"||!packId)return"";return[REJECT_DRAFT_PREFIX,currentTeam,jobId,currentEntryMode,packId].join("|")}
 function saveRejectDraft(){const key=getRejectDraftKey();if(!key)return;const payload={savedAt:new Date().toISOString(),team:currentTeam||"",productionUid:jobContext.productionUid||"",productionRow:jobContext.productionRow||"",jobNo:jobContext.jobNo||"",sheetJob:jobContext.sheetJob||"",entryMode:currentEntryMode||"",packId:getCurrentDraftPackId(),rejectBasket,rejectHistory,rejectNote:getRejectNote()};if(!Object.keys(rejectBasket).length){localStorage.removeItem(key);return}localStorage.setItem(key,JSON.stringify(payload))}
-function restoreRejectDraft(){const key=getRejectDraftKey();rejectBasket={};rejectHistory=[];const noteEl=document.getElementById("rejectNote");if(noteEl)noteEl.value="";if(!key){renderRejectBasket();return false}const raw=localStorage.getItem(key);if(!raw){renderRejectBasket();return false}try{const draft=JSON.parse(raw);rejectBasket=normaliseRejectBasketObject(draft.rejectBasket||{});rejectHistory=normaliseRejectHistoryObject(Array.isArray(draft.rejectHistory)?draft.rejectHistory:[]);if(noteEl)noteEl.value=draft.rejectNote||"";renderRejectBasket();document.getElementById("saveStatus").innerText="Unsaved draft restored for this job / process / pack.";return true}catch(err){localStorage.removeItem(key);renderRejectBasket();return false}}
+function restoreRejectDraft(){const key=getRejectDraftKey();rejectBasket={};rejectHistory=[];const noteEl=document.getElementById("rejectNote");if(noteEl)noteEl.value="";if(!key){renderRejectBasket();return false}
+  // TOS-237: exact key first; on miss, scan this job+process across PACKS and adopt
+  // the newest draft, re-asserting its saved pack (finishSelectQueueJob resets
+  // jobContext.packId to packs[0] on every entry, orphaning final-pack baskets).
+  let raw=localStorage.getItem(key),adoptedPack="";
+  if(!raw){const jobId=jobContext.productionUid||jobContext.productionRow;const prefix=[REJECT_DRAFT_PREFIX,currentTeam,jobId,currentEntryMode].join("|")+"|";let best=null,bestAt=0;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||k.indexOf(prefix)!==0)continue;try{const cand=JSON.parse(localStorage.getItem(k));const at=Date.parse(cand&&cand.savedAt||"")||0;if(at>=bestAt){bestAt=at;best=cand}}catch(e){}}
+  if(best&&best.packId){raw=JSON.stringify(best);adoptedPack=best.packId;jobContext.packId=adoptedPack;const sel=document.getElementById("simplePackId");if(sel)sel.value=adoptedPack;if(currentProcessSetup)currentProcessSetup.packId=adoptedPack;updateJobContextBar()}}
+  if(!raw){renderRejectBasket();return false}try{const draft=JSON.parse(raw);rejectBasket=normaliseRejectBasketObject(draft.rejectBasket||{});rejectHistory=normaliseRejectHistoryObject(Array.isArray(draft.rejectHistory)?draft.rejectHistory:[]);if(noteEl)noteEl.value=draft.rejectNote||"";renderRejectBasket();document.getElementById("saveStatus").innerText=adoptedPack?"Unsaved draft restored - pack "+adoptedPack+" re-selected to match it.":"Unsaved draft restored for this job / process / pack.";return true}catch(err){localStorage.removeItem(key);renderRejectBasket();return false}}
 function clearRejectDraft(){const key=getRejectDraftKey();if(key)localStorage.removeItem(key)}
 function archiveSubmittedDraft(payload){
   try{
@@ -6215,6 +6222,19 @@ function subscribeToJobSignals(productionUid) {
       event:  'DELETE',
       schema: 'public',
       table:  'draft_reject_signals',
+    }, function(payload) {
+      if (!currentJob || currentJob.productionUid !== productionUid) return;
+      refreshDownstreamSignals();
+    })
+    // TOS-237 Gate 4 fix: commit promotion stamps committed_at via UPDATE, which
+    // fired neither handler - a refetch racing the stamp left stale provisional
+    // boards on open grids until reload. UPDATE listener makes the stamp itself
+    // trigger the clean refetch (fetch already excludes committed_at-stamped rows).
+    .on('postgres_changes', {
+      event:  'UPDATE',
+      schema: 'public',
+      table:  'draft_reject_signals',
+      filter: 'production_uid=eq.' + productionUid,
     }, function(payload) {
       if (!currentJob || currentJob.productionUid !== productionUid) return;
       refreshDownstreamSignals();
