@@ -5006,8 +5006,17 @@ function submitNoRejectsForCurrentPaintPass(fromOverview){
   rejectBasket={};
   rejectHistory=[];
   document.getElementById("saveStatus").innerText="";
-  showPostSaveScreen(payload,0);
-  confirmRejectSubmissionWritten(payload,0,0);
+  if(fromOverview){
+    // TOS-253 Leg A: designed flow - stay in the Coating Overview so the next
+    // coat's quick action is one tap away (serial 2nd -> 3rd coat no-rejects).
+    confirmRejectSubmissionWritten(payload,0,0);
+    loadCoatingOverview();
+    const ovSt=document.getElementById("coatingOverviewStatus");
+    if(ovSt)ovSt.innerText="No rejects recorded - "+(variant||"this coat")+". Ready for the next coat.";
+  } else {
+    showPostSaveScreen(payload,0);
+    confirmRejectSubmissionWritten(payload,0,0);
+  }
   if(!outboxOk){
     const details=document.getElementById("postSaveDetails");
     if(details)details.innerHTML+="<br><br>"+escapeHtml("Warning: this device may not have saved a full local backup. Check the Reject Log before repeating this action.");
