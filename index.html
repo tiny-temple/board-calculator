@@ -3843,6 +3843,8 @@ function buildCoatingOverviewFromJobs(jobs){
       summaryMap[key]={
         coating:treatmentName,
         totalLitres:0,
+        parts:null,
+        partLitres:{},
         totalShelves:0,
         jobRackTotal:0,
         seenRackJobs:{},
@@ -3856,6 +3858,21 @@ function buildCoatingOverviewFromJobs(jobs){
 
     const summary=summaryMap[key];
     summary.totalLitres+=litres;
+    // TOS-257: attribute this pass's litres to its coating part (e.g. SIOO:X 3 passes =
+    // 2x Part 1 + 1x Part 2). coatOccurrence is walked against the parts' cumulative
+    // passes, so occurrences 1-2 land on Part 1 and 3 on Part 2; overflow (more passes
+    // than the definition, defensive) lands on the last part. Single-part coatings have
+    // coatingParts null and skip this entirely.
+    const jobParts=Array.isArray(job.coatingParts)&&job.coatingParts.length?job.coatingParts:null;
+    if(jobParts){
+      if(!summary.parts)summary.parts=jobParts;
+      let cum=0,partLabel=jobParts[jobParts.length-1].label;
+      for(const part of jobParts){
+        cum+=Number(part.passes)||0;
+        if(coatOccurrence<=cum){partLabel=part.label;break;}
+      }
+      summary.partLitres[partLabel]=(summary.partLitres[partLabel]||0)+litres;
+    }
     // TOS-249 fix: shelves/racks are a PER-JOB physical footprint - the boards sit
     // on the same racks across all coats. Summing per pass row multiplied a 3-coat
     // job's racks x3 in the overview tiles. Litres stay per-pass (each coat drinks).
@@ -3882,6 +3899,13 @@ function buildCoatingOverviewFromJobs(jobs){
     item.totalLitresDisplay=formatLitresValue(item.totalLitres);
     item.hasPaintQty=item.totalLitres>0;
     item.totalLitresWithVacuumExtraDisplay=item.hasPaintQty?formatLitresValue(item.totalLitres+3):"";
+    // TOS-257: per-part quantity pairs for multi-part coatings - each part is mixed as
+    // its own coater batch, so each gets its own vacuum-extra allowance. null for
+    // single-part coatings (the card keeps the combined pair).
+    item.partQuantities=(item.parts&&item.hasPaintQty)?item.parts.map(part=>{
+      const pl=item.partLitres[part.label]||0;
+      return {label:part.label,litresDisplay:formatLitresValue(pl),withExtraDisplay:formatLitresValue(pl+3)};
+    }):null;
     item.totalShelvesDisplay=item.totalShelves?String(item.totalShelves):"";
     item.totalRacksDisplay=item.totalShelves?String(Math.ceil(item.totalShelves/12)):"";
     item.jobRackTotalDisplay=item.jobRackTotal?String(item.jobRackTotal):"";
@@ -4241,6 +4265,19 @@ function renderCoatingOverview(summary,rows){
     const frLine=item.frCount?'<div class="ttCoatingFrNotice">FR treatment · '+escapeHtml(String(item.frCount))+' pass'+(item.frCount===1?"":"es")+'</div>':"";
     const qtyMain=item.hasPaintQty?escapeHtml(item.totalLitresDisplay||""):"Not set";
     const qtyExtra=item.hasPaintQty?escapeHtml(item.totalLitresWithVacuumExtraDisplay||""):"Not set";
+    // TOS-257: one quantity row per part for multi-part coatings; the single combined
+    // row (unchanged) for everything else.
+    const quantityRows=(item.partQuantities&&item.partQuantities.length)
+      ?item.partQuantities.map(function(pq){
+          return '<div class="ttCoatingQuantityRow">'+
+            '<div class="ttCoatingMetric highlight"><small>'+escapeHtml(pq.label)+' required</small><strong>'+escapeHtml(pq.litresDisplay)+'</strong></div>'+
+            '<div class="ttCoatingMetric"><small>Inc. vacuum extra</small><strong>'+escapeHtml(pq.withExtraDisplay)+'</strong></div>'+
+          '</div>';
+        }).join("")
+      :'<div class="ttCoatingQuantityRow">'+
+        '<div class="ttCoatingMetric highlight"><small>Required</small><strong>'+qtyMain+'</strong></div>'+
+        '<div class="ttCoatingMetric"><small>Inc. vacuum extra</small><strong>'+qtyExtra+'</strong></div>'+
+      '</div>';
     const sequences=(item.sequenceLines||[]).map(function(line){
       const parts=String(line||"").split(": ");
       const label=parts.shift()||"Jobs";
@@ -4249,10 +4286,7 @@ function renderCoatingOverview(summary,rows){
     }).join("");
 
     card.innerHTML='<div class="ttCoatingBatchHeader"><div class="ttCoatingBatchName">'+escapeHtml(item.coating||"Treatment")+'</div><span class="ttCoatingPill">'+escapeHtml(pill)+'</span></div>'+
-      '<div class="ttCoatingQuantityRow">'+
-        '<div class="ttCoatingMetric highlight"><small>Required</small><strong>'+qtyMain+'</strong></div>'+
-        '<div class="ttCoatingMetric"><small>Inc. vacuum extra</small><strong>'+qtyExtra+'</strong></div>'+
-      '</div>'+
+      quantityRows+
       '<div class="ttCoatingBatchMeta"><b>Shelves:</b> '+escapeHtml(item.totalShelvesDisplay||"—")+' &nbsp; <b>Rack spaces:</b> '+escapeHtml(item.totalRacksDisplay||"—")+'</div>'+
       frLine+
       (sequences?'<div class="ttCoatingSequenceList">'+sequences+'</div>':"");
