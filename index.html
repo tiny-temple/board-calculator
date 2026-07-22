@@ -1550,7 +1550,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div class="persistentNavTop">
     <button type="button" class="persistentNavIcon" onclick="persistentGoHome()" aria-label="Home and Job Queue">⌂</button>
     <div class="persistentNavIdentity">
-      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v2.10</span></div>
+      <div class="persistentNavEyebrow">TINY TEMPLE <span class="persistentNavBuild">v2.11</span></div>
       <div id="persistentNavTitle" class="persistentNavTitle">Job Queue</div>
     </div>
     <div class="persistentNavActions">
@@ -1579,7 +1579,7 @@ body.persistentNavHasStepper{padding-top:calc(var(--tt-nav-height) + var(--tt-na
   <div id="headerBar" class="queueAppHeader">
     <div class="queueHeaderIdentity">
       <div class="queueBrand">TINY TEMPLE</div>
-      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v2.10</span></div>
+      <div class="queuePageTitleLine"><h1 class="queuePageTitle">Job Queue</h1><span class="queueVersionMarker">v2.11</span></div>
     </div>
     <div id="queueSyncBadge" class="queueSyncBadge idle" aria-live="polite">
       <span class="queueSyncIcon">✓</span>
@@ -1984,7 +1984,7 @@ function getProcessAvailability(mode){
 
   return{available:true,reason:""};
 }
-const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v2.10|";
+const TEAM_DASHBOARD_CACHE_PREFIX="ttTeamQueue|v2.11|";
 function getTeamDashboardCacheKey(team){return TEAM_DASHBOARD_CACHE_PREFIX+String(team||"").toUpperCase().trim()}
 const JOB_DETAIL_CACHE_PREFIX="ttJobDetails|v2.10|";
 const JOB_COMPLETION_PREFIX="ttJobComplete|v1.76|";
@@ -3509,7 +3509,9 @@ function renderJobQueue(jobs){
     const frBadge=frActive?'<span class="frTreatmentBadge">FR TREATMENT</span>':"";
     const variantBadge=variant?(recoat?'<span class="recoatBadge">RECOAT</span>':(normalise(variant).indexOf("fr treatment")!==-1?'<span class="frTreatmentBadge">FR TREATMENT</span>':'<span class="queueVariantBadge">'+escapeHtml(variant.toUpperCase())+'</span>')):"";
     const noCoverBadge=(job.preProductionWarning&&job.preProductionWarning!=="OK")?'<span style="background:#b00020;color:#fff;font-weight:700;padding:3px 8px;border-radius:4px;font-size:12px;letter-spacing:.05em;text-transform:uppercase">'+escapeHtml(job.preProductionWarning==="NO_COVER"?"NO STOCK COVER":job.preProductionWarning)+'</span>':"";
-    const badges=noCoverBadge+variantBadge+(frActive&&normalise(variant).indexOf("fr treatment")===-1?frBadge:"")+(completed?'<span class="jobCompleteBadge">PAINT LOGGED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"");
+    const pulls=Array.isArray(job.finishedAllocations)?job.finishedAllocations:[];
+    const pullChip=pulls.length?'<span style="background:#1a7a3a;color:#fff;font-weight:700;padding:3px 8px;border-radius:4px;font-size:12px;letter-spacing:.05em;text-transform:uppercase">PULL FINISHED STOCK</span>':"";
+    const badges=noCoverBadge+variantBadge+(frActive&&normalise(variant).indexOf("fr treatment")===-1?frBadge:"")+(completed?'<span class="jobCompleteBadge">PAINT LOGGED</span>':"")+(cached?'<span class="jobCachedBadge">CACHED</span>':"")+pullChip;
     const numberText=escapeHtml(job.jobNo||String(index+1));
     let metaRows="";
     if(isFrTreatmentStage(job)){
@@ -3533,6 +3535,11 @@ function renderJobQueue(jobs){
     }
     if(packText){
       metaRows+='<div class="queueMetaRow"><span class="queueMetaItem wide"><b>Packs</b><span>'+escapeHtml(packText)+'</span></span></div>';
+    }
+    if(pulls.length){
+      const pullText=pulls.map(pl=>"Pull "+pl.pull_qty+" x "+(pl.sku_display||"")+" from "+pl.location).join("  |  ");
+      const produceText=(job.produceQty!=null)?("  -  Produce "+job.produceQty):"";
+      metaRows+='<div class="queueMetaRow"><span class="queueMetaItem wide"><b style="color:#1a7a3a">Finished stock</b><span style="color:#1a7a3a;font-weight:700">'+escapeHtml(pullText+produceText)+'</span></span></div>';
     }
     btn.innerHTML='<div class="queueCardHeader"><span class="queueJobNumber">'+numberText+'</span><div class="queueCardMain"><div class="queueClient">'+escapeHtml(job.sheetJob||"")+' — '+escapeHtml(job.client||"")+'</div><div class="queueBadgeRow">'+badges+'</div></div><span class="queueOpenChevron">›</span></div><div class="queueMetaRows">'+metaRows+'</div>';
     btn.onclick=()=>{persistentNavigationOrigin="queue";selectQueueJob(job);};
@@ -6843,6 +6850,8 @@ async function applyScheduleOverlay(team){
       else if (sv === "2nd coat" || sv === "3rd coat") base.processVariant = "Recoat";
     }
     base.preProductionWarning = slot.pre_production_warning || "OK";
+    base.finishedAllocations = Array.isArray(slot.finished_allocations) ? slot.finished_allocations : [];
+    base.produceQty = (slot.produce_qty != null) ? slot.produce_qty : null;
     base.packs = mappedPacks;
     // Override card-displayed metadata with endpoint values (canonical from jobs table)
     if (slot.client) base.client = slot.client;
